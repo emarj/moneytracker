@@ -9,7 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/alecthomas/template"
+	"html/template"
+
 	"github.com/satori/go.uuid"
 
 	"ronche.se/expensetracker/model"
