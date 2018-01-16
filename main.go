@@ -26,17 +26,6 @@ func main() {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}
 
-	srv.UserInsert("M")
-	srv.UserInsert("A")
-
-	srv.CategoryInsert("Uncategorized")
-	srv.CategoryInsert("Spesa")
-	srv.CategoryInsert("Ristorante")
-
-	srv.PaymentMethodInsert("Contanti")
-	srv.PaymentMethodInsert("Bancomat")
-	srv.PaymentMethodInsert("CC / Paypal")
-
 	fmt.Println("Listening...")
 	log.Fatal(http.ListenAndServe("localhost:3000", mux))
 
