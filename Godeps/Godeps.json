@@ -1,0 +1,20 @@
+{
+	"ImportPath": "ronche.se/expensetracker",
+	"GoVersion": "go1.9",
+	"GodepVersion": "v79",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.6.0",
+			"Rev": "6c771bb9887719704b210e87e934f08be014bdb1"
+		},
+		{
+			"ImportPath": "github.com/satori/go.uuid",
+			"Comment": "v1.2.0-4-g36e9d2e",
+			"Rev": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
+		}
+	]
+}
