@@ -7,7 +7,6 @@
       <th>Date</th>
       <th>Who</th>
       <th>Description</th>
-      <!--<th>Where</th>-->
       <th>Amount</td>
       <th>Method</th>
       <th>Shared</th>
@@ -17,21 +16,21 @@
   <tbody>
       <tr>
           <form class="form-inline" action="/add/" method="POST">
-          <td><input class="form-control" type="date" name="Date" /></td>
+          <td><input class="form-control" type="date" name="Date"/></td>
           <td><select class="form-control" name="WhoID" >
               {{range $user := .Users}}
                 <option value="{{$user.ID}}">{{$user.Name}}</option>
               {{end}}
           </select></td>
-          <td><input class="form-control" type="text" name="Description"/></td>
-          <td><input class="form-control" type="text" name="Amount" value="0"/></td>
+          <td><input class="form-control" type="text" name="Description" placeholder="Description"/></td>
+          <td><input class="form-control" type="number" step="0.01" name="Amount" value="0"/></td>
           <td><select class="form-control" name="MethodID">
               {{range $pm := .PaymentMethods}}
                 <option value="{{$pm.ID}}">{{$pm.Name}}</option>>
               {{end}}
           </select></td>
-          <td><input class="form-control" type="checkbox" name="Shared"/></td>
-          <td><input class="form-control" type="text" name="ShareQuota" value="50"/></td>
+          <td><input class="form-control" type="checkbox" name="Shared" id="shared-input"/></td>
+          <td><input class="form-control" disabled="disabled" type="number" step="5" min="0" max="100" name="ShareQuota" value="50" id="sharequota-input"/></td>
           <td><select class="form-control" name="CategoryID">
               {{range $cat := .Categories}}
                 <option value="{{$cat.ID}}">{{$cat.Name}}</option>>
@@ -50,10 +49,10 @@
         <td>{{$expense.Date.Format "02/01/2006" }}</td>
         <td>{{$expense.Who.Name }}</td>
         <td>{{$expense.Description }}</td>
-        <td>{{$expense.Amount }}</td>
+        <td>{{formatDecimal $expense.Amount }}</td>
         <td>{{$expense.Method.Name }}</td>
-        <td>{{$expense.Shared }}</td>
-        <td>{{$expense.ShareQuota }}</td>
+        <td><input type="checkbox" disabled="disabled"  {{if $expense.Shared}} checked="checked" {{end}}/></td>
+        <td>{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
         <td>{{$expense.Category.Name }}</td>
         <td>
           <div class="pull-right">

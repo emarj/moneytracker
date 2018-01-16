@@ -91,6 +91,7 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 		categories.name
 		 FROM expenses,users,paymentmethods,categories
 		WHERE expenses.who=users.id AND expenses.method=paymentmethods.id AND expenses.category=categories.id
+		ORDER BY expenses.date DESC
 		LIMIT ` + strconv.Itoa(limit))
 	if err != nil {
 		return nil, err
@@ -187,8 +188,8 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
 	}
 	_, err = stmt.Exec(
 		e.UUID.String(),
-		e.DateCreated.Format("2006-02-01"),
-		e.Date.Format("2006-02-01"),
+		e.DateCreated.Format("2006-01-02"),
+		e.Date.Format("2006-01-02"),
 		e.Who.ID,
 		e.Amount,
 		e.Method.ID,

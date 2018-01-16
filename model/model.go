@@ -63,13 +63,13 @@ func ParseExpenseNoID(
 	}
 	e.Shared = shrd
 
-	dc, err := time.Parse("2006-02-01", dateCreated)
+	dc, err := time.Parse("2006-01-02", dateCreated)
 	if err != nil {
 		return nil, err
 	}
 	e.DateCreated = dc
 
-	d, err := time.Parse("2006-02-01", date)
+	d, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return nil, err
 	}

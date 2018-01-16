@@ -13,15 +13,13 @@ import (
 	"github.com/satori/go.uuid"
 
 	"ronche.se/expensetracker/model"
+	"ronche.se/expensetracker/utils"
 )
 
 func HTMLHandler(srv model.Service, tmplPath string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
-		"mod": func(a, b int) int {
-			return a % b
-		},
-		"inc": func(a int) int {
-			return a + 1
+		"formatDecimal": func(n int) string {
+			return utils.FormatDecimal(n)
 		},
 	}).ParseGlob(path.Join(tmplPath, "*"))
 
@@ -97,19 +95,6 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) 
 	}
 }
 
-/* func (view *HTMLView) Render(data ...interface{}) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	name, ok := data[0].(string)
-	if !ok {
-		return nil, errors.New("template name has to be a string")
-	}
-	err := view.tp.ExecuteTemplate(buf, name, data[1])
-	if err != nil {
-		return buf.Bytes(), err
-	}
-	return buf.Bytes(), nil
-} */
-
 func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
 	es, err := h.srv.ExpensesGetN(20)
 	if err != nil {
@@ -173,7 +158,7 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 		e.Date = time.Now().Local()
 	}
 
-	am, err := strconv.Atoi(r.FormValue("Amount"))
+	am, err := utils.ParseDecimal(r.FormValue("Amount"))
 	if err != nil {
 		return htmlResErr(err, http.StatusBadRequest)
 	}
@@ -199,13 +184,13 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 	if r.FormValue("Shared") == "on" {
 		e.Shared = true
-	}
 
-	quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
-	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
+		if err != nil {
+			return htmlResErr(err, http.StatusBadRequest)
+		}
+		e.ShareQuota = quota
 	}
-	e.ShareQuota = quota
 
 	_, err = h.srv.ExpenseInsert(&e)
 	if err != nil {
