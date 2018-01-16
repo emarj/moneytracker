@@ -1,0 +1,73 @@
+{{define "index"}}
+
+{{template "header" .}}
+
+<table class="table table-striped">
+  <thead>
+      <th>Date</th>
+      <th>Who</th>
+      <th>Description</th>
+      <!--<th>Where</th>-->
+      <th>Amount</td>
+      <th>Method</th>
+      <th>Shared</th>
+      <th>Quota</th>
+      <th>Category</th>
+  </thead>
+  <tbody>
+      <tr>
+          <form class="form-inline" action="/add/" method="POST">
+          <td><input class="form-control" type="date" name="Date" /></td>
+          <td><select class="form-control" name="WhoID" >
+              {{range $user := .Users}}
+                <option value="{{$user.ID}}">{{$user.Name}}</option>
+              {{end}}
+          </select></td>
+          <td><input class="form-control" type="text" name="Description"/></td>
+          <td><input class="form-control" type="text" name="Amount" value="0"/></td>
+          <td><select class="form-control" name="MethodID">
+              {{range $pm := .PaymentMethods}}
+                <option value="{{$pm.ID}}">{{$pm.Name}}</option>>
+              {{end}}
+          </select></td>
+          <td><input class="form-control" type="checkbox" name="Shared"/></td>
+          <td><input class="form-control" type="text" name="ShareQuota" value="50"/></td>
+          <td><select class="form-control" name="CategoryID">
+              {{range $cat := .Categories}}
+                <option value="{{$cat.ID}}">{{$cat.Name}}</option>>
+              {{end}}
+          </select></td>
+          <td>
+            <div class="pull-right">
+              <button href="/add/" class="btn btn-primary">Add</button>
+            </div>
+          </td>
+          </form>
+        </tr>
+
+    {{range $expense := .Expenses}}
+      <tr>
+        <td>{{$expense.Date.Format "02/01/2006" }}</td>
+        <td>{{$expense.Who.Name }}</td>
+        <td>{{$expense.Description }}</td>
+        <td>{{$expense.Amount }}</td>
+        <td>{{$expense.Method.Name }}</td>
+        <td>{{$expense.Shared }}</td>
+        <td>{{$expense.ShareQuota }}</td>
+        <td>{{$expense.Category.Name }}</td>
+        <td>
+          <div class="pull-right">
+            <a href="/delete/?uuid={{$expense.UUID}}" class="btn btn-danger">Delete</a>
+          </div>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>
+
+
+{{template "footer" .}} 
+
+{{end}}
+
+
