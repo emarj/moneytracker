@@ -27,6 +27,6 @@ func main() {
 	}
 
 	fmt.Println("Listening...")
-	log.Fatal(http.ListenAndServe("localhost:3000", mux))
+	log.Fatal(http.ListenAndServe(":80", mux))
 
 }
