@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"ronche.se/expensetracker/handler"
 	"ronche.se/expensetracker/model/sqlite"
@@ -26,7 +27,14 @@ func main() {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}
 
-	fmt.Println("Listening...")
-	log.Fatal(http.ListenAndServe(":80", mux))
+	var port = os.Getenv("PORT")
+	// Set a default port if there is nothing in the environment
+	if port == "" {
+		port = "3000"
+		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+	}
+
+	fmt.Printf("Listening on port %s...", port)
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 
 }
