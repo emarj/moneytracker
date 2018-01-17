@@ -9,7 +9,7 @@ import (
 	//sqlite driver
 	_ "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
-	"ronche.se/expensetracker/model"
+	"ronche.se/moneytracker/model"
 )
 
 var schema = [...]string{

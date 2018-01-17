@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"ronche.se/expensetracker/model"
+	"ronche.se/moneytracker/model"
 )
 
 func TestNew(t *testing.T) {

@@ -1,4 +1,5 @@
 - Implement transactions
-- SQLite
+- add time -> maybe with Google Drive not needed
 - binding
-- gorilla mux
+- gorilla mux <-> different pages per user
+- Google

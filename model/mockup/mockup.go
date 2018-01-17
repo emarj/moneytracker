@@ -5,7 +5,7 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-	"ronche.se/expensetracker/model"
+	"ronche.se/moneytracker/model"
 )
 
 func New() (model.Service, error) {

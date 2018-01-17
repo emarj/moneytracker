@@ -8,7 +8,7 @@ import (
 
 	"github.com/satori/go.uuid"
 
-	"ronche.se/expensetracker/model"
+	"ronche.se/moneytracker/model"
 )
 
 func JSONHandler(srv model.Service) http.Handler {

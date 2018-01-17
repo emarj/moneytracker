@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"ronche.se/expensetracker/handler"
-	"ronche.se/expensetracker/model/sqlite"
+	"ronche.se/moneytracker/handler"
+	"ronche.se/moneytracker/model/sqlite"
 )
 
 func main() {

@@ -13,8 +13,8 @@ import (
 
 	"github.com/satori/go.uuid"
 
-	"ronche.se/expensetracker/model"
-	"ronche.se/expensetracker/utils"
+	"ronche.se/moneytracker/model"
+	"ronche.se/moneytracker/utils"
 )
 
 func HTMLHandler(srv model.Service, tmplPath string) (http.Handler, error) {
