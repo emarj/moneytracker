@@ -32,14 +32,20 @@ func ParseDecimal(numstr string) (int, error) {
 func FormatDecimal(n int) string {
 	var str string
 
+	sign := ""
+	if n < 0 {
+		sign = "-"
+		n = -1 * n
+	}
+
 	if n < 100 {
 		str = "0."
 		if n < 10 {
 			str = str + "0"
 		}
-		return str + strconv.Itoa(n)
+		return sign + str + strconv.Itoa(n)
 	}
 
 	str = strconv.Itoa(n)
-	return str[:len(str)-2] + "." + str[len(str)-2:]
+	return sign + str[:len(str)-2] + "." + str[len(str)-2:]
 }

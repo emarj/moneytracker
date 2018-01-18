@@ -2,16 +2,17 @@ package handler
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"net/http"
 	"path"
 	"strconv"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
+
 	"html/template"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 
 	"ronche.se/moneytracker/model"
 	"ronche.se/moneytracker/utils"
@@ -30,12 +31,13 @@ func HTMLHandler(srv model.Service, tmplPath string) (http.Handler, error) {
 
 	h := htmlHandler{srv, t}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", h.htmlResponseWriter(h.listExpenses))
-	mux.HandleFunc("/add/", h.htmlResponseWriter(h.addExpense))
-	mux.HandleFunc("/delete/", h.htmlResponseWriter(h.deleteExpense))
+	router := httprouter.New()
+	router.GET("/", h.htmlResponseWriter(h.listExpenses))
+	router.POST("/", h.htmlResponseWriter(h.listExpenses))
+	router.POST("/add/", h.htmlResponseWriter(h.addExpense))
+	router.GET("/delete/:uuid", h.htmlResponseWriter(h.deleteExpense))
 
-	return mux, nil
+	return router, nil
 }
 
 type htmlHandler struct {
@@ -64,11 +66,11 @@ func htmlResOK(data interface{}, tmpl string) *htmlResponse {
 func htmlResErr(err error, status int) *htmlResponse {
 	return &htmlResponse{Err: err, Status: status}
 }
-func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.Params) *htmlResponse) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 		buf := new(bytes.Buffer)
-		res := f(r)
+		res := f(r, ps)
 		if res.IsRedirect {
 			http.Redirect(w, r, res.RedirectTo, res.Status)
 			return
@@ -96,7 +98,7 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) 
 	}
 }
 
-func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
+func (h *htmlHandler) listExpenses(r *http.Request, ps httprouter.Params) *htmlResponse {
 	es, err := h.srv.ExpensesGetN(20)
 	if err != nil {
 		return htmlResErr(err, http.StatusInternalServerError)
@@ -123,7 +125,7 @@ func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
 	return htmlResOK(result{es, cat, u, pm}, "index")
 }
 
-func (h *htmlHandler) getExpense(r *http.Request) *htmlResponse {
+func (h *htmlHandler) getExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
 
 	idstr := r.URL.Query().Get("uuid")
 
@@ -139,11 +141,7 @@ func (h *htmlHandler) getExpense(r *http.Request) *htmlResponse {
 	return htmlResOK(e, "view")
 }
 
-func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
-
-	if r.Method != http.MethodPost {
-		return htmlResErr(fmt.Errorf("method %s not allowed", r.Method), http.StatusMethodNotAllowed)
-	}
+func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
 
 	r.ParseForm()
 
@@ -223,8 +221,8 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 }*/
 
-func (h *htmlHandler) deleteExpense(r *http.Request) *htmlResponse {
-	idstr := r.URL.Query().Get("uuid")
+func (h *htmlHandler) deleteExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
+	idstr := ps.ByName("uuid")
 
 	id, err := uuid.FromString(idstr)
 	if err != nil {

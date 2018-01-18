@@ -23,11 +23,20 @@ func TestParseDecimal(t *testing.T) {
 		t.Errorf("got %d instead of %d", n, expecting)
 	}
 
-	n, err = ParseDecimal("123.9")
+	n, err = ParseDecimal("-123.9")
 	if err != nil {
 		t.Error(err)
 	}
-	expecting = 12390
+	expecting = -12390
+	if n != expecting {
+		t.Errorf("got %d instead of %d", n, expecting)
+	}
+
+	n, err = ParseDecimal("-0")
+	if err != nil {
+		t.Error(err)
+	}
+	expecting = 0
 	if n != expecting {
 		t.Errorf("got %d instead of %d", n, expecting)
 	}
@@ -59,6 +68,16 @@ func TestFormatDecimal(t *testing.T) {
 		t.Errorf("got %s instead", str)
 	}
 
+	str = FormatDecimal(12389)
+	if str != "123.89" {
+		t.Errorf("got %s instead", str)
+	}
+
+	str = FormatDecimal(-12389)
+	if str != "-123.89" {
+		t.Errorf("got %s instead", str)
+	}
+
 	str = FormatDecimal(0)
 	if str != "0.00" {
 		t.Errorf("got %s instead", str)
@@ -66,6 +85,11 @@ func TestFormatDecimal(t *testing.T) {
 
 	str = FormatDecimal(9)
 	if str != "0.09" {
+		t.Errorf("got %s instead", str)
+	}
+
+	str = FormatDecimal(-9)
+	if str != "-0.09" {
 		t.Errorf("got %s instead", str)
 	}
 

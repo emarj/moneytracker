@@ -35,6 +35,6 @@ func main() {
 	}
 
 	fmt.Printf("Listening on port %s...", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	log.Fatal(http.ListenAndServe("localhost:"+port, mux))
 
 }
