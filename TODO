@@ -1,3 +1,7 @@
+1) Switch to gorm
+2) Sheets add flag: inSheet
+3) Implement transfer
+
 - Implement transactions
 - database binding
 - binding
