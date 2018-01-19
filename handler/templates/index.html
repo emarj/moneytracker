@@ -37,6 +37,7 @@
       <th>Shared</th>
       <th>Quota</th>
       <th>Category</th>
+      <th> </th>
   </thead>
   <tbody>
       {{range $expense := .Expenses}}
@@ -49,11 +50,7 @@
         <td><input type="checkbox" disabled="disabled"  {{if $expense.Shared}} checked="checked" {{end}}/></td>
         <td>{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
         <td>{{$expense.Category.Name }}</td>
-        <td>
-          <div class="pull-right">
-            <a href="/delete/{{$expense.UUID}}" class="btn btn-danger">Delete</a>
-          </div>
-        </td>
+        <td><a class="btn btn-info" href="/sheet/add/{{$expense.UUID}}">Add</a></td>
       </tr>
     {{end}}
   </tbody>

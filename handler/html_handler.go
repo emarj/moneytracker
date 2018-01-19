@@ -15,10 +15,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	"ronche.se/moneytracker/model"
+	"ronche.se/moneytracker/sheet"
 	"ronche.se/moneytracker/utils"
 )
 
-func HTMLHandler(srv model.Service, tmplPath string) (http.Handler, error) {
+func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
 		"formatDecimal": func(n int) string {
 			return utils.FormatDecimal(n)
@@ -29,20 +30,22 @@ func HTMLHandler(srv model.Service, tmplPath string) (http.Handler, error) {
 		return nil, err
 	}
 
-	h := htmlHandler{srv, t}
+	h := htmlHandler{dbSrv, sheetSrv, t}
 
 	router := httprouter.New()
 	router.GET("/", h.htmlResponseWriter(h.listExpenses))
 	router.POST("/", h.htmlResponseWriter(h.listExpenses))
 	router.POST("/add/", h.htmlResponseWriter(h.addExpense))
 	router.GET("/delete/:uuid", h.htmlResponseWriter(h.deleteExpense))
+	router.GET("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
 
 	return router, nil
 }
 
 type htmlHandler struct {
-	srv  model.Service
-	tmpl *template.Template
+	dbSrv    model.Service
+	sheetSrv *sheet.SheetService
+	tmpl     *template.Template
 	//Google Sheets
 }
 
@@ -99,19 +102,19 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.P
 }
 
 func (h *htmlHandler) listExpenses(r *http.Request, ps httprouter.Params) *htmlResponse {
-	es, err := h.srv.ExpensesGetN(20)
+	es, err := h.dbSrv.ExpensesGetN(20)
 	if err != nil {
 		return htmlResErr(err, http.StatusInternalServerError)
 	}
-	cat, err := h.srv.CategoriesGetAll()
+	cat, err := h.dbSrv.CategoriesGetAll()
 	if err != nil {
 		return htmlResErr(err, http.StatusInternalServerError)
 	}
-	u, err := h.srv.UsersGetAll()
+	u, err := h.dbSrv.UsersGetAll()
 	if err != nil {
 		return htmlResErr(err, http.StatusInternalServerError)
 	}
-	pm, err := h.srv.PaymentMethodsGetAll()
+	pm, err := h.dbSrv.PaymentMethodsGetAll()
 	if err != nil {
 		return htmlResErr(err, http.StatusInternalServerError)
 	}
@@ -134,7 +137,7 @@ func (h *htmlHandler) getExpense(r *http.Request, ps httprouter.Params) *htmlRes
 		return htmlResErr(err, http.StatusBadRequest)
 	}
 
-	e, err := h.srv.ExpenseGet(id)
+	e, err := h.dbSrv.ExpenseGet(id)
 	if err != nil {
 		return htmlResErr(err, http.StatusNotFound)
 	}
@@ -191,7 +194,7 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 		e.ShareQuota = quota
 	}
 
-	_, err = h.srv.ExpenseInsert(&e)
+	_, err = h.dbSrv.ExpenseInsert(&e)
 	if err != nil {
 		return htmlResErr(err, http.StatusInternalServerError)
 	}
@@ -212,7 +215,7 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 		return nil, http.StatusBadRequest, fmt.Errorf("cannot parse json request: %v", err)
 	}
 
-	result, err := h.srv.ExpenseUpdate(&e)
+	result, err := h.dbSrv.ExpenseUpdate(&e)
 	if err != nil {
 		return nil, http.StatusInternalServerError, nil
 	}
@@ -222,15 +225,41 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 }*/
 
 func (h *htmlHandler) deleteExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
-	idstr := ps.ByName("uuid")
 
-	id, err := uuid.FromString(idstr)
+	id, err := uuid.FromString(ps.ByName("uuid"))
 	if err != nil {
 		return htmlResErr(err, http.StatusBadRequest)
 	}
-	err = h.srv.ExpenseDelete(id)
+	err = h.dbSrv.ExpenseDelete(id)
 	if err != nil {
 		return htmlResErr(err, http.StatusNotFound)
 	}
+	return htmlResRedir("/", http.StatusTemporaryRedirect)
+}
+
+func (h *htmlHandler) addExpenseToSheet(r *http.Request, ps httprouter.Params) *htmlResponse {
+	id, err := uuid.FromString(ps.ByName("uuid"))
+	if err != nil {
+		return htmlResErr(err, http.StatusBadRequest)
+	}
+
+	e, err := h.dbSrv.ExpenseGet(id)
+	if err != nil {
+		return htmlResErr(err, http.StatusBadRequest)
+	}
+
+	err = h.sheetSrv.Insert(*e)
+	if err != nil {
+		return htmlResErr(err, http.StatusInternalServerError)
+	}
+
+	/*
+		e.InSheet = true
+		err := h.dbSrv.ExpenseUpdate(e)
+		if err != nil {
+			return htmlResErr(err, http.StatusInternalServerError)
+		}
+	*/
+
 	return htmlResRedir("/", http.StatusTemporaryRedirect)
 }

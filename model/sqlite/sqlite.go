@@ -205,13 +205,108 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
 
 	return e, nil
 }
-func (s *sqlite) ExpenseGet(id uuid.UUID) (*model.Expense, error) {
+func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
 
-	return &model.Expense{}, nil
+	var (
+		id          string
+		dateCreated string
+		date        string
+		amount      int
+		description string
+		shared      string
+		quota       int
+		whoID       int
+		whoName     string
+		methodID    int
+		methodName  string
+		catID       int
+		catName     string
+	)
+
+	err := s.db.QueryRow(`SELECT expenses.uuid,
+		expenses.datecreated,
+		expenses.date,
+		expenses.amount,
+		expenses.description,
+		expenses.shared,
+		expenses.quota,
+		users.id,
+		users.name,
+		paymentmethods.id,
+		paymentmethods.name,
+		categories.id,
+		categories.name
+		 FROM expenses,users,paymentmethods,categories
+		WHERE expenses.who=users.id AND expenses.method=paymentmethods.id AND expenses.category=categories.id AND expenses.uuid ='`+uid.String()+"'").Scan(
+		&id,
+		&dateCreated,
+		&date,
+		&amount,
+		&description,
+		&shared,
+		&quota,
+		&whoID,
+		&whoName,
+		&methodID,
+		&methodName,
+		&catID,
+		&catName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := model.ParseExpense(id, dateCreated,
+		date,
+		amount,
+		description,
+		shared,
+		quota,
+		whoID,
+		whoName,
+		methodID,
+		methodName,
+		catID,
+		catName)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
-func (s *sqlite) ExpenseUpdate(expense *model.Expense) (*model.Expense, error) {
-	return &model.Expense{}, nil
+func (s *sqlite) ExpenseUpdate(e *model.Expense) (*model.Expense, error) {
+	stmt, err := s.db.Prepare(
+		`UPDATE expenses
+		SET
+			date = ?,
+			who = ?,
+			amount = ?,
+			method = ?,
+			description = ?,
+			category = ?,
+			shared = ?,
+			quota = ?
+		WHERE uuid = '` + e.UUID.String() + `'`)
+	if err != nil {
+		return nil, err
+	}
+	_, err = stmt.Exec(
+		e.Date.Format("2006-01-02"),
+		e.Who.ID,
+		e.Amount,
+		e.Method.ID,
+		e.Description,
+		e.Category.ID,
+		strconv.FormatBool(e.Shared),
+		e.ShareQuota,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
 func (s *sqlite) ExpenseDelete(id uuid.UUID) error {

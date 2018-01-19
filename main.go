@@ -8,21 +8,24 @@ import (
 
 	"ronche.se/moneytracker/handler"
 	"ronche.se/moneytracker/model/sqlite"
+	"ronche.se/moneytracker/sheet"
 )
 
 func main() {
 
-	srv, err := sqlite.New("./db.sqlite", true)
+	sheetsSrv, err := sheet.New("client_secret_v1.json", "1ud3T4uUPOv94Atj4Qopy1qhwatLaXsXnLOl_n-Qxya4")
+
+	dbSrv, err := sqlite.New("./moneytracker.sqlite", true)
 	if err != nil {
 		log.Fatalln("impossible to connect to db")
 	}
 	defer func() {
-		if err := srv.Close(); err != nil {
+		if err := dbSrv.Close(); err != nil {
 			log.Fatalf("impossible to close connection: %v", err)
 		}
 	}()
 
-	mux, err := handler.HTMLHandler(srv, "handler/templates")
+	mux, err := handler.HTMLHandler(dbSrv, sheetsSrv, "handler/templates")
 	if err != nil {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}

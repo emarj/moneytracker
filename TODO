@@ -1,5 +1,7 @@
 - Implement transactions
-- add time -> maybe with Google Drive not needed
+- database binding
 - binding
-- gorilla mux <-> different pages per user
-- Google
+- different pages per user
+- shopspring decimal
+- operazioni madre/figlie
+- add time -> maybe with Google Drive not needed?

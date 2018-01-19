@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -90,6 +91,49 @@ func TestExpenseInsert(t *testing.T) {
 	_, err = s.ExpenseInsert(&e)
 	if err != nil {
 		t.Error(err)
+	}
+
+}
+
+func TestExpenseUpdate(t *testing.T) {
+	s, err := New("./test.db", true)
+	if err != nil {
+		t.Error(err)
+	}
+	defer func() {
+		s.Close()
+		//os.Remove("./test.db")
+	}()
+
+	u := model.User{1, ""}
+	c := model.Category{1, ""}
+	pm := model.PaymentMethod{1, ""}
+	e := model.Expense{Date: time.Now().Local(), Who: &u, Method: &pm, Category: &c}
+	fmt.Println(e.UUID)
+	_, err = s.ExpenseInsert(&e)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(e.UUID)
+
+	e.Amount = 123456
+	_, err = s.ExpenseUpdate(&e)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	fmt.Println(e.UUID)
+
+	res, err := s.ExpenseGet(e.UUID)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if res.Amount != e.Amount {
+		t.Errorf("%d != %d", res.Amount, e.Amount)
 	}
 
 }
