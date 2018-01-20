@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/shopspring/decimal"
+
 	"github.com/julienschmidt/httprouter"
 
 	"html/template"
@@ -16,14 +18,11 @@ import (
 
 	"ronche.se/moneytracker/model"
 	"ronche.se/moneytracker/sheet"
-	"ronche.se/moneytracker/utils"
 )
 
 func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
-		"formatDecimal": func(n int) string {
-			return utils.FormatDecimal(n)
-		},
+	//
 	}).ParseGlob(path.Join(tmplPath, "*"))
 
 	if err != nil {
@@ -160,7 +159,7 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 		e.Date = time.Now().Local()
 	}
 
-	am, err := utils.ParseDecimal(r.FormValue("Amount"))
+	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
 		return htmlResErr(err, http.StatusBadRequest)
 	}

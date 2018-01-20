@@ -45,7 +45,7 @@
         <td>{{$expense.Date.Format "02/01/2006" }}</td>
         <td>{{$expense.Who.Name }}</td>
         <td>{{$expense.Description }}</td>
-        <td>{{formatDecimal $expense.Amount }}</td>
+        <td>{{$expense.Amount }}</td>
         <td>{{$expense.Method.Name }}</td>
         <td><input type="checkbox" disabled="disabled"  {{if $expense.Shared}} checked="checked" {{end}}/></td>
         <td>{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>

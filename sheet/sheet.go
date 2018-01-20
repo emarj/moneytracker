@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/shopspring/decimal"
 	"golang.org/x/oauth2/google"
 	sheets "google.golang.org/api/sheets/v4"
 	"ronche.se/moneytracker/model"
@@ -57,13 +58,13 @@ func (s *SheetService) Insert(e model.Expense) error {
 	}
 
 	u1rows := [][]interface{}{
-		{e.UUID, e.Date.Format("02/01/2006"), e.Who.Name, e.Description, e.Method.Name, e.Amount, e.Shared, e.ShareQuota, e.Category.Name},
+		{e.UUID, e.Date.Format("02/01/2006"), e.Who.Name, e.Description, e.Method.Name, e.Amount.String(), e.Shared, e.ShareQuota, e.Category.Name},
 	}
 
 	if e.Shared {
-
-		amount2 := float64(e.Amount*e.ShareQuota) / float64(100)
-		amount1 := amount2 - float64(e.Amount)
+		quota := decimal.New(int64(e.ShareQuota), -2)
+		amount2 := e.Amount.Mul(quota)
+		amount1 := amount2.Sub(e.Amount)
 
 		u1rows = append(u1rows, []interface{}{e.UUID, e.Date.Format("02/01/2006"), e.Who.Name, "Storno: " + e.Description, "", amount1, e.Shared, e.ShareQuota, e.Category.Name})
 		u2rows := [][]interface{}{{e.UUID, e.Date.Format("02/01/2006"), e.Who.Name, e.Description, "", amount2, e.Shared, e.ShareQuota, e.Category.Name}}

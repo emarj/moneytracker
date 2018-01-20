@@ -5,6 +5,7 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
+	"github.com/shopspring/decimal"
 )
 
 type User struct {
@@ -29,16 +30,16 @@ type Expense struct {
 	Description string
 	Who         *User
 	Method      *PaymentMethod
-	Amount      int
+	Amount      decimal.Decimal
 	Shared      bool
 	ShareQuota  int
 	Category    *Category
 }
 
-func ParseExpenseNoID(
+func NewExpenseNoID(
 	dateCreated string,
 	date string,
-	amount int,
+	amount decimal.Decimal,
 	description string,
 	shared string,
 	quota int,
@@ -78,10 +79,10 @@ func ParseExpenseNoID(
 	return &e, nil
 }
 
-func ParseExpense(id string,
+func NewExpense(id string,
 	dateCreated string,
 	date string,
-	amount int,
+	amount decimal.Decimal,
 	description string,
 	shared string,
 	quota int,
@@ -91,7 +92,7 @@ func ParseExpense(id string,
 	methodName string,
 	catID int,
 	catName string) (*Expense, error) {
-	e, err := ParseExpenseNoID(
+	e, err := NewExpenseNoID(
 		dateCreated,
 		date,
 		amount,

@@ -9,6 +9,7 @@ import (
 	//sqlite driver
 	_ "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
+	"github.com/shopspring/decimal"
 	"ronche.se/moneytracker/model"
 )
 
@@ -104,7 +105,7 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 		id          string
 		dateCreated string
 		date        string
-		amount      int
+		amount      decimal.Decimal
 		description string
 		shared      string
 		quota       int
@@ -136,7 +137,7 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 			return nil, err
 		}
 
-		e, err := model.ParseExpense(id, dateCreated,
+		e, err := model.NewExpense(id, dateCreated,
 			date,
 			amount,
 			description,
@@ -211,7 +212,7 @@ func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
 		id          string
 		dateCreated string
 		date        string
-		amount      int
+		amount      decimal.Decimal
 		description string
 		shared      string
 		quota       int
@@ -256,7 +257,7 @@ func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
 		return nil, err
 	}
 
-	e, err := model.ParseExpense(id, dateCreated,
+	e, err := model.NewExpense(id, dateCreated,
 		date,
 		amount,
 		description,
