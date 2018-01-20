@@ -8,10 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type User struct {
-	ID   int
-	Name string
-}
+var Users = []string{"M", "A"}
 
 type Category struct {
 	ID   int
@@ -28,12 +25,14 @@ type Expense struct {
 	DateCreated time.Time
 	Date        time.Time
 	Description string
-	Who         *User
+	Who         string
 	Method      *PaymentMethod
 	Amount      decimal.Decimal
 	Shared      bool
 	ShareQuota  int
 	Category    *Category
+	InSheet     bool
+	Type        int
 }
 
 func NewExpenseNoID(
@@ -43,16 +42,16 @@ func NewExpenseNoID(
 	description string,
 	shared string,
 	quota int,
-	whoID int,
-	whoName string,
+	who string,
+	inSheet bool,
+	typ int,
 	methodID int,
 	methodName string,
 	catID int,
 	catName string) (*Expense, error) {
 	c := Category{ID: catID, Name: catName}
 	pm := PaymentMethod{ID: methodID, Name: methodName}
-	u := User{ID: whoID, Name: whoName}
-	e := Expense{Category: &c, Method: &pm, Who: &u}
+	e := Expense{Category: &c, Method: &pm, Who: who, Type: typ, InSheet: inSheet}
 
 	e.Amount = amount
 	e.ShareQuota = quota
@@ -86,8 +85,9 @@ func NewExpense(id string,
 	description string,
 	shared string,
 	quota int,
-	whoID int,
-	whoName string,
+	who string,
+	inSheet bool,
+	typ int,
 	methodID int,
 	methodName string,
 	catID int,
@@ -99,8 +99,9 @@ func NewExpense(id string,
 		description,
 		shared,
 		quota,
-		whoID,
-		whoName,
+		who,
+		inSheet,
+		typ,
 		methodID,
 		methodName,
 		catID,
@@ -123,12 +124,6 @@ type Service interface {
 	ExpenseInsert(*Expense) (*Expense, error)
 	ExpenseUpdate(*Expense) (*Expense, error)
 	ExpenseDelete(uuid.UUID) error
-
-	UsersGetAll() ([]*User, error)
-	//UserGet(int) (*User, error)
-	UserInsert(Name string) (*User, error)
-	/*UserUpdate(*User) (*User, error)
-	UserDelete(int) error*/
 
 	CategoriesGetAll() ([]*Category, error)
 	/*CategoryGet(int) (*Category, error)*/

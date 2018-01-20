@@ -15,7 +15,7 @@ func main() {
 
 	sheetsSrv, err := sheet.New("client_secret_v1.json", "1ud3T4uUPOv94Atj4Qopy1qhwatLaXsXnLOl_n-Qxya4")
 
-	dbSrv, err := sqlite.New("./moneytracker.sqlite", true)
+	dbSrv, err := sqlite.New("./db.sqlite", true)
 	if err != nil {
 		log.Fatalln("impossible to connect to db")
 	}

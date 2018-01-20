@@ -2,26 +2,31 @@
 
 {{template "header" .}}
 <form action="/add/" method="POST">
-  <input class="form-control" type="date" name="Date"/>
-  <select class="form-control" name="WhoID" >
+  <input class="form-control" type="date" name="Date" value="{{ Now "2006-01-02"}}"/>
+  <select class="form-control" name="Who" >
       {{range $user := .Users}}
-        <option value="{{$user.ID}}">{{$user.Name}}</option>
+        <option value="{{$user}}">{{$user}}</option>
       {{end}}
   </select>
   <input class="form-control" type="text" name="Description" placeholder="Description"/>
   <input class="form-control" type="number" step="0.01" name="Amount" value="0"/>
   <select class="form-control" name="MethodID">
       {{range $pm := .PaymentMethods}}
-        <option value="{{$pm.ID}}">{{$pm.Name}}</option>>
+        <option value="{{$pm.ID}}">{{$pm.Name}}</option>
       {{end}}
   </select>
   <input class="form-control" type="checkbox" name="Shared" id="shared-input"/>
   <input class="form-control" disabled="disabled" type="number" step="5" min="0" max="100" name="ShareQuota" value="50" id="sharequota-input"/>
   <select class="form-control" name="CategoryID">
       {{range $cat := .Categories}}
-        <option value="{{$cat.ID}}">{{$cat.Name}}</option>>
+        <option value="{{$cat.ID}}">{{$cat.Name}}</option>
       {{end}}
   </select>
+  <select class="form-control" name="Type">
+      <option value="0">Expense</option>
+      <option value="1">Transfer</option>
+</select>
+<input class="form-control" type="checkbox" name="InSheet"/>
   <button type="submit" class="btn btn-primary">Add</button>
   <button type="reset" class="btn btn-warning">Cancel</button>
   
@@ -37,20 +42,24 @@
       <th>Shared</th>
       <th>Quota</th>
       <th>Category</th>
+      <th>Type</th>
+      <th>In Sheet</th>
       <th> </th>
   </thead>
   <tbody>
       {{range $expense := .Expenses}}
       <tr>
         <td>{{$expense.Date.Format "02/01/2006" }}</td>
-        <td>{{$expense.Who.Name }}</td>
+        <td>{{$expense.Who }}</td>
         <td>{{$expense.Description }}</td>
-        <td>{{$expense.Amount }}</td>
+        <td>{{FormatDecimal $expense.Amount }}</td>
         <td>{{$expense.Method.Name }}</td>
         <td><input type="checkbox" disabled="disabled"  {{if $expense.Shared}} checked="checked" {{end}}/></td>
         <td>{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
         <td>{{$expense.Category.Name }}</td>
-        <td><a class="btn btn-info" href="/sheet/add/{{$expense.UUID}}">Add</a></td>
+        <td>{{$expense.Type }}</td>
+        <td>{{$expense.InSheet }}</td>
+        <td><a class="btn btn-info" href="/view/{{$expense.UUID}}">View</a><a class="btn btn-danger" href="/delete/{{$expense.UUID}}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a></td>
       </tr>
     {{end}}
   </tbody>

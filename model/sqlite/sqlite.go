@@ -19,13 +19,15 @@ var schema = [...]string{
 	uuid	TEXT NOT NULL,
 	datecreated	TEXT NOT NULL,
 	date	TEXT NOT NULL,
-	who		INTEGER NOT NULL,
+	who		TEXT NOT NULL,
 	amount	INTEGER NOT NULL,
 	method	INTEGER,
 	description	TEXT NOT NULL,
 	category	INTEGER NOT NULL,
 	shared	TEXT NOT NULL,
 	quota	INTEGER,
+	insheet	INTEGER NOT NULL,
+	type	INTEGER NOT NULL,
 	PRIMARY KEY(uuid)
 )`,
 
@@ -36,12 +38,6 @@ var schema = [...]string{
 )`,
 
 	`CREATE TABLE IF NOT EXISTS paymentmethods (
-	id	INTEGER NOT NULL,
-	name	TEXT NOT NULL,
-	PRIMARY KEY(id)
-)`,
-
-	`CREATE TABLE IF NOT EXISTS users (
 	id	INTEGER NOT NULL,
 	name	TEXT NOT NULL,
 	PRIMARY KEY(id)
@@ -84,14 +80,15 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 		expenses.description,
 		expenses.shared,
 		expenses.quota,
-		users.id,
-		users.name,
+		expenses.who,
+		expenses.insheet,
+		expenses.type,
 		paymentmethods.id,
 		paymentmethods.name,
 		categories.id,
 		categories.name
-		 FROM expenses,users,paymentmethods,categories
-		WHERE expenses.who=users.id AND expenses.method=paymentmethods.id AND expenses.category=categories.id
+		 FROM expenses,paymentmethods,categories
+		WHERE expenses.method=paymentmethods.id AND expenses.category=categories.id
 		ORDER BY expenses.date DESC
 		LIMIT ` + strconv.Itoa(limit))
 	if err != nil {
@@ -109,8 +106,9 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 		description string
 		shared      string
 		quota       int
-		whoID       int
-		whoName     string
+		who         string
+		insheet     bool
+		typ         int
 		methodID    int
 		methodName  string
 		catID       int
@@ -126,8 +124,9 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 			&description,
 			&shared,
 			&quota,
-			&whoID,
-			&whoName,
+			&who,
+			&insheet,
+			&typ,
 			&methodID,
 			&methodName,
 			&catID,
@@ -143,8 +142,9 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 			description,
 			shared,
 			quota,
-			whoID,
-			whoName,
+			who,
+			insheet,
+			typ,
 			methodID,
 			methodName,
 			catID,
@@ -160,6 +160,80 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 	}
 
 	return es, nil
+}
+
+func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
+
+	var (
+		id          string
+		dateCreated string
+		date        string
+		amount      decimal.Decimal
+		description string
+		shared      string
+		quota       int
+		who         string
+		insheet     bool
+		typ         int
+		methodID    int
+		methodName  string
+		catID       int
+		catName     string
+	)
+
+	err := s.db.QueryRow(`SELECT expenses.uuid,
+		expenses.datecreated,
+		expenses.date,
+		expenses.amount,
+		expenses.description,
+		expenses.shared,
+		expenses.quota,
+		expenses.who,
+		expenses.insheet,
+		expenses.type,
+		paymentmethods.id,
+		paymentmethods.name,
+		categories.id,
+		categories.name
+		 FROM expenses,paymentmethods,categories
+		WHERE expenses.method=paymentmethods.id AND expenses.category=categories.id AND expenses.uuid ='`+uid.String()+"'").Scan(
+		&id,
+		&dateCreated,
+		&date,
+		&amount,
+		&description,
+		&shared,
+		&quota,
+		&who,
+		&insheet,
+		&typ,
+		&methodID,
+		&methodName,
+		&catID,
+		&catName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := model.NewExpense(id, dateCreated,
+		date,
+		amount,
+		description,
+		shared,
+		quota,
+		who,
+		insheet,
+		typ,
+		methodID,
+		methodName,
+		catID,
+		catName)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
 func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
@@ -182,8 +256,10 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
 			description,
 			category,
 			shared,
-			quota
-		) VALUES(?,?,?,?,?,?,?,?,?,?)`)
+			quota,
+			insheet,
+			type
+		) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		return nil, err
 	}
@@ -191,84 +267,17 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
 		e.UUID.String(),
 		e.DateCreated.Format("2006-01-02"),
 		e.Date.Format("2006-01-02"),
-		e.Who.ID,
+		e.Who,
 		e.Amount,
 		e.Method.ID,
 		e.Description,
 		e.Category.ID,
-		strconv.FormatBool(e.Shared),
+		e.Shared,
 		e.ShareQuota,
+		e.InSheet,
+		e.Type,
 	)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return e, nil
-}
-func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
-
-	var (
-		id          string
-		dateCreated string
-		date        string
-		amount      decimal.Decimal
-		description string
-		shared      string
-		quota       int
-		whoID       int
-		whoName     string
-		methodID    int
-		methodName  string
-		catID       int
-		catName     string
-	)
-
-	err := s.db.QueryRow(`SELECT expenses.uuid,
-		expenses.datecreated,
-		expenses.date,
-		expenses.amount,
-		expenses.description,
-		expenses.shared,
-		expenses.quota,
-		users.id,
-		users.name,
-		paymentmethods.id,
-		paymentmethods.name,
-		categories.id,
-		categories.name
-		 FROM expenses,users,paymentmethods,categories
-		WHERE expenses.who=users.id AND expenses.method=paymentmethods.id AND expenses.category=categories.id AND expenses.uuid ='`+uid.String()+"'").Scan(
-		&id,
-		&dateCreated,
-		&date,
-		&amount,
-		&description,
-		&shared,
-		&quota,
-		&whoID,
-		&whoName,
-		&methodID,
-		&methodName,
-		&catID,
-		&catName,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	e, err := model.NewExpense(id, dateCreated,
-		date,
-		amount,
-		description,
-		shared,
-		quota,
-		whoID,
-		whoName,
-		methodID,
-		methodName,
-		catID,
-		catName)
 	if err != nil {
 		return nil, err
 	}
@@ -287,20 +296,24 @@ func (s *sqlite) ExpenseUpdate(e *model.Expense) (*model.Expense, error) {
 			description = ?,
 			category = ?,
 			shared = ?,
-			quota = ?
+			quota = ?,
+			insheet = ?,
+			type = ?
 		WHERE uuid = '` + e.UUID.String() + `'`)
 	if err != nil {
 		return nil, err
 	}
 	_, err = stmt.Exec(
 		e.Date.Format("2006-01-02"),
-		e.Who.ID,
+		e.Who,
 		e.Amount,
 		e.Method.ID,
 		e.Description,
 		e.Category.ID,
-		strconv.FormatBool(e.Shared),
+		e.Shared,
 		e.ShareQuota,
+		e.InSheet,
+		e.Type,
 	)
 
 	if err != nil {
@@ -359,49 +372,6 @@ func (s *sqlite) CategoryInsert(name string) (*model.Category, error) {
 		log.Fatal(err)
 	}
 	return &model.Category{int(lastID), name}, nil
-}
-
-func (s *sqlite) UsersGetAll() ([]*model.User, error) {
-	rows, err := s.db.Query("SELECT * FROM users")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var us []*model.User
-
-	var id int
-	var name string
-
-	for rows.Next() {
-		err := rows.Scan(&id, &name)
-		if err != nil {
-			return nil, err
-		}
-		us = append(us, &model.User{id, name})
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-	return us, nil
-}
-
-func (s *sqlite) UserInsert(name string) (*model.User, error) {
-	stmt, err := s.db.Prepare("INSERT INTO users(name) VALUES(?)")
-	if err != nil {
-		return nil, err
-	}
-	res, err := stmt.Exec(name)
-	if err != nil {
-		return nil, err
-	}
-
-	lastID, err := res.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return &model.User{int(lastID), name}, nil
 }
 
 func (s *sqlite) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {

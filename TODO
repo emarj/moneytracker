@@ -1,11 +1,9 @@
-1) Switch to gorm
-2) Sheets add flag: inSheet
-3) Implement transfer
 
-- Implement transactions
-- database binding
-- binding
+1) Sheets add flag: inSheet
+2) Implement transfer
+
+
+- binding ?
 - different pages per user
-- shopspring decimal
-- operazioni madre/figlie
 - add time -> maybe with Google Drive not needed?
+- operazioni madre/figlie

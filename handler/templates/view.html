@@ -1,0 +1,26 @@
+{{define "view"}}
+
+{{template "header" .}}
+
+<table class="table table-striped">
+  <tbody>
+      <tr>
+        <td>{{.Date.Format "02/01/2006" }}</td>
+        <td>{{.Who }}</td>
+        <td>{{.Description }}</td>
+        <td>{{FormatDecimal .Amount }}</td>
+        <td>{{.Method.Name }}</td>
+        <td><input type="checkbox" disabled="disabled"  {{if .Shared}} checked="checked" {{end}}/></td>
+        <td>{{if .Shared}} {{.ShareQuota}}% {{else}} - {{end}}</td>
+        <td>{{.Category.Name }}</td>
+        <td><a class="btn btn-info" href="/sheet/add/{{.UUID}}">Add To Sheet</a><a class="btn btn-danger" href="/delete/{{.UUID}}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a></td>
+      </tr>
+  </tbody>
+</table>
+
+
+{{template "footer" .}} 
+
+{{end}}
+
+

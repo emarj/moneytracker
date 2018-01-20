@@ -22,7 +22,12 @@ import (
 
 func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
-	//
+		"FormatDecimal": func(d decimal.Decimal) string {
+			return d.StringFixed(2)
+		},
+		"Now": func(format string) string {
+			return time.Now().Local().Format(format)
+		},
 	}).ParseGlob(path.Join(tmplPath, "*"))
 
 	if err != nil {
@@ -35,8 +40,11 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 	router.GET("/", h.htmlResponseWriter(h.listExpenses))
 	router.POST("/", h.htmlResponseWriter(h.listExpenses))
 	router.POST("/add/", h.htmlResponseWriter(h.addExpense))
+	router.GET("/view/:uuid", h.htmlResponseWriter(h.getExpense))
+	router.POST("/update/", h.htmlResponseWriter(h.updateExpense))
 	router.GET("/delete/:uuid", h.htmlResponseWriter(h.deleteExpense))
 	router.GET("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
+	router.POST("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
 
 	return router, nil
 }
@@ -57,15 +65,15 @@ type htmlResponse struct {
 	RedirectTo string
 }
 
-func htmlResRedir(url string, status int) *htmlResponse {
+func resRedirect(url string, status int) *htmlResponse {
 	return &htmlResponse{IsRedirect: true, RedirectTo: url, Status: status}
 }
 
-func htmlResOK(data interface{}, tmpl string) *htmlResponse {
+func resOK(data interface{}, tmpl string) *htmlResponse {
 	return &htmlResponse{Data: data, TmplName: tmpl, Status: http.StatusOK}
 }
 
-func htmlResErr(err error, status int) *htmlResponse {
+func resError(err error, status int) *htmlResponse {
 	return &htmlResponse{Err: err, Status: status}
 }
 func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.Params) *htmlResponse) httprouter.Handle {
@@ -103,44 +111,45 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.P
 func (h *htmlHandler) listExpenses(r *http.Request, ps httprouter.Params) *htmlResponse {
 	es, err := h.dbSrv.ExpensesGetN(20)
 	if err != nil {
-		return htmlResErr(err, http.StatusInternalServerError)
+		return resError(err, http.StatusInternalServerError)
 	}
 	cat, err := h.dbSrv.CategoriesGetAll()
 	if err != nil {
-		return htmlResErr(err, http.StatusInternalServerError)
-	}
-	u, err := h.dbSrv.UsersGetAll()
-	if err != nil {
-		return htmlResErr(err, http.StatusInternalServerError)
+		return resError(err, http.StatusInternalServerError)
 	}
 	pm, err := h.dbSrv.PaymentMethodsGetAll()
 	if err != nil {
-		return htmlResErr(err, http.StatusInternalServerError)
+		return resError(err, http.StatusInternalServerError)
 	}
 	type result struct {
 		Expenses       []*model.Expense
 		Categories     []*model.Category
-		Users          []*model.User
+		Users          []string
 		PaymentMethods []*model.PaymentMethod
 	}
 
-	return htmlResOK(result{es, cat, u, pm}, "index")
+	return resOK(result{es, cat, model.Users, pm}, "index")
 }
 
 func (h *htmlHandler) getExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
 
-	idstr := r.URL.Query().Get("uuid")
+	idstr := ps.ByName("uuid")
 
 	id, err := uuid.FromString(idstr)
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 
 	e, err := h.dbSrv.ExpenseGet(id)
 	if err != nil {
-		return htmlResErr(err, http.StatusNotFound)
+		return resError(err, http.StatusNotFound)
 	}
-	return htmlResOK(e, "view")
+	return resOK(e, "view")
+}
+
+func (h *htmlHandler) updateExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
+
+	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
 func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
@@ -149,37 +158,29 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 
 	e := model.Expense{Description: r.FormValue("Description")}
 
-	if r.FormValue("Date") != "" {
-		date, err := time.Parse("2006-01-02", r.FormValue("Date"))
-		if err != nil {
-			return htmlResErr(err, http.StatusBadRequest)
-		}
-		e.Date = date
-	} else {
-		e.Date = time.Now().Local()
+	date, err := time.Parse("2006-01-02", r.FormValue("Date"))
+	if err != nil {
+		return resError(err, http.StatusBadRequest)
 	}
+	e.Date = date
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 	e.Amount = am
 
-	uid, err := strconv.Atoi(r.FormValue("WhoID"))
-	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
-	}
-	e.Who = &model.User{ID: uid}
+	e.Who = r.FormValue("Who")
 
 	catid, err := strconv.Atoi(r.FormValue("CategoryID"))
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 	e.Category = &model.Category{ID: catid}
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 	e.Method = &model.PaymentMethod{ID: pmid}
 
@@ -188,17 +189,25 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 
 		quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
 		if err != nil {
-			return htmlResErr(err, http.StatusBadRequest)
+			return resError(err, http.StatusBadRequest)
 		}
 		e.ShareQuota = quota
 	}
 
-	_, err = h.dbSrv.ExpenseInsert(&e)
-	if err != nil {
-		return htmlResErr(err, http.StatusInternalServerError)
+	if r.FormValue("InSheet") == "on" {
+		e.InSheet = true
+
 	}
 
-	return htmlResRedir("/", http.StatusTemporaryRedirect)
+	e.Type = 0
+
+	_, err = h.dbSrv.ExpenseInsert(&e)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+
+	return resRedirect("/", http.StatusTemporaryRedirect)
+	//return resRedirect("/sheet/add/"+e.UUID.String(), http.StatusTemporaryRedirect)
 
 }
 
@@ -227,38 +236,36 @@ func (h *htmlHandler) deleteExpense(r *http.Request, ps httprouter.Params) *html
 
 	id, err := uuid.FromString(ps.ByName("uuid"))
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 	err = h.dbSrv.ExpenseDelete(id)
 	if err != nil {
-		return htmlResErr(err, http.StatusNotFound)
+		return resError(err, http.StatusNotFound)
 	}
-	return htmlResRedir("/", http.StatusTemporaryRedirect)
+	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
 func (h *htmlHandler) addExpenseToSheet(r *http.Request, ps httprouter.Params) *htmlResponse {
 	id, err := uuid.FromString(ps.ByName("uuid"))
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 
 	e, err := h.dbSrv.ExpenseGet(id)
 	if err != nil {
-		return htmlResErr(err, http.StatusBadRequest)
+		return resError(err, http.StatusBadRequest)
 	}
 
 	err = h.sheetSrv.Insert(*e)
 	if err != nil {
-		return htmlResErr(err, http.StatusInternalServerError)
+		return resError(err, http.StatusInternalServerError)
 	}
 
-	/*
-		e.InSheet = true
-		err := h.dbSrv.ExpenseUpdate(e)
-		if err != nil {
-			return htmlResErr(err, http.StatusInternalServerError)
-		}
-	*/
+	e.InSheet = true
+	_, err = h.dbSrv.ExpenseUpdate(e)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
 
-	return htmlResRedir("/", http.StatusTemporaryRedirect)
+	return resRedirect("/", http.StatusTemporaryRedirect)
 }
