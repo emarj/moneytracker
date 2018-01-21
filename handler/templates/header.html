@@ -12,6 +12,18 @@
         $('#shared-input').change(function() {
           $('#sharequota-input').prop('disabled',!$(this).prop('checked'))
       });
+
+      $('#type-select').change(function(){
+        value = $(this).find(":selected").attr('value')
+        cond = (value == 1)
+          //$('#category-select').prop('disabled',cond)
+          if (cond) {
+                $("#category-select").val('1')
+            } else {
+                $("#category-select").val('0')
+          }
+      });
+
     });
     </script>
   </head>

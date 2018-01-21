@@ -17,15 +17,16 @@
   </select>
   <input class="form-control" type="checkbox" name="Shared" id="shared-input"/>
   <input class="form-control" disabled="disabled" type="number" step="5" min="0" max="100" name="ShareQuota" value="50" id="sharequota-input"/>
-  <select class="form-control" name="CategoryID">
+  <select class="form-control" name="Type" id="type-select">
+    <option value="0">Expense</option>
+    <option value="1">Transfer</option>
+</select>
+  <select class="form-control" name="CategoryID" id="category-select" >
       {{range $cat := .Categories}}
         <option value="{{$cat.ID}}">{{$cat.Name}}</option>
       {{end}}
   </select>
-  <select class="form-control" name="Type">
-      <option value="0">Expense</option>
-      <option value="1">Transfer</option>
-</select>
+ 
 <input class="form-control" type="checkbox" name="InSheet"/>
   <button type="submit" class="btn btn-primary">Add</button>
   <button type="reset" class="btn btn-warning">Cancel</button>
@@ -50,15 +51,15 @@
       {{range $expense := .Expenses}}
       <tr>
         <td>{{$expense.Date.Format "02/01/2006" }}</td>
-        <td>{{$expense.Who }}</td>
+        <td class="text-center">{{$expense.Who }}</td>
         <td>{{$expense.Description }}</td>
-        <td>{{FormatDecimal $expense.Amount }}</td>
-        <td>{{$expense.Method.Name }}</td>
-        <td><input type="checkbox" disabled="disabled"  {{if $expense.Shared}} checked="checked" {{end}}/></td>
-        <td>{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
-        <td>{{$expense.Category.Name }}</td>
+        <td class="text-right">{{FormatDecimal $expense.Amount }}</td>
+        <td class="text-center">{{$expense.Method.Name }}</td>
+        <td class="text-center"><input type="checkbox" disabled="disabled"  {{if $expense.Shared}} checked="checked" {{end}}/></td>
+        <td class="text-center">{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
+        <td class="text-center">{{$expense.Category.Name }}</td>
         <td>{{$expense.Type }}</td>
-        <td>{{$expense.InSheet }}</td>
+        <td><input type="checkbox" disabled="disabled"  {{if $expense.InSheet}} checked="checked" {{end}}/></td>
         <td><a class="btn btn-info" href="/view/{{$expense.UUID}}">View</a><a class="btn btn-danger" href="/delete/{{$expense.UUID}}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a></td>
       </tr>
     {{end}}

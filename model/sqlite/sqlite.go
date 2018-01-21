@@ -236,10 +236,10 @@ func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
 	return e, nil
 }
 
-func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
+func (s *sqlite) ExpenseInsert(e *model.Expense) error {
 	id, err := uuid.NewV4()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	e.UUID = id
@@ -261,7 +261,7 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
 			type
 		) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	_, err = stmt.Exec(
 		e.UUID.String(),
@@ -279,13 +279,13 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) (*model.Expense, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return e, nil
+	return nil
 }
 
-func (s *sqlite) ExpenseUpdate(e *model.Expense) (*model.Expense, error) {
+func (s *sqlite) ExpenseUpdate(e *model.Expense) error {
 	stmt, err := s.db.Prepare(
 		`UPDATE expenses
 		SET
@@ -301,7 +301,7 @@ func (s *sqlite) ExpenseUpdate(e *model.Expense) (*model.Expense, error) {
 			type = ?
 		WHERE uuid = '` + e.UUID.String() + `'`)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	_, err = stmt.Exec(
 		e.Date.Format("2006-01-02"),
@@ -317,10 +317,10 @@ func (s *sqlite) ExpenseUpdate(e *model.Expense) (*model.Expense, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return e, nil
+	return nil
 }
 
 func (s *sqlite) ExpenseDelete(id uuid.UUID) error {

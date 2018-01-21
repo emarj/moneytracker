@@ -121,8 +121,8 @@ func NewExpense(id string,
 type Service interface {
 	ExpensesGetN(limit int) ([]*Expense, error)
 	ExpenseGet(uuid.UUID) (*Expense, error)
-	ExpenseInsert(*Expense) (*Expense, error)
-	ExpenseUpdate(*Expense) (*Expense, error)
+	ExpenseInsert(*Expense) error
+	ExpenseUpdate(*Expense) error
 	ExpenseDelete(uuid.UUID) error
 
 	CategoriesGetAll() ([]*Category, error)

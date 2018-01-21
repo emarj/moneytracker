@@ -7,3 +7,4 @@
 - different pages per user
 - add time -> maybe with Google Drive not needed?
 - operazioni madre/figlie
+- graceful shutdown

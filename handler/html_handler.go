@@ -199,15 +199,23 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 
 	}
 
-	e.Type = 0
+	typ, err := strconv.Atoi(r.FormValue("Type"))
+	if err != nil {
+		return resError(err, http.StatusBadRequest)
+	}
 
-	_, err = h.dbSrv.ExpenseInsert(&e)
+	e.Type = typ
+
+	err = h.dbSrv.ExpenseInsert(&e)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
 
+	if !e.InSheet {
+		return resRedirect("/sheet/add/"+e.UUID.String(), http.StatusTemporaryRedirect)
+	}
+
 	return resRedirect("/", http.StatusTemporaryRedirect)
-	//return resRedirect("/sheet/add/"+e.UUID.String(), http.StatusTemporaryRedirect)
 
 }
 
@@ -262,7 +270,7 @@ func (h *htmlHandler) addExpenseToSheet(r *http.Request, ps httprouter.Params) *
 	}
 
 	e.InSheet = true
-	_, err = h.dbSrv.ExpenseUpdate(e)
+	err = h.dbSrv.ExpenseUpdate(e)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}

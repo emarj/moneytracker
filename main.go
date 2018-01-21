@@ -37,7 +37,7 @@ func main() {
 		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
 	}
 
-	fmt.Printf("Listening on port %s...", port)
+	fmt.Printf("Listening on port %s...\n", port)
 	log.Fatal(http.ListenAndServe("localhost:"+port, mux))
 
 }

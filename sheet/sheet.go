@@ -41,6 +41,11 @@ func New(authFile string, sheetID string) (*SheetService, error) {
 
 }
 
+var usrmap = map[string]int{"M": 1, "A": 2}
+var usrmaprev = map[string]int{"A": 1, "M": 2}
+
+var empty = "'-"
+
 func (s *SheetService) Insert(e model.Expense) error {
 	ctx := context.Background()
 
@@ -57,23 +62,72 @@ func (s *SheetService) Insert(e model.Expense) error {
 		rangeu2 = fmt.Sprintf(rangeUser, "M")
 	}
 
-	u1rows := [][]interface{}{
-		{e.UUID, "'" + e.Date.Format("02/01/2006"), e.Who, e.Description, e.Method.Name, e.Amount.String(), e.Shared, e.ShareQuota, e.Category.Name},
-	}
+	dateStr := "'" + e.Date.Format("2006-01-02")
 
-	if e.Shared {
-		quota := decimal.New(int64(e.ShareQuota), -2)
-		amount2 := e.Amount.Mul(quota)
-		amount1 := amount2.Sub(e.Amount)
+	var err error
 
-		u1rows = append(u1rows, []interface{}{e.UUID, "'" + e.Date.Format("02/01/2006"), e.Who, "Storno: " + e.Description, "", amount1.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name})
-		u2rows := [][]interface{}{{e.UUID, "'" + e.Date.Format("02/01/2006"), e.Who, e.Description, "", amount2.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name}}
+	if e.Type == 0 {
+		u1rows := [][]interface{}{
+			{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.String(), e.Shared, e.ShareQuota, e.Category.Name},
+		}
+		if e.Shared {
 
-		shrrows := [][]interface{}{
-			{e.UUID, "'" + e.Date.Format("02/01/2006"), e.Who, e.Description, e.Method.Name, e.Amount.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name},
+			quota := decimal.New(int64(e.ShareQuota), -2)
+			amount2 := e.Amount.Mul(quota)
+			//amount1 := e.Amount.Sub(amount2)
+
+			u1rows = append(u1rows, []interface{}{e.UUID, dateStr, e.Who, "Storno: " + e.Description, "", amount2.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name})
+			u2rows := [][]interface{}{{e.UUID, dateStr, e.Who, e.Description, "", amount2.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name}}
+
+			shrrow := []interface{}{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.StringFixed(2), e.Shared, e.ShareQuota, e.Category.Name}
+
+			cols := []interface{}{0, 0}
+
+			cols[usrmap[e.Who]-1] = amount2.StringFixed(3)
+
+			shrrow = append(shrrow, cols...)
+
+			_, err = s.srv.Spreadsheets.Values.Append(s.sheetID, rangeShared, &sheets.ValueRange{Values: [][]interface{}{shrrow}}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
+			if err != nil {
+				return err
+			}
+
+			_, err = s.srv.Spreadsheets.Values.Append(s.sheetID, rangeu2, &sheets.ValueRange{Values: u2rows}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
+			if err != nil {
+				return err
+			}
+
 		}
 
-		_, err := s.srv.Spreadsheets.Values.Append(s.sheetID, rangeShared, &sheets.ValueRange{Values: shrrows}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
+		_, err = s.srv.Spreadsheets.Values.Append(s.sheetID, rangeu1, &sheets.ValueRange{Values: u1rows}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
+		if err != nil {
+			return err
+		}
+	}
+
+	if e.Type == 1 {
+		shrrow := []interface{}{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, empty, empty, empty, e.Category.Name}
+		cols := []interface{}{0, 0}
+
+		cols[usrmaprev[e.Who]-1] = e.Amount.Neg().StringFixed(2)
+
+		shrrow = append(shrrow, cols...)
+
+		_, err = s.srv.Spreadsheets.Values.Append(s.sheetID, rangeShared, &sheets.ValueRange{Values: [][]interface{}{shrrow}}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
+		if err != nil {
+			return err
+		}
+
+		u1rows := [][]interface{}{
+			{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.StringFixed(2), empty, empty, e.Category.Name},
+			{e.UUID, dateStr, e.Who, "Storno: " + e.Description, "", e.Amount.Neg().StringFixed(2), empty, empty, e.Category.Name},
+		}
+		u2rows := [][]interface{}{
+			{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.Neg().StringFixed(2), empty, empty, e.Category.Name},
+			{e.UUID, dateStr, e.Who, "Storno: " + e.Description, "", e.Amount.StringFixed(2), empty, empty, e.Category.Name},
+		}
+
+		_, err = s.srv.Spreadsheets.Values.Append(s.sheetID, rangeu1, &sheets.ValueRange{Values: u1rows}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
 		if err != nil {
 			return err
 		}
@@ -83,11 +137,6 @@ func (s *SheetService) Insert(e model.Expense) error {
 			return err
 		}
 
-	}
-
-	_, err := s.srv.Spreadsheets.Values.Append(s.sheetID, rangeu1, &sheets.ValueRange{Values: u1rows}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()
-	if err != nil {
-		return err
 	}
 
 	return nil
