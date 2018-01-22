@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -22,6 +23,9 @@ import (
 
 func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
+		"IsNeg": func(d decimal.Decimal) bool {
+			return d.LessThan(decimal.Zero)
+		},
 		"FormatDecimal": func(d decimal.Decimal) string {
 			return d.StringFixed(2)
 		},
@@ -45,6 +49,7 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 	router.GET("/delete/:uuid", h.htmlResponseWriter(h.deleteExpense))
 	router.GET("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
 	router.POST("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
+	router.GET("/sheet/reset", h.htmlResponseWriter(h.resetSheet))
 
 	return router, nil
 }
@@ -168,6 +173,9 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
+	if am.Equals(decimal.Zero) {
+		return resError(fmt.Errorf("amount cannot be zero"), http.StatusBadRequest)
+	}
 	e.Amount = am
 
 	e.Who = r.FormValue("Who")
@@ -273,6 +281,28 @@ func (h *htmlHandler) addExpenseToSheet(r *http.Request, ps httprouter.Params) *
 	err = h.dbSrv.ExpenseUpdate(e)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
+	}
+
+	return resRedirect("/", http.StatusTemporaryRedirect)
+}
+
+func (h *htmlHandler) resetSheet(r *http.Request, ps httprouter.Params) *htmlResponse {
+	es, err := h.dbSrv.ExpensesGetN(100)
+	if err != nil {
+		return resError(err, http.StatusBadRequest)
+	}
+
+	for _, e := range es {
+		err = h.sheetSrv.Insert(*e)
+		if err != nil {
+			return resError(err, http.StatusInternalServerError)
+		}
+
+		e.InSheet = true
+		err = h.dbSrv.ExpenseUpdate(e)
+		if err != nil {
+			return resError(err, http.StatusInternalServerError)
+		}
 	}
 
 	return resRedirect("/", http.StatusTemporaryRedirect)

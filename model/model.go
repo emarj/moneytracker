@@ -63,7 +63,7 @@ func NewExpenseNoID(
 	}
 	e.Shared = shrd
 
-	dc, err := time.Parse("2006-01-02", dateCreated)
+	dc, err := time.Parse("2006-01-02T15:04:05", dateCreated)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +78,7 @@ func NewExpenseNoID(
 	return &e, nil
 }
 
-func NewExpense(id string,
-	dateCreated string,
+func NewExpense(id string, dateCreated string,
 	date string,
 	amount decimal.Decimal,
 	description string,

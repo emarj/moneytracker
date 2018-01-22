@@ -63,12 +63,13 @@ func (s *SheetService) Insert(e model.Expense) error {
 	}
 
 	dateStr := "'" + e.Date.Format("2006-01-02")
+	dateCreatedStr := "'" + e.Date.Format("2006-01-02T15:04:05")
 
 	var err error
 
 	if e.Type == 0 {
 		u1rows := [][]interface{}{
-			{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.String(), e.Shared, e.ShareQuota, e.Category.Name},
+			{e.UUID, dateCreatedStr, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.Neg().StringFixed(2), e.Shared, e.ShareQuota, e.Category.Name},
 		}
 		if e.Shared {
 
@@ -76,10 +77,10 @@ func (s *SheetService) Insert(e model.Expense) error {
 			amount2 := e.Amount.Mul(quota)
 			//amount1 := e.Amount.Sub(amount2)
 
-			u1rows = append(u1rows, []interface{}{e.UUID, dateStr, e.Who, "Storno: " + e.Description, "", amount2.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name})
-			u2rows := [][]interface{}{{e.UUID, dateStr, e.Who, e.Description, "", amount2.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name}}
+			u1rows = append(u1rows, []interface{}{e.UUID, dateCreatedStr, dateStr, e.Who, "Storno: " + e.Description, "", amount2.StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name})
+			u2rows := [][]interface{}{{e.UUID, dateCreatedStr, dateStr, e.Who, e.Description, "", amount2.Neg().StringFixed(3), e.Shared, e.ShareQuota, e.Category.Name}}
 
-			shrrow := []interface{}{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.StringFixed(2), e.Shared, e.ShareQuota, e.Category.Name}
+			shrrow := []interface{}{e.UUID, dateCreatedStr, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.Neg().StringFixed(2), e.Shared, e.ShareQuota, e.Category.Name}
 
 			cols := []interface{}{0, 0}
 
@@ -106,7 +107,7 @@ func (s *SheetService) Insert(e model.Expense) error {
 	}
 
 	if e.Type == 1 {
-		shrrow := []interface{}{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, empty, empty, empty, e.Category.Name}
+		shrrow := []interface{}{e.UUID, dateCreatedStr, dateStr, e.Who, e.Description, e.Method.Name, empty, empty, empty, e.Category.Name}
 		cols := []interface{}{0, 0}
 
 		cols[usrmaprev[e.Who]-1] = e.Amount.Neg().StringFixed(2)
@@ -119,12 +120,12 @@ func (s *SheetService) Insert(e model.Expense) error {
 		}
 
 		u1rows := [][]interface{}{
-			{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.StringFixed(2), empty, empty, e.Category.Name},
-			{e.UUID, dateStr, e.Who, "Storno: " + e.Description, "", e.Amount.Neg().StringFixed(2), empty, empty, e.Category.Name},
+			{e.UUID, dateCreatedStr, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.Neg().StringFixed(2), empty, empty, e.Category.Name},
+			{e.UUID, dateCreatedStr, dateStr, e.Who, "Storno: " + e.Description, "", e.Amount.StringFixed(2), empty, empty, e.Category.Name},
 		}
 		u2rows := [][]interface{}{
-			{e.UUID, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.Neg().StringFixed(2), empty, empty, e.Category.Name},
-			{e.UUID, dateStr, e.Who, "Storno: " + e.Description, "", e.Amount.StringFixed(2), empty, empty, e.Category.Name},
+			{e.UUID, dateCreatedStr, dateStr, e.Who, e.Description, e.Method.Name, e.Amount.StringFixed(2), empty, empty, e.Category.Name},
+			{e.UUID, dateCreatedStr, dateStr, e.Who, "Storno: " + e.Description, "", e.Amount.Neg().StringFixed(2), empty, empty, e.Category.Name},
 		}
 
 		_, err = s.srv.Spreadsheets.Values.Append(s.sheetID, rangeu1, &sheets.ValueRange{Values: u1rows}).ValueInputOption(valueInputOption).InsertDataOption(insertDataOption).Context(ctx).Do()

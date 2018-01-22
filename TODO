@@ -1,10 +1,5 @@
-
-1) Sheets add flag: inSheet
-2) Implement transfer
-
-
+- add -> confirmation -> add sheet
 - binding ?
 - different pages per user
-- add time -> maybe with Google Drive not needed?
 - operazioni madre/figlie
 - graceful shutdown
