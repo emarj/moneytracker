@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	sheetsSrv, err := sheet.New("client_secret_v1.json", "1ud3T4uUPOv94Atj4Qopy1qhwatLaXsXnLOl_n-Qxya4")
+	sheetsSrv, err := sheet.New("client_secret_v1.json", "Nh8EVvNJXe1PNj0u5wYMOSro")
 
 	dbSrv, err := sqlite.New("./db.sqlite", true)
 	if err != nil {
