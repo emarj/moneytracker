@@ -63,7 +63,7 @@ func (s *SheetService) Insert(e model.Expense) error {
 	}
 
 	dateStr := "'" + e.Date.Format("2006-01-02")
-	dateCreatedStr := "'" + e.Date.Format("2006-01-02T15:04:05")
+	dateCreatedStr := "'" + e.DateCreated.Format("2006-01-02T15:04:05")
 
 	var err error
 
