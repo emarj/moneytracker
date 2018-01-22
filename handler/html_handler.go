@@ -115,7 +115,7 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.P
 }
 
 func (h *htmlHandler) listExpenses(r *http.Request, ps httprouter.Params) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetN(20)
+	es, err := h.dbSrv.ExpensesGetN(100)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
