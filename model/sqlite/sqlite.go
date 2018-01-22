@@ -247,7 +247,7 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) error {
 	if err != nil {
 		return err
 	}
-	e.DateCreated = time.Now().In(loc).Local()
+	e.DateCreated = time.Now().In(loc)
 
 	stmt, err := s.db.Prepare(
 		`INSERT INTO expenses(
