@@ -30,7 +30,8 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 			return d.StringFixed(2)
 		},
 		"Now": func(format string) string {
-			return time.Now().Local().Format(format)
+			loc, _ := time.LoadLocation("Europe/Rome")
+			return time.Now().In(loc).Format(format)
 		},
 	}).ParseGlob(path.Join(tmplPath, "*"))
 

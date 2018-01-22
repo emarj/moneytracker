@@ -243,7 +243,11 @@ func (s *sqlite) ExpenseInsert(e *model.Expense) error {
 	}
 
 	e.UUID = id
-	e.DateCreated = time.Now().Local()
+	loc, err := time.LoadLocation("Europe/Rome")
+	if err != nil {
+		return err
+	}
+	e.DateCreated = time.Now().In(loc).Local()
 
 	stmt, err := s.db.Prepare(
 		`INSERT INTO expenses(
