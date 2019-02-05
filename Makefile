@@ -7,7 +7,7 @@ GOGET=$(GOCMD) get
 BINARY_NAME=./Bin/moneytracker
 BINARY_LINUX=$(BINARY_NAME)_linux
 	
-all: test build
+all: build run
 build:
 		$(GOBUILD) -o $(BINARY_NAME) -v
 test:
@@ -17,9 +17,9 @@ clean:
 		rm -f $(BINARY_NAME)
 		rm -f $(BINARY_UNIX)
 run:
-		$(GOBUILD) -o $(BINARY_NAME) -v ./...
-		./$(BINARY_NAME)
+		PORT=34567 ./$(BINARY_NAME)
+
 
 # Cross compilation
 build-linux:
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_LINUX) -v
+		CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_LINUX) -v

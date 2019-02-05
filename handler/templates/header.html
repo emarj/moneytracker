@@ -4,7 +4,9 @@
   <head>
     <meta charset="utf-8">
     <title>MoneyTracker</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript">
     $(
@@ -16,7 +18,7 @@
       $('#type-select').change(function(){
         value = $(this).find(":selected").attr('value')
         cond = (value == 1)
-          //$('#category-select').prop('disabled',cond)
+          $('#category-select').prop('disabled',cond)
           if (cond) {
                 $("#category-select").val('1')
             } else {
@@ -33,16 +35,16 @@
     .transfer {background-color: #ddd !important;font-weight: bold}
     </style>
   </head>
-  <body>
+  <body class="bg-light">
 
 
  
 
 <header>
   <div class="container">
-    <div class="row">
-      <div class="col-md-12 col-sm-12 col-xs-12 titles">
-        <h2>Money Tracker</h2>
+    <div class="text-center py-5">
+        <a href="/"><img src="https://ronche.se/flyingmoney.png" height="72" width="auto"/></a>
+          <h3 class="title">Money Tracker</h3>
       </div>
     </div>
   </div>

@@ -17,7 +17,7 @@ func main() {
 
 	dbSrv, err := sqlite.New("./db.sqlite", true)
 	if err != nil {
-		log.Fatalln("impossible to connect to db")
+		log.Fatalf("impossible to connect to db: %v", err)
 	}
 	defer func() {
 		if err := dbSrv.Close(); err != nil {
