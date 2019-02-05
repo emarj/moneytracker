@@ -237,10 +237,7 @@ func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
 }
 
 func (s *sqlite) ExpenseInsert(e *model.Expense) error {
-	id, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
+	id := uuid.NewV4()
 
 	e.UUID = id
 	loc, err := time.LoadLocation("Europe/Rome")

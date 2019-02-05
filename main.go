@@ -21,7 +21,7 @@ func main() {
 	}
 	defer func() {
 		if err := dbSrv.Close(); err != nil {
-			log.Fatalf("impossible to close connection: %v", err)
+			log.Fatalf("impossible to close db connection: %v", err)
 		}
 	}()
 

@@ -11,7 +11,10 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/julienschmidt/httprouter"
+	//"github.com/julienschmidt/httprouter"
+	"github.com/bouk/httprouter"
+
+	"github.com/jpillora/cookieauth"
 
 	"html/template"
 
@@ -52,7 +55,9 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 	router.POST("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
 	router.GET("/sheet/reset", h.htmlResponseWriter(h.resetSheet))
 
-	return router, nil
+	protected := cookieauth.Wrap(router, "spendi", "schei")
+
+	return protected, nil
 }
 
 type htmlHandler struct {
@@ -82,11 +87,12 @@ func resOK(data interface{}, tmpl string) *htmlResponse {
 func resError(err error, status int) *htmlResponse {
 	return &htmlResponse{Err: err, Status: status}
 }
-func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.Params) *htmlResponse) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 
 		buf := new(bytes.Buffer)
-		res := f(r, ps)
+		res := f(r)
 		if res.IsRedirect {
 			http.Redirect(w, r, res.RedirectTo, res.Status)
 			return
@@ -114,7 +120,7 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request, ps httprouter.P
 	}
 }
 
-func (h *htmlHandler) listExpenses(r *http.Request, ps httprouter.Params) *htmlResponse {
+func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
 	es, err := h.dbSrv.ExpensesGetN(100)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
@@ -137,9 +143,9 @@ func (h *htmlHandler) listExpenses(r *http.Request, ps httprouter.Params) *htmlR
 	return resOK(result{es, cat, model.Users, pm}, "index")
 }
 
-func (h *htmlHandler) getExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
+func (h *htmlHandler) getExpense(r *http.Request) *htmlResponse {
 
-	idstr := ps.ByName("uuid")
+	idstr := httprouter.GetParam(r, "uuid")
 
 	id, err := uuid.FromString(idstr)
 	if err != nil {
@@ -153,12 +159,12 @@ func (h *htmlHandler) getExpense(r *http.Request, ps httprouter.Params) *htmlRes
 	return resOK(e, "view")
 }
 
-func (h *htmlHandler) updateExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
+func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
 
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
-func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
+func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 	r.ParseForm()
 
@@ -249,9 +255,9 @@ func (h *htmlHandler) addExpense(r *http.Request, ps httprouter.Params) *htmlRes
 
 }*/
 
-func (h *htmlHandler) deleteExpense(r *http.Request, ps httprouter.Params) *htmlResponse {
+func (h *htmlHandler) deleteExpense(r *http.Request) *htmlResponse {
 
-	id, err := uuid.FromString(ps.ByName("uuid"))
+	id, err := uuid.FromString(httprouter.GetParam(r, "uuid"))
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
@@ -262,8 +268,8 @@ func (h *htmlHandler) deleteExpense(r *http.Request, ps httprouter.Params) *html
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
-func (h *htmlHandler) addExpenseToSheet(r *http.Request, ps httprouter.Params) *htmlResponse {
-	id, err := uuid.FromString(ps.ByName("uuid"))
+func (h *htmlHandler) addExpenseToSheet(r *http.Request) *htmlResponse {
+	id, err := uuid.FromString(httprouter.GetParam(r, "uuid"))
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
@@ -287,7 +293,7 @@ func (h *htmlHandler) addExpenseToSheet(r *http.Request, ps httprouter.Params) *
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
-func (h *htmlHandler) resetSheet(r *http.Request, ps httprouter.Params) *htmlResponse {
+func (h *htmlHandler) resetSheet(r *http.Request) *htmlResponse {
 	es, err := h.dbSrv.ExpensesGetN(100)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
