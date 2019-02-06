@@ -159,29 +159,23 @@ func (h *htmlHandler) getExpense(r *http.Request) *htmlResponse {
 	return resOK(e, "view")
 }
 
-func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
-
-	return resRedirect("/", http.StatusTemporaryRedirect)
-}
-
-func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
-
+func (h *htmlHandler) parseForm(r *http.Request) (error, *model.Expense) {
 	r.ParseForm()
 
 	e := model.Expense{Description: r.FormValue("Description")}
 
 	date, err := time.Parse("2006-01-02", r.FormValue("Date"))
 	if err != nil {
-		return resError(err, http.StatusBadRequest)
+		return err, &e
 	}
 	e.Date = date
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
-		return resError(err, http.StatusBadRequest)
+		return err, &e
 	}
 	if am.Equals(decimal.Zero) {
-		return resError(fmt.Errorf("amount cannot be zero"), http.StatusBadRequest)
+		return fmt.Errorf("amount cannot be zero"), &e
 	}
 	e.Amount = am
 
@@ -189,13 +183,13 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 	catid, err := strconv.Atoi(r.FormValue("CategoryID"))
 	if err != nil {
-		return resError(err, http.StatusBadRequest)
+		return err, &e
 	}
 	e.Category = &model.Category{ID: catid}
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
 	if err != nil {
-		return resError(err, http.StatusBadRequest)
+		return err, &e
 	}
 	e.Method = &model.PaymentMethod{ID: pmid}
 
@@ -204,56 +198,69 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 		quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
 		if err != nil {
-			return resError(err, http.StatusBadRequest)
+			return err, &e
 		}
 		e.ShareQuota = quota
 	}
 
 	if r.FormValue("InSheet") == "on" {
 		e.InSheet = true
-
 	}
 
 	typ, err := strconv.Atoi(r.FormValue("Type"))
 	if err != nil {
-		return resError(err, http.StatusBadRequest)
+		return err, &e
 	}
 
 	e.Type = typ
 
-	err = h.dbSrv.ExpenseInsert(&e)
+	return nil, &e
+}
+
+func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
+
+	err, e := h.parseForm(r)
+	if err != nil {
+		return resError(err, http.StatusBadRequest)
+	}
+
+	err = h.dbSrv.ExpenseInsert(e)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
 
-	if !e.InSheet {
+	/*if !e.InSheet {
 		return resRedirect("/sheet/add/"+e.UUID.String(), http.StatusTemporaryRedirect)
-	}
+	}*/
 
 	return resRedirect("/", http.StatusTemporaryRedirect)
 
 }
 
-/*func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
+func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
 
-	if r.Method != http.MethodPost {
-		return nil, http.StatusMethodNotAllowed, fmt.Errorf("method %s not allowed", r.Method)
-	}
-
-	var e model.Expense
-	err := json.NewDecoder(r.Body).Decode(&e)
+	err, e := h.parseForm(r)
 	if err != nil {
-		return nil, http.StatusBadRequest, fmt.Errorf("cannot parse json request: %v", err)
+		return resError(err, http.StatusBadRequest)
 	}
 
-	result, err := h.dbSrv.ExpenseUpdate(&e)
+	id, err := uuid.FromString(r.FormValue("UUID"))
 	if err != nil {
-		return nil, http.StatusInternalServerError, nil
+		return resError(err, http.StatusBadRequest)
 	}
 
-	return result, http.StatusOK, nil
+	e.UUID = id
 
-}*/
+	//More checks
+
+	err = h.dbSrv.ExpenseUpdate(e)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+
+	return resRedirect("/", http.StatusTemporaryRedirect)
+
+}
 
 func (h *htmlHandler) deleteExpense(r *http.Request) *htmlResponse {
 

@@ -62,7 +62,7 @@
         <!-- Payment Method -->
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-              <label class="input-group-text" for="Method">Method</label>
+              <label class="input-group-text" for="MethodID">Method</label>
               </div>
             <select class="custom-select" name="MethodID">
               {{range $pm := .PaymentMethods}}
@@ -79,7 +79,7 @@
               <input type="checkbox" name="Shared" id="shared-input" />
               </div>
             </div>
-            <input class="form-control" disabled="disabled" type="number" min="0" max="100" name="ShareQuota"
+            <input class="form-control" disabled type="number" min="0" max="100" name="ShareQuota"
               value="50" id="sharequota-input" />
         </div>
 
@@ -106,7 +106,7 @@
         <!-- Buttons -->
         <div class="form-group mb-3 text-right">
           
-            <button type="reset" class="btn btn-secondary">Cancel</button>
+            <button type="reset" class="btn btn-secondary">Reset</button>
         
             <button type="submit" class="btn btn-primary">Submit</button>
             
