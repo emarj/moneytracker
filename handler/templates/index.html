@@ -4,53 +4,20 @@
 
 
 <!-- FORM -->
-<div class="row">
-  <div class="col-md-6">
-      {{template "expenseform" .}}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    {{template "form" .}}
   </div>
 </div>
 
-
-
-
 <!-- TABLE -->
 
-<div class="row">
-  <div class="col-sm-12">
+<div class="row justify-content-center">
+  <div class="col-lg-6">
 
-    <table class="table table-striped">
-      <thead>
-        <th>Date</th>
-        <th>Who</th>
-        <th>Description</th>
-        <th>Amount</td>
-        <th>Method</th>
-        <th>Shared</th>
-        <th>Quota</th>
-        <th>Category</th>
-        <th>In Sheet</th>
-        <th>Actions</th>
-      </thead>
-      <tbody>
-        {{range $expense := .Expenses}}
-        <tr class="{{if eq $expense.Type 1 }}transfer{{else}}expense-{{if IsNeg $expense.Amount}}negative{{else}}positive{{end}}{{end}}">
-          <td>{{$expense.Date.Format "02/01/2006" }}</td>
-          <td class="text-center">{{$expense.Who }}</td>
-          <td>{{$expense.Description }}</td>
-          <td class="text-right amount">{{FormatDecimal $expense.Amount }}</td>
-          <td class="text-center">{{$expense.Method.Name }}</td>
-          <td class="text-center">{{if ne $expense.Type 1}}<input type="checkbox" disabled="disabled"
-              {{if $expense.Shared}} checked="checked" {{end}} />{{else}}-{{end}}</td>
-          <td class="text-center">{{if $expense.Shared}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
-          <td class="text-center">{{$expense.Category.Name }}</td>
-          <td><input type="checkbox" disabled="disabled" {{if $expense.InSheet}} checked="checked" {{end}} /></td>
-          <td>
-            <a class="btn btn-info" href="/view/{{$expense.UUID}}">View</a>
-          </td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
+
+    <h4 class="title mt-5">Latest entries</h4>
+    {{template "latest" .}}
 
 
   </div>

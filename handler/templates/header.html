@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <title>MoneyTracker</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, shrink-to-fit=no">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
     <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -26,6 +26,11 @@
           }
       });
 
+    $(".clickable").click(function() {
+        window.document.location = $(this).data("href");
+    });
+
+
     });
     </script>
     <style type="text/css">
@@ -33,6 +38,8 @@
     .expense-negative .amount{color: green}
 
     .transfer {background-color: #ddd !important;font-weight: bold}
+    .clickable {cursor: pointer}
+    .footer {margin-top: 2rem}
     </style>
   </head>
   <body class="bg-light">
@@ -52,7 +59,7 @@
 </header>
 
 <div class="container">
-<div class="row">
+<div class="row justify-content-center">
   <div class="col-md-12">
   
     

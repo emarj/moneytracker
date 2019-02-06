@@ -1,4 +1,4 @@
-{{define "expenseform"}}
+{{define "form"}}
 
 
     <form action="/add/" method="POST">
@@ -41,7 +41,7 @@
               <label class="input-group-text" for="Amount">Amount</label>
             </div>
           
-            <input class="form-control" type="number" step="0.01" name="Amount" value="0" />
+            <input class="form-control" type="number" step="0.01" name="Amount" placeholder="0.00" required autofocus/>
 
             <div class="input-group-append">
                 <span class="input-group-text">€</span>
@@ -55,7 +55,7 @@
             <div class="input-group-prepend">
               <label class="input-group-text" for="Description">Description</label>
           </div>
-          <input type="text" class="form-control" name="Description" placeholder="..." />
+          <input type="text" class="form-control" name="Description" placeholder="Something..." required/>
           
         </div>
 
@@ -104,11 +104,11 @@
         </div>
 
         <!-- Buttons -->
-        <div class="form-group mb-3">
+        <div class="form-group mb-3 text-right">
           
-            <button type="reset" class="btn btn-warning">Cancel</button>
+            <button type="reset" class="btn btn-secondary">Cancel</button>
         
-            <button type="submit" class="btn btn-primary">Add</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
             
         </div>
 

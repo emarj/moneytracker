@@ -1,0 +1,13 @@
+{{define "latest"}}
+
+<ul class="list-group list-group-flush bg-light">
+
+      {{range $expense := .Expenses}}
+      <li data-href="/view/{{$expense.UUID}}" class="list-group-item clickable {{if eq $expense.Type 1 }}transfer{{else}}expense-{{if IsNeg $expense.Amount}}negative{{else}}positive{{end}}{{end}}">
+        <strong>{{$expense.Date.Format "02/01/06" }}</strong> {{$expense.Who }} paid <strong>{{FormatDecimal $expense.Amount }}</strong> of <em>{{$expense.Description }}</em> by {{$expense.Method.Name }} ({{$expense.Category.Name}}).<br/>
+        {{ if $expense.Shared }} The expense is shared at {{$expense.ShareQuota}}%{{end}}
+      </li>
+      {{end}}
+</ul>
+
+  {{end}}

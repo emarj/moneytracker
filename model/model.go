@@ -118,7 +118,9 @@ func NewExpense(id string, dateCreated string,
 }
 
 type Service interface {
-	ExpensesGetN(limit int) ([]*Expense, error)
+	ExpensesGetNOrderBy(limit int, orderby string) ([]*Expense, error)
+	ExpensesGetNOrderByDate(limit int) ([]*Expense, error)
+	ExpensesGetNOrderByInserted(limit int) ([]*Expense, error)
 	ExpenseGet(uuid.UUID) (*Expense, error)
 	ExpenseInsert(*Expense) error
 	ExpenseUpdate(*Expense) error

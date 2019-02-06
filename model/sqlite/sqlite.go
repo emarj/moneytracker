@@ -71,7 +71,16 @@ func New(path string, createSchema bool) (*sqlite, error) {
 
 }
 
-func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
+func (s *sqlite) ExpensesGetNOrderByDate(limit int) ([]*model.Expense, error) {
+	return s.ExpensesGetNOrderBy(limit, "expenses.date DESC, expenses.datecreated DESC")
+}
+
+func (s *sqlite) ExpensesGetNOrderByInserted(limit int) ([]*model.Expense, error) {
+	return s.ExpensesGetNOrderBy(limit, "expenses.datecreated DESC, expenses.date DESC")
+}
+
+func (s *sqlite) ExpensesGetNOrderBy(limit int, orderby string) ([]*model.Expense, error) {
+
 	rows, err := s.db.Query(
 		`SELECT expenses.uuid,
 		expenses.datecreated,
@@ -89,7 +98,7 @@ func (s *sqlite) ExpensesGetN(limit int) ([]*model.Expense, error) {
 		categories.name
 		 FROM expenses,paymentmethods,categories
 		WHERE expenses.method=paymentmethods.id AND expenses.category=categories.id
-		ORDER BY expenses.date DESC, expenses.datecreated DESC
+		ORDER BY ` + orderby + `
 		LIMIT ` + strconv.Itoa(limit))
 	if err != nil {
 		return nil, err

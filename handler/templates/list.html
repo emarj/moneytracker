@@ -1,0 +1,28 @@
+{{define "list"}}
+
+<table class="table table-striped">
+    <thead>
+      <th>Date</th>
+      <th>Who</th>
+      <th>Desc</th>
+      <th>Amount</td>
+      <th>Method</th>
+      <th>Quota</th>
+      <th>Cat</th>
+    </thead>
+    <tbody>
+      {{range $expense := .Expenses}}
+      <tr data-href="/view/{{$expense.UUID}}" class="clickable-row {{if eq $expense.Type 1 }}transfer{{else}}expense-{{if IsNeg $expense.Amount}}negative{{else}}positive{{end}}{{end}}">
+        <td>{{$expense.Date.Format "02/01/2006" }}</td>
+        <td class="text-center">{{$expense.Who }}</td>
+        <td>{{$expense.Description }}</td>
+        <td class="text-right amount">{{FormatDecimal $expense.Amount }}</td>
+        <td class="text-center">{{$expense.Method.Name }}</td>
+        <td class="text-center">{{if and (ne $expense.Type 1) ($expense.Shared)}} {{$expense.ShareQuota}}% {{else}} - {{end}}</td>
+        <td class="text-center">{{$expense.Category.Name }}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+
+  {{end}}

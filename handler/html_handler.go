@@ -121,7 +121,7 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) 
 }
 
 func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetN(100)
+	es, err := h.dbSrv.ExpensesGetNOrderByInserted(10)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -294,7 +294,7 @@ func (h *htmlHandler) addExpenseToSheet(r *http.Request) *htmlResponse {
 }
 
 func (h *htmlHandler) resetSheet(r *http.Request) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetN(100)
+	es, err := h.dbSrv.ExpensesGetNOrderByDate(100)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
