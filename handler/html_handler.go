@@ -47,12 +47,13 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 	router := httprouter.New()
 	router.GET("/", h.render(h.index))
 	router.POST("/", h.render(h.index))
-	router.POST("/add/", h.render(h.addExpense))
+	router.GET("/all/", h.render(h.all))
+	router.POST("/add/", h.render(h.add))
 	router.GET("/view/:uuid", h.render(h.view))
-	router.POST("/update/", h.render(h.updateExpense))
-	router.GET("/delete/:uuid", h.render(h.deleteExpense))
-	router.GET("/sheet/add/:uuid", h.render(h.addExpenseToSheet))
-	router.POST("/sheet/add/:uuid", h.render(h.addExpenseToSheet))
+	router.POST("/update/", h.render(h.update))
+	router.GET("/delete/:uuid", h.render(h.delete))
+	router.GET("/sheet/add/:uuid", h.render(h.addToSheet))
+	router.POST("/sheet/add/:uuid", h.render(h.addToSheet))
 	router.GET("/sheet/reset", h.render(h.resetSheet))
 
 	protected := cookieauth.Wrap(router, "spendi", "schei")
@@ -139,10 +140,32 @@ func (h *htmlHandler) index(r *http.Request) *htmlResponse {
 		Categories     []*model.Category
 		Users          []string
 		PaymentMethods []*model.PaymentMethod
-		isUpdate       bool
 	}
 
-	return resOK(result{es, nil, cat, model.Users, pm, false}, "index")
+	return resOK(result{es, nil, cat, model.Users, pm}, "index")
+}
+
+func (h *htmlHandler) all(r *http.Request) *htmlResponse {
+	es, err := h.dbSrv.ExpensesGetNOrderByInserted(1000)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	cat, err := h.dbSrv.CategoriesGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	pm, err := h.dbSrv.PaymentMethodsGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	type result struct {
+		Expenses       []*model.Expense
+		Categories     []*model.Category
+		Users          []string
+		PaymentMethods []*model.PaymentMethod
+	}
+
+	return resOK(result{es, cat, model.Users, pm}, "all")
 }
 
 func (h *htmlHandler) view(r *http.Request) *htmlResponse {
@@ -173,10 +196,9 @@ func (h *htmlHandler) view(r *http.Request) *htmlResponse {
 		Categories     []*model.Category
 		Users          []string
 		PaymentMethods []*model.PaymentMethod
-		isUpdate       bool
 	}
 
-	return resOK(result{nil, e, cat, model.Users, pm, true}, "view")
+	return resOK(result{nil, e, cat, model.Users, pm}, "view")
 }
 
 func (h *htmlHandler) parseForm(r *http.Request) (*model.Expense, error) {
@@ -237,7 +259,7 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Expense, error) {
 	return &e, nil
 }
 
-func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
+func (h *htmlHandler) add(r *http.Request) *htmlResponse {
 
 	e, err := h.parseForm(r)
 	if err != nil {
@@ -257,7 +279,7 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 }
 
-func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
+func (h *htmlHandler) update(r *http.Request) *htmlResponse {
 
 	e, err := h.parseForm(r)
 	if err != nil {
@@ -282,7 +304,7 @@ func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
 
 }
 
-func (h *htmlHandler) deleteExpense(r *http.Request) *htmlResponse {
+func (h *htmlHandler) delete(r *http.Request) *htmlResponse {
 
 	id, err := uuid.FromString(httprouter.GetParam(r, "uuid"))
 	if err != nil {
@@ -295,7 +317,7 @@ func (h *htmlHandler) deleteExpense(r *http.Request) *htmlResponse {
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
-func (h *htmlHandler) addExpenseToSheet(r *http.Request) *htmlResponse {
+func (h *htmlHandler) addToSheet(r *http.Request) *htmlResponse {
 	id, err := uuid.FromString(httprouter.GetParam(r, "uuid"))
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
