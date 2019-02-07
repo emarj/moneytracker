@@ -1,5 +1,8 @@
 - implement users
+- Transfer -> enforce category?
+- CRUD categories 
 - add types -> [expense -> transaction, types -> expense, transfer]
+- income <-> negative numbers
 - no need for gsheet
 - graceful shutdown
 - TAGS?
