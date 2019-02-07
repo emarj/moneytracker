@@ -1,5 +1,5 @@
-- add -> confirmation -> add sheet
-- binding ?
-- different pages per user
-- operazioni madre/figlie
+- implement users
+- add types -> [expense -> transaction, types -> expense, transfer]
+- no need for gsheet
 - graceful shutdown
+- TAGS?

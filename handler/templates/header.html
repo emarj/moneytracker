@@ -18,7 +18,7 @@
       $('#type-select').change(function(){
         value = $(this).find(":selected").attr('value')
         cond = (value == 1)
-          $('#category-select').prop('disabled',cond)
+
           if (cond) {
                 $("#category-select").val('1')
             } else {

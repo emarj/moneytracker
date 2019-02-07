@@ -45,15 +45,15 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 	h := htmlHandler{dbSrv, sheetSrv, t}
 
 	router := httprouter.New()
-	router.GET("/", h.htmlResponseWriter(h.listExpenses))
-	router.POST("/", h.htmlResponseWriter(h.listExpenses))
-	router.POST("/add/", h.htmlResponseWriter(h.addExpense))
-	router.GET("/view/:uuid", h.htmlResponseWriter(h.getExpense))
-	router.POST("/update/", h.htmlResponseWriter(h.updateExpense))
-	router.GET("/delete/:uuid", h.htmlResponseWriter(h.deleteExpense))
-	router.GET("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
-	router.POST("/sheet/add/:uuid", h.htmlResponseWriter(h.addExpenseToSheet))
-	router.GET("/sheet/reset", h.htmlResponseWriter(h.resetSheet))
+	router.GET("/", h.render(h.index))
+	router.POST("/", h.render(h.index))
+	router.POST("/add/", h.render(h.addExpense))
+	router.GET("/view/:uuid", h.render(h.view))
+	router.POST("/update/", h.render(h.updateExpense))
+	router.GET("/delete/:uuid", h.render(h.deleteExpense))
+	router.GET("/sheet/add/:uuid", h.render(h.addExpenseToSheet))
+	router.POST("/sheet/add/:uuid", h.render(h.addExpenseToSheet))
+	router.GET("/sheet/reset", h.render(h.resetSheet))
 
 	protected := cookieauth.Wrap(router, "spendi", "schei")
 
@@ -88,7 +88,7 @@ func resError(err error, status int) *htmlResponse {
 	return &htmlResponse{Err: err, Status: status}
 }
 
-func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) http.HandlerFunc {
+func (h *htmlHandler) render(f func(r *http.Request) *htmlResponse) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		buf := new(bytes.Buffer)
@@ -120,7 +120,7 @@ func (h *htmlHandler) htmlResponseWriter(f func(r *http.Request) *htmlResponse) 
 	}
 }
 
-func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
+func (h *htmlHandler) index(r *http.Request) *htmlResponse {
 	es, err := h.dbSrv.ExpensesGetNOrderByInserted(10)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
@@ -135,15 +135,17 @@ func (h *htmlHandler) listExpenses(r *http.Request) *htmlResponse {
 	}
 	type result struct {
 		Expenses       []*model.Expense
+		Expense        *model.Expense
 		Categories     []*model.Category
 		Users          []string
 		PaymentMethods []*model.PaymentMethod
+		isUpdate       bool
 	}
 
-	return resOK(result{es, cat, model.Users, pm}, "index")
+	return resOK(result{es, nil, cat, model.Users, pm, false}, "index")
 }
 
-func (h *htmlHandler) getExpense(r *http.Request) *htmlResponse {
+func (h *htmlHandler) view(r *http.Request) *htmlResponse {
 
 	idstr := httprouter.GetParam(r, "uuid")
 
@@ -156,40 +158,65 @@ func (h *htmlHandler) getExpense(r *http.Request) *htmlResponse {
 	if err != nil {
 		return resError(err, http.StatusNotFound)
 	}
-	return resOK(e, "view")
+
+	cat, err := h.dbSrv.CategoriesGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	pm, err := h.dbSrv.PaymentMethodsGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	type result struct {
+		Expenses       []*model.Expense
+		Expense        *model.Expense
+		Categories     []*model.Category
+		Users          []string
+		PaymentMethods []*model.PaymentMethod
+		isUpdate       bool
+	}
+
+	return resOK(result{nil, e, cat, model.Users, pm, true}, "view")
 }
 
-func (h *htmlHandler) parseForm(r *http.Request) (error, *model.Expense) {
+func (h *htmlHandler) parseForm(r *http.Request) (*model.Expense, error) {
 	r.ParseForm()
 
 	e := model.Expense{Description: r.FormValue("Description")}
 
 	date, err := time.Parse("2006-01-02", r.FormValue("Date"))
 	if err != nil {
-		return err, &e
+		return &e, err
 	}
 	e.Date = date
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
-		return err, &e
+		return &e, err
 	}
 	if am.Equals(decimal.Zero) {
-		return fmt.Errorf("amount cannot be zero"), &e
+		return &e, fmt.Errorf("amount cannot be zero")
 	}
 	e.Amount = am
 
 	e.Who = r.FormValue("Who")
 
+	typ, err := strconv.Atoi(r.FormValue("Type"))
+	if err != nil {
+		return &e, err
+	}
+	e.Type = typ
+
 	catid, err := strconv.Atoi(r.FormValue("CategoryID"))
 	if err != nil {
-		return err, &e
+		return &e, err
 	}
+
 	e.Category = &model.Category{ID: catid}
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
 	if err != nil {
-		return err, &e
+		return &e, err
 	}
 	e.Method = &model.PaymentMethod{ID: pmid}
 
@@ -198,7 +225,7 @@ func (h *htmlHandler) parseForm(r *http.Request) (error, *model.Expense) {
 
 		quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
 		if err != nil {
-			return err, &e
+			return &e, err
 		}
 		e.ShareQuota = quota
 	}
@@ -207,19 +234,12 @@ func (h *htmlHandler) parseForm(r *http.Request) (error, *model.Expense) {
 		e.InSheet = true
 	}
 
-	typ, err := strconv.Atoi(r.FormValue("Type"))
-	if err != nil {
-		return err, &e
-	}
-
-	e.Type = typ
-
-	return nil, &e
+	return &e, nil
 }
 
 func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
-	err, e := h.parseForm(r)
+	e, err := h.parseForm(r)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
@@ -239,7 +259,7 @@ func (h *htmlHandler) addExpense(r *http.Request) *htmlResponse {
 
 func (h *htmlHandler) updateExpense(r *http.Request) *htmlResponse {
 
-	err, e := h.parseForm(r)
+	e, err := h.parseForm(r)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
