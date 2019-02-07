@@ -146,7 +146,7 @@ func (h *htmlHandler) index(r *http.Request) *htmlResponse {
 }
 
 func (h *htmlHandler) all(r *http.Request) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetNOrderByInserted(1000)
+	es, err := h.dbSrv.ExpensesGetNOrderByDate(1000)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -271,9 +271,9 @@ func (h *htmlHandler) add(r *http.Request) *htmlResponse {
 		return resError(err, http.StatusInternalServerError)
 	}
 
-	/*if !e.InSheet {
+	if !e.InSheet {
 		return resRedirect("/sheet/add/"+e.UUID.String(), http.StatusTemporaryRedirect)
-	}*/
+	}
 
 	return resRedirect("/", http.StatusTemporaryRedirect)
 
