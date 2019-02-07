@@ -8,7 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var Users = []string{"M", "A"}
+var Users = []string{"A", "M"}
 
 type Category struct {
 	ID   int
