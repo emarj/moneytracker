@@ -17,7 +17,7 @@ clean:
 		rm -f $(BINARY_NAME)
 		rm -f $(BINARY_UNIX)
 run:
-		PORT=34567 ./$(BINARY_NAME)
+		DBPATH="./moneytracker.sqlite" ./$(BINARY_NAME)
 
 
 # Cross compilation
