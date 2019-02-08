@@ -13,19 +13,24 @@
     $(
       function () {
         $('#shared-input').change(function () {
-          $('#sharequota-input').prop('disabled', !$(this).prop('checked'))
+          var checked = $(this).prop('checked');
+          $('#sharequota-input').prop('disabled', !checked)
+          $('#sharedamount1').prop('disabled', !checked)
+          $('#sharedamount2').prop('disabled', !checked)
+
+          if (checked) updateAmounts();
+          if (!checked) {
+            $('#sharequota-input').val(50);
+            $('#sharedamount1').val('');
+            $('#sharedamount2').val('');
+
+          }
         });
 
-        $('#sharequota-input').change(function(){
-          var quota = $(this).val();
-          var amount = $('input[name="Amount"]').val();
-          var amount1 = amount*quota/100;
-          var amount2 = amount*(100 - quota)/100;
+        $('input[name="Amount"]').change(updateAmounts);
+        $('#sharequota-input').change(updateAmounts);
 
-          $('#sharedamount1').val(amount1);
-          $('#sharedamount2').val(amount2);
-
-        });
+        $('#sharedamount2').change(updateQuota);
 
         $('#type-select').change(function () {
           value = $(this).find(":selected").attr('value')
@@ -44,6 +49,26 @@
 
 
       });
+
+      function updateAmounts() {
+          var quota = $('#sharequota-input').val();
+          var amount = $('input[name="Amount"]').val();
+          var amount1 = amount*(100 - quota)/100;
+          var amount2 = amount*(quota)/100;
+
+          $('#sharedamount1').val(amount1);
+          $('#sharedamount2').val(amount2);
+      }
+
+      function updateQuota() {
+          var amount2 = $('#sharedamount2').val();
+          var amount = $('input[name="Amount"]').val();
+          var quota = amount2*100/amount;
+
+          $('#sharequota-input').val(quota);
+          updateAmounts()
+      }
+
   </script>
   <style type="text/css">
     .expense-positive .amount {
@@ -65,6 +90,14 @@
 
     .footer {
       margin-top: 2rem
+    }
+
+    #sharedamount1 {
+      color: red
+    }
+
+    #sharedamount2 {
+      color: green
     }
   </style>
 </head>

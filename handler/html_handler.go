@@ -249,6 +249,9 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Expense, error) {
 		if err != nil {
 			return &e, err
 		}
+		if quota == 0 {
+			return &e, fmt.Errorf("quota cannot be zero")
+		}
 		e.ShareQuota = quota
 	}
 
