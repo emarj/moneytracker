@@ -7,7 +7,7 @@ GOGET=$(GOCMD) get
 BINARY_NAME=./Bin/moneytracker
 BINARY_LINUX=$(BINARY_NAME)_linux
 	
-all: build run
+all: build
 build:
 		$(GOBUILD) -o $(BINARY_NAME) -v
 test:
