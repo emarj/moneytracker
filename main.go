@@ -14,8 +14,17 @@ import (
 func main() {
 
 	sheetsSrv, err := sheet.New("client_secret_v1.json", "1ud3T4uUPOv94Atj4Qopy1qhwatLaXsXnLOl_n-Qxya4")
+	dbPath := os.Getenv("DBPATH")
+	if dbPath == "" {
+		dbPath = "../ab.sqlite"
+		fmt.Println("INFO: No DBPATH environment variable detected, defaulting to " + dbPath)
+	}
 
-	dbSrv, err := sqlite.New("./db.sqlite", true)
+	_, err = os.Open(dbPath)
+	if err != nil {
+		log.Fatalf("impossible to open the db file: %v", err)
+	}
+	dbSrv, err := sqlite.New(dbPath, false)
 	if err != nil {
 		log.Fatalf("impossible to connect to db: %v", err)
 	}
@@ -30,7 +39,7 @@ func main() {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}
 
-	var port = os.Getenv("PORT")
+	port := os.Getenv("PORT")
 	// Set a default port if there is nothing in the environment
 	if port == "" {
 		port = "34567"
