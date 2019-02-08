@@ -98,8 +98,9 @@
 
         <!-- Sharing -->
 
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
+        <div class="row">
+          <div class="input-group mb-3 col-md-8">  
+          <div class="input-group-prepend">
               <label class="input-group-text" for="Shared">Shared</label>
               <div class="input-group-text">
               <input type="checkbox" name="Shared" id="shared-input"  {{if $e}}{{if $e.Shared }}checked{{end}}{{end}}/>
@@ -107,7 +108,12 @@
             </div>
             <input class="form-control" type="number" min="0" max="100" name="ShareQuota"
             value="{{if $e}}{{if not $e.Shared}}50{{else}}{{$e.ShareQuota}}{{end}}{{else}}50{{end}}" {{if $e}}{{if not $e.Shared}}disabled{{end}}{{end}} {{if not $e}}disabled{{end}} id="sharequota-input" />
-        </div>
+            </div>
+            <div class="col-md-4">
+              <input class="form-control" type="number" id="sharedamount1" />
+              <input class="form-control" type="number" id="sharedamount2" />
+            </div>
+          </div>
 
         <!-- Categories -->
          <!-- Categories -->

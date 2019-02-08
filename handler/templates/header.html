@@ -1,67 +1,93 @@
-{{define "header"}} 
+{{define "header"}}
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>MoneyTracker</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, shrink-to-fit=no">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script type="text/javascript">
-    $(
-      function(){
-        $('#shared-input').change(function() {
-          $('#sharequota-input').prop('disabled',!$(this).prop('checked'))
-      });
 
-      $('#type-select').change(function(){
-        value = $(this).find(":selected").attr('value')
-        cond = (value == 1)
+<head>
+  <meta charset="utf-8">
+  <title>MoneyTracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, shrink-to-fit=no">
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+    crossorigin="anonymous">
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript">
+    $(
+      function () {
+        $('#shared-input').change(function () {
+          $('#sharequota-input').prop('disabled', !$(this).prop('checked'))
+        });
+
+        $('#sharequota-input').change(function(){
+          var quota = $(this).val();
+          var amount = $('input[name="Amount"]').val();
+          var amount1 = amount*quota/100;
+          var amount2 = amount*(100 - quota)/100;
+
+          $('#sharedamount1').val(amount1);
+          $('#sharedamount2').val(amount2);
+
+        });
+
+        $('#type-select').change(function () {
+          value = $(this).find(":selected").attr('value')
+          cond = (value == 1)
 
           if (cond) {
-                $("#category-select").val('1')
-            } else {
-                $("#category-select").val('0')
+            $("#category-select").val('1')
+          } else {
+            $("#category-select").val('0')
           }
+        });
+
+        $(".clickable").click(function () {
+          window.document.location = $(this).data("href");
+        });
+
+
       });
+  </script>
+  <style type="text/css">
+    .expense-positive .amount {
+      color: red
+    }
 
-    $(".clickable").click(function() {
-        window.document.location = $(this).data("href");
-    });
+    .expense-negative .amount {
+      color: green
+    }
+
+    .transfer {
+      background-color: #ddd !important;
+      font-weight: bold
+    }
+
+    .clickable {
+      cursor: pointer
+    }
+
+    .footer {
+      margin-top: 2rem
+    }
+  </style>
+</head>
+
+<body class="bg-light">
 
 
-    });
-    </script>
-    <style type="text/css">
-    .expense-positive .amount {color: red}
-    .expense-negative .amount{color: green}
-
-    .transfer {background-color: #ddd !important;font-weight: bold}
-    .clickable {cursor: pointer}
-    .footer {margin-top: 2rem}
-    </style>
-  </head>
-  <body class="bg-light">
 
 
- 
-
-<header>
-  <div class="container">
-    <div class="text-center py-5">
-        <a href="/"><img src="https://ronche.se/flyingmoney.png" height="72" width="auto"/></a>
-          <h3 class="title">Money Tracker</h3>
+  <header>
+    <div class="container">
+      <div class="text-center py-5">
+        <a href="/"><img src="https://ronche.se/flyingmoney.png" height="72" width="auto" /></a>
+        <h3 class="title">Money Tracker</h3>
       </div>
     </div>
-  </div>
+    </div>
 
-</header>
+  </header>
 
-<div class="container">
-<div class="row justify-content-center">
-  <div class="col-md-12">
-  
-    
- {{end}}
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-12">
 
+
+        {{end}}
