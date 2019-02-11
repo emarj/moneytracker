@@ -3,7 +3,7 @@
 
 {{$e := .Expense}}
 
-    <form action="{{if $e}}/update/{{else}}/add/{{end}}" method="POST">
+    <form action="{{Prefix}}{{if $e}}/update/{{else}}/add/{{end}}" method="POST">
       <fieldset>
        
       {{if $e}}
@@ -137,10 +137,10 @@
         <div class="form-group mb-3 text-right">
 
             {{if $e}}
-            <a class="btn btn-success" href="/sheet/add/{{$e.UUID}}" {{if $e.InSheet}} onclick="return confirm('dte item is already set to be in sheet. Are you sure you want to continue?');"
+            <a class="btn btn-success" href="{{Prefix}}/sheet/add/{{$e.UUID}}" {{if $e.InSheet}} onclick="return confirm('dte item is already set to be in sheet. Are you sure you want to continue?');"
             {{end}}>To Sheet</a>
 
-            <a class="btn btn-danger" href="/delete/{{$e.UUID}}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
+            <a class="btn btn-danger" href="{{Prefix}}/delete/{{$e.UUID}}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
             {{end}}
             <button type="reset" class="btn btn-secondary">Cancel</button>
         

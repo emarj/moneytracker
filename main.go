@@ -34,7 +34,9 @@ func main() {
 		}
 	}()
 
-	mux, err := handler.HTMLHandler(dbSrv, sheetsSrv, "handler/templates")
+	prefix := os.Getenv("PREFIX")
+
+	mux, err := handler.HTMLHandler(dbSrv, sheetsSrv, "handler/templates", prefix)
 	if err != nil {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}

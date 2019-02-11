@@ -24,7 +24,7 @@ import (
 	"ronche.se/moneytracker/sheet"
 )
 
-func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string) (http.Handler, error) {
+func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string, prefix string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
 		"IsNeg": func(d decimal.Decimal) bool {
 			return d.LessThan(decimal.Zero)
@@ -36,25 +36,28 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 			loc, _ := time.LoadLocation("Europe/Rome")
 			return time.Now().In(loc).Format(format)
 		},
+		"Prefix": func() string {
+			return prefix
+		},
 	}).ParseGlob(path.Join(tmplPath, "*"))
 
 	if err != nil {
 		return nil, err
 	}
 
-	h := htmlHandler{dbSrv, sheetSrv, t}
+	h := htmlHandler{dbSrv, sheetSrv, t, prefix}
 
 	router := httprouter.New()
-	router.GET("/", h.render(h.index))
-	router.POST("/", h.render(h.index))
-	router.GET("/all/", h.render(h.all))
-	router.POST("/add/", h.render(h.add))
-	router.GET("/view/:uuid", h.render(h.view))
-	router.POST("/update/", h.render(h.update))
-	router.GET("/delete/:uuid", h.render(h.delete))
-	router.GET("/sheet/add/:uuid", h.render(h.addToSheet))
-	router.POST("/sheet/add/:uuid", h.render(h.addToSheet))
-	router.GET("/sheet/reset", h.render(h.resetSheet))
+	router.GET(prefix+"/", h.render(h.index))
+	router.POST(prefix+"/", h.render(h.index))
+	router.GET(prefix+"/all/", h.render(h.all))
+	router.POST(prefix+"/add/", h.render(h.add))
+	router.GET(prefix+"/view/:uuid", h.render(h.view))
+	router.POST(prefix+"/update/", h.render(h.update))
+	router.GET(prefix+"/delete/:uuid", h.render(h.delete))
+	router.GET(prefix+"/sheet/add/:uuid", h.render(h.addToSheet))
+	router.POST(prefix+"/sheet/add/:uuid", h.render(h.addToSheet))
+	router.GET(prefix+"/sheet/reset", h.render(h.resetSheet))
 
 	protected := cookieauth.Wrap(router, "spendi", "schei")
 
@@ -65,7 +68,7 @@ type htmlHandler struct {
 	dbSrv    model.Service
 	sheetSrv *sheet.SheetService
 	tmpl     *template.Template
-	//Google Sheets
+	prefix   string
 }
 
 type htmlResponse struct {
@@ -95,7 +98,7 @@ func (h *htmlHandler) render(f func(r *http.Request) *htmlResponse) http.Handler
 		buf := new(bytes.Buffer)
 		res := f(r)
 		if res.IsRedirect {
-			http.Redirect(w, r, res.RedirectTo, res.Status)
+			http.Redirect(w, r, h.prefix+res.RedirectTo, res.Status)
 			return
 		}
 

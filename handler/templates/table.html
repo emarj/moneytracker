@@ -12,7 +12,7 @@
     </thead>
     <tbody>
       {{range $expense := .Expenses}}
-      <tr data-href="/view/{{$expense.UUID}}" class="clickable {{if eq $expense.Type 1 }}transfer{{else}}expense-{{if IsNeg $expense.Amount}}negative{{else}}positive{{end}}{{end}}">
+      <tr data-href="{{Prefix}}/view/{{$expense.UUID}}" class="clickable {{if eq $expense.Type 1 }}transfer{{else}}expense-{{if IsNeg $expense.Amount}}negative{{else}}positive{{end}}{{end}}">
         <td>{{$expense.Date.Format "02/01/2006" }}</td>
         <td class="text-center">{{$expense.Who }}</td>
         <td>{{$expense.Description }}</td>
