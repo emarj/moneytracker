@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -21,10 +22,9 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	"ronche.se/moneytracker/model"
-	"ronche.se/moneytracker/sheet"
 )
 
-func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath string) (http.Handler, error) {
+func HTMLHandler(dbSrv model.Service, tmplPath string) (http.Handler, error) {
 	t, err := template.New("").Funcs(template.FuncMap{
 		"IsNeg": func(d decimal.Decimal) bool {
 			return d.LessThan(decimal.Zero)
@@ -36,25 +36,28 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 			loc, _ := time.LoadLocation("Europe/Rome")
 			return time.Now().In(loc).Format(format)
 		},
+		"ToLower": func(str string) string {
+			return strings.ToLower(str)
+		},
 	}).ParseGlob(path.Join(tmplPath, "*"))
 
 	if err != nil {
 		return nil, err
 	}
 
-	h := htmlHandler{dbSrv, sheetSrv, t}
+	h := htmlHandler{dbSrv, t}
 
 	router := httprouter.New()
-	router.GET("/", h.render(h.index))
-	router.POST("/", h.render(h.index))
+	router.GET("/", h.render(h.home))
+	router.POST("/", h.render(h.home))
 	router.GET("/all/", h.render(h.all))
 	router.POST("/add/", h.render(h.add))
 	router.GET("/view/:uuid", h.render(h.view))
 	router.POST("/update/", h.render(h.update))
 	router.GET("/delete/:uuid", h.render(h.delete))
-	router.GET("/sheet/add/:uuid", h.render(h.addToSheet))
+	/*router.GET("/sheet/add/:uuid", h.render(h.addToSheet))
 	router.POST("/sheet/add/:uuid", h.render(h.addToSheet))
-	router.GET("/sheet/reset", h.render(h.resetSheet))
+	router.GET("/sheet/reset", h.render(h.resetSheet))*/
 
 	protected := cookieauth.Wrap(router, "spendi", "schei")
 
@@ -62,10 +65,8 @@ func HTMLHandler(dbSrv model.Service, sheetSrv *sheet.SheetService, tmplPath str
 }
 
 type htmlHandler struct {
-	dbSrv    model.Service
-	sheetSrv *sheet.SheetService
-	tmpl     *template.Template
-	//Google Sheets
+	dbSrv model.Service
+	tmpl  *template.Template
 }
 
 type htmlResponse struct {
@@ -121,8 +122,16 @@ func (h *htmlHandler) render(f func(r *http.Request) *htmlResponse) http.Handler
 	}
 }
 
-func (h *htmlHandler) index(r *http.Request) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetNOrderByInserted(10)
+func (h *htmlHandler) home(r *http.Request) *htmlResponse {
+	ts, err := h.dbSrv.TransactionsGetNOrderByInserted(10)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	us, err := h.dbSrv.UsersGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	tps, err := h.dbSrv.TypesGetAll()
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -135,18 +144,27 @@ func (h *htmlHandler) index(r *http.Request) *htmlResponse {
 		return resError(err, http.StatusInternalServerError)
 	}
 	type result struct {
-		Expenses       []*model.Expense
-		Expense        *model.Expense
+		Transactions   []*model.Transaction
+		Transaction    *model.Transaction
+		Types          []*model.Type
 		Categories     []*model.Category
-		Users          []string
+		Users          []*model.User
 		PaymentMethods []*model.PaymentMethod
 	}
 
-	return resOK(result{es, nil, cat, model.Users, pm}, "index")
+	return resOK(result{ts, nil, tps, cat, us, pm}, "home")
 }
 
 func (h *htmlHandler) all(r *http.Request) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetNOrderByDate(1000)
+	ts, err := h.dbSrv.TransactionsGetNOrderByDate(1000)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	us, err := h.dbSrv.UsersGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	tps, err := h.dbSrv.TypesGetAll()
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -159,13 +177,14 @@ func (h *htmlHandler) all(r *http.Request) *htmlResponse {
 		return resError(err, http.StatusInternalServerError)
 	}
 	type result struct {
-		Expenses       []*model.Expense
+		Transactions   []*model.Transaction
 		Categories     []*model.Category
-		Users          []string
+		Users          []*model.User
+		Types          []*model.Type
 		PaymentMethods []*model.PaymentMethod
 	}
 
-	return resOK(result{es, cat, model.Users, pm}, "all")
+	return resOK(result{ts, cat, us, tps, pm}, "all")
 }
 
 func (h *htmlHandler) view(r *http.Request) *htmlResponse {
@@ -176,10 +195,20 @@ func (h *htmlHandler) view(r *http.Request) *htmlResponse {
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
-
-	e, err := h.dbSrv.ExpenseGet(id)
+	//Get transaction
+	t, err := h.dbSrv.TransactionGet(id)
 	if err != nil {
 		return resError(err, http.StatusNotFound)
+	}
+
+	//Get resources for UI
+	us, err := h.dbSrv.UsersGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	tps, err := h.dbSrv.TypesGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
 	}
 
 	cat, err := h.dbSrv.CategoriesGetAll()
@@ -190,92 +219,90 @@ func (h *htmlHandler) view(r *http.Request) *htmlResponse {
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
+
 	type result struct {
-		Expenses       []*model.Expense
-		Expense        *model.Expense
+		Transactions   []*model.Transaction
+		Transaction    *model.Transaction
+		Types          []*model.Type
 		Categories     []*model.Category
-		Users          []string
+		Users          []*model.User
 		PaymentMethods []*model.PaymentMethod
 	}
 
-	return resOK(result{nil, e, cat, model.Users, pm}, "view")
+	return resOK(result{nil, t, tps, cat, us, pm}, "view")
 }
 
-func (h *htmlHandler) parseForm(r *http.Request) (*model.Expense, error) {
+func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	r.ParseForm()
 
-	e := model.Expense{Description: r.FormValue("Description")}
+	t := model.Transaction{Description: r.FormValue("Description")}
 
 	date, err := time.Parse("2006-01-02", r.FormValue("Date"))
 	if err != nil {
-		return &e, err
+		return &t, err
 	}
-	e.Date = date
+	t.Date = date
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
-		return &e, err
+		return &t, err
 	}
 	if am.Equals(decimal.Zero) {
-		return &e, fmt.Errorf("amount cannot be zero")
+		return &t, fmt.Errorf("amount cannot be zero")
 	}
-	e.Amount = am
+	t.Amount = am
 
-	e.Who = r.FormValue("Who")
-
-	typ, err := strconv.Atoi(r.FormValue("Type"))
+	userID, err := strconv.Atoi(r.FormValue("UserID"))
 	if err != nil {
-		return &e, err
+		return &t, err
 	}
-	e.Type = typ
+	t.User = &model.User{ID: userID}
 
-	catid, err := strconv.Atoi(r.FormValue("CategoryID"))
+	typeID, err := strconv.Atoi(r.FormValue("TypeID"))
 	if err != nil {
-		return &e, err
+		return &t, err
+	}
+	t.Type = &model.Type{ID: typeID}
+
+	catID, err := strconv.Atoi(r.FormValue("CategoryID"))
+	if err != nil {
+		return &t, err
 	}
 
-	e.Category = &model.Category{ID: catid}
+	t.Category = &model.Category{ID: catID}
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
 	if err != nil {
-		return &e, err
+		return &t, err
 	}
-	e.Method = &model.PaymentMethod{ID: pmid}
+	t.Method = &model.PaymentMethod{ID: pmid}
 
 	if r.FormValue("Shared") == "on" {
-		e.Shared = true
+		t.Shared = true
 
 		quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
 		if err != nil {
-			return &e, err
+			return &t, err
 		}
 		if quota == 0 {
-			return &e, fmt.Errorf("quota cannot be zero")
+			return &t, fmt.Errorf("quota cannot be zero")
 		}
-		e.ShareQuota = quota
+		t.ShareQuota = quota
 	}
 
-	if r.FormValue("InSheet") == "on" {
-		e.InSheet = true
-	}
-
-	return &e, nil
+	return &t, nil
 }
 
 func (h *htmlHandler) add(r *http.Request) *htmlResponse {
 
-	e, err := h.parseForm(r)
+	t, err := h.parseForm(r)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
 
-	err = h.dbSrv.ExpenseInsert(e)
+	err = h.dbSrv.TransactionInsert(t)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
-	}
-
-	if !e.InSheet {
-		return resRedirect("/sheet/add/"+e.UUID.String(), http.StatusTemporaryRedirect)
 	}
 
 	return resRedirect("/", http.StatusTemporaryRedirect)
@@ -284,7 +311,7 @@ func (h *htmlHandler) add(r *http.Request) *htmlResponse {
 
 func (h *htmlHandler) update(r *http.Request) *htmlResponse {
 
-	e, err := h.parseForm(r)
+	t, err := h.parseForm(r)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
@@ -294,11 +321,11 @@ func (h *htmlHandler) update(r *http.Request) *htmlResponse {
 		return resError(err, http.StatusBadRequest)
 	}
 
-	e.UUID = id
+	t.UUID = id
 
 	//More checks
 
-	err = h.dbSrv.ExpenseUpdate(e)
+	err = h.dbSrv.TransactionUpdate(t)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -313,31 +340,32 @@ func (h *htmlHandler) delete(r *http.Request) *htmlResponse {
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
-	err = h.dbSrv.ExpenseDelete(id)
+	err = h.dbSrv.TransactionDelete(id)
 	if err != nil {
 		return resError(err, http.StatusNotFound)
 	}
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
+/*
 func (h *htmlHandler) addToSheet(r *http.Request) *htmlResponse {
 	id, err := uuid.FromString(httprouter.GetParam(r, "uuid"))
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
 
-	e, err := h.dbSrv.ExpenseGet(id)
+	t, err := h.dbSrv.TransactionGet(id)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
 
-	err = h.sheetSrv.Insert(*e)
+	err = h.sheetSrv.Insert(*t)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
 
-	e.InSheet = true
-	err = h.dbSrv.ExpenseUpdate(e)
+	t.InSheet = true
+	err = h.dbSrv.TransactionUpdate(t)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -346,19 +374,19 @@ func (h *htmlHandler) addToSheet(r *http.Request) *htmlResponse {
 }
 
 func (h *htmlHandler) resetSheet(r *http.Request) *htmlResponse {
-	es, err := h.dbSrv.ExpensesGetNOrderByDate(100)
+	ts, err := h.dbSrv.TransactionsGetNOrderByDate(100)
 	if err != nil {
 		return resError(err, http.StatusBadRequest)
 	}
 
-	for _, e := range es {
-		err = h.sheetSrv.Insert(*e)
+	for _, t := range ts {
+		err = h.sheetSrv.Insert(*t)
 		if err != nil {
 			return resError(err, http.StatusInternalServerError)
 		}
 
-		e.InSheet = true
-		err = h.dbSrv.ExpenseUpdate(e)
+		t.InSheet = true
+		err = h.dbSrv.TransactionUpdate(t)
 		if err != nil {
 			return resError(err, http.StatusInternalServerError)
 		}
@@ -366,3 +394,4 @@ func (h *htmlHandler) resetSheet(r *http.Request) *htmlResponse {
 
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
+*/

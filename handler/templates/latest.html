@@ -1,14 +1,16 @@
 {{define "latest"}}
 
+<h4 class="title mt-5">Latest entries <a href="/all/">(all)</a>
+</h4>
 <ul class="list-group list-group-flush bg-light">
 
-      {{range $expense := .Expenses}}
-      <li data-href="/view/{{$expense.UUID}}" class="list-group-item clickable {{if eq $expense.Type 1 }}transfer{{else}}expense-{{if IsNeg $expense.Amount}}negative{{else}}positive{{end}}{{end}}">
-        <strong>{{$expense.Date.Format "02/01/06" }}</strong> {{$expense.Who }} paid <strong>{{FormatDecimal $expense.Amount }}</strong> of <em>{{$expense.Description }}</em> by {{$expense.Method.Name }} ({{$expense.Category.Name}}).<br/>
-        {{ if $expense.Shared }} The expense is shared at {{$expense.ShareQuota}}%{{end}}
+      {{range $t := .Transactions}}
+      <li data-href="/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
+        <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} paid <strong>{{FormatDecimal $t.Amount }}</strong> of <em>{{$t.Description }}</em> by {{$t.Method.Name }} ({{$t.Category.Name}}).<br/>
+        {{ if $t.Shared }} The transaction is shared at {{$t.ShareQuota}}%{{end}}
       </li>
       {{end}}
 </ul>
-<a href="/all/">See more...</a>
+<a href="/all/">More...</a>
 
   {{end}}

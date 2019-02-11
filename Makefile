@@ -17,7 +17,7 @@ clean:
 		rm -f $(BINARY_NAME)
 		rm -f $(BINARY_UNIX)
 run:
-		DBPATH="./moneytracker.sqlite" ./$(BINARY_NAME)
+		DBPATH="./moneytracker_test.sqlite" ./$(BINARY_NAME)
 
 
 # Cross compilation

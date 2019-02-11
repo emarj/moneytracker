@@ -15,20 +15,31 @@ import (
 
 var schema = [...]string{
 
-	`CREATE TABLE IF NOT EXISTS expenses (
-	uuid	TEXT NOT NULL,
-	datecreated	TEXT NOT NULL,
-	date	TEXT NOT NULL,
-	who		TEXT NOT NULL,
-	amount	INTEGER NOT NULL,
-	method	INTEGER,
-	description	TEXT NOT NULL,
-	category	INTEGER NOT NULL,
-	shared	TEXT NOT NULL,
-	quota	INTEGER,
-	insheet	INTEGER NOT NULL,
-	type	INTEGER NOT NULL,
-	PRIMARY KEY(uuid)
+	`CREATE TABLE IF NOT EXISTS transactions (
+		uuid	TEXT NOT NULL,
+		date_created	TEXT NOT NULL,
+		date	TEXT NOT NULL,
+		type_id	INTEGER NOT NULL,
+		user_id	INTEGER NOT NULL,
+		amount	NUMERIC NOT NULL,
+		description	TEXT NOT NULL,
+		method_id	INTEGER,
+		shared	INTEGER NOT NULL,
+		shared_quota	INTEGER NOT NULL,
+		category_id	INTEGER NOT NULL,
+		PRIMARY KEY(uuid)
+)`,
+
+	`CREATE TABLE IF NOT EXISTS types ( 
+	id	INTEGER NOT NULL,
+	name	TEXT NOT NULL, 
+	PRIMARY KEY(id)
+)`,
+
+	`CREATE TABLE IF NOT EXISTS users ( 
+	id	INTEGER NOT NULL,
+	name	TEXT NOT NULL, 
+	PRIMARY KEY(id)
 )`,
 
 	`CREATE TABLE IF NOT EXISTS categories ( 
@@ -71,41 +82,7 @@ func New(path string, createSchema bool) (*sqlite, error) {
 
 }
 
-func (s *sqlite) ExpensesGetNOrderByDate(limit int) ([]*model.Expense, error) {
-	return s.ExpensesGetNOrderBy(limit, "expenses.date DESC, expenses.datecreated DESC")
-}
-
-func (s *sqlite) ExpensesGetNOrderByInserted(limit int) ([]*model.Expense, error) {
-	return s.ExpensesGetNOrderBy(limit, "expenses.datecreated DESC, expenses.date DESC")
-}
-
-func (s *sqlite) ExpensesGetNOrderBy(limit int, orderby string) ([]*model.Expense, error) {
-
-	rows, err := s.db.Query(
-		`SELECT expenses.uuid,
-		expenses.datecreated,
-		expenses.date,
-		expenses.amount,
-		expenses.description,
-		expenses.shared,
-		expenses.quota,
-		expenses.who,
-		expenses.insheet,
-		expenses.type,
-		paymentmethods.id,
-		paymentmethods.name,
-		categories.id,
-		categories.name
-		 FROM expenses,paymentmethods,categories
-		WHERE expenses.method=paymentmethods.id AND expenses.category=categories.id
-		ORDER BY ` + orderby + `
-		LIMIT ` + strconv.Itoa(limit))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var es []*model.Expense
+func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 
 	var (
 		id          string
@@ -115,9 +92,228 @@ func (s *sqlite) ExpensesGetNOrderBy(limit int, orderby string) ([]*model.Expens
 		description string
 		shared      string
 		quota       int
-		who         string
-		insheet     bool
-		typ         int
+		userID      int
+		userName    string
+		typeID      int
+		typeName    string
+		methodID    int
+		methodName  string
+		catID       int
+		catName     string
+	)
+
+	err := s.db.QueryRow(
+		`SELECT
+		transactions.uuid,
+		transactions.date_created,
+		transactions.date,
+		transactions.amount,
+		transactions.description,
+		transactions.shared,
+		transactions.shared_quota,
+		users.id,
+		users.name,
+		types.id,
+		types.name,
+		paymentmethods.id,
+		paymentmethods.name,
+		categories.id,
+		categories.name
+		FROM transactions,users,types,paymentmethods,categories
+		WHERE 
+				transactions.user_id=users.id AND
+				transactions.type_id=types.id AND
+				transactions.method_id=paymentmethods.id AND
+				transactions.category_id=categories.id AND
+				transactions.uuid ='`+uid.String()+"'").Scan(
+		&id,
+		&dateCreated,
+		&date,
+		&amount,
+		&description,
+		&shared,
+		&quota,
+		&userID,
+		&userName,
+		&typeID,
+		&typeName,
+		&methodID,
+		&methodName,
+		&catID,
+		&catName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := model.NewTransaction(
+		id,
+		dateCreated,
+		date,
+		amount,
+		description,
+		shared,
+		quota,
+		userID,
+		userName,
+		typeID,
+		typeName,
+		methodID,
+		methodName,
+		catID,
+		catName)
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (s *sqlite) TransactionInsert(t *model.Transaction) error {
+	id := uuid.NewV4()
+
+	t.UUID = id
+	loc, err := time.LoadLocation("Europe/Rome")
+	if err != nil {
+		return err
+	}
+	t.DateCreated = time.Now().In(loc)
+
+	stmt, err := s.db.Prepare(
+		`INSERT INTO transactions(
+			uuid,
+			date_created,
+			date,
+			user_id,
+			amount,
+			method_id,
+			description,
+			category_id,
+			shared,
+			shared_quota,
+			type_id
+		) VALUES(?,?,?,?,?,?,?,?,?,?,?)`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(
+		t.UUID.String(),
+		t.DateCreated.Format("2006-01-02T15:04:05"),
+		t.Date.Format("2006-01-02"),
+		t.User.ID,
+		t.Amount,
+		t.Method.ID,
+		t.Description,
+		t.Category.ID,
+		t.Shared,
+		t.ShareQuota,
+		t.Type.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
+	stmt, err := s.db.Prepare(
+		`UPDATE transactions
+		SET
+			date = ?,
+			user_id = ?,
+			amount = ?,
+			method_id = ?,
+			description = ?,
+			category_id = ?,
+			shared = ?,
+			shared_quota = ?,
+			type_id = ?
+		WHERE uuid = '` + t.UUID.String() + `'`)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(
+		t.Date.Format("2006-01-02"),
+		t.User.ID,
+		t.Amount,
+		t.Method.ID,
+		t.Description,
+		t.Category.ID,
+		t.Shared,
+		t.ShareQuota,
+		t.Type.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *sqlite) TransactionDelete(id uuid.UUID) error {
+	_, err := s.db.Exec("DELETE FROM transactions WHERE uuid=?", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *sqlite) TransactionsGetNOrderByDate(limit int) ([]*model.Transaction, error) {
+	return s.TransactionsGetNOrderBy(limit, "transactions.date DESC, transactions.date_created DESC")
+}
+
+func (s *sqlite) TransactionsGetNOrderByInserted(limit int) ([]*model.Transaction, error) {
+	return s.TransactionsGetNOrderBy(limit, "transactions.date_created DESC, transactions.date DESC")
+}
+
+func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Transaction, error) {
+
+	rows, err := s.db.Query(
+		`SELECT transactions.uuid,
+		transactions.date_created,
+		transactions.date,
+		transactions.amount,
+		transactions.description,
+		transactions.shared,
+		transactions.shared_quota,
+		users.id,
+		users.name,
+		types.id,
+		types.name,
+		paymentmethods.id,
+		paymentmethods.name,
+		categories.id,
+		categories.name
+		FROM transactions,users,types,paymentmethods,categories
+		WHERE 
+				transactions.user_id=users.id AND
+				transactions.type_id=types.id AND
+				transactions.method_id=paymentmethods.id AND
+				transactions.category_id=categories.id
+		ORDER BY ` + orderBy + `
+		LIMIT ` + strconv.Itoa(limit))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ts []*model.Transaction
+
+	var (
+		id          string
+		dateCreated string
+		date        string
+		amount      decimal.Decimal
+		description string
+		shared      string
+		quota       int
+		userID      int
+		userName    string
+		typeID      int
+		typeName    string
 		methodID    int
 		methodName  string
 		catID       int
@@ -133,9 +329,10 @@ func (s *sqlite) ExpensesGetNOrderBy(limit int, orderby string) ([]*model.Expens
 			&description,
 			&shared,
 			&quota,
-			&who,
-			&insheet,
-			&typ,
+			&userID,
+			&userName,
+			&typeID,
+			&typeName,
 			&methodID,
 			&methodName,
 			&catID,
@@ -145,15 +342,16 @@ func (s *sqlite) ExpensesGetNOrderBy(limit int, orderby string) ([]*model.Expens
 			return nil, err
 		}
 
-		e, err := model.NewExpense(id, dateCreated,
+		t, err := model.NewTransaction(id, dateCreated,
 			date,
 			amount,
 			description,
 			shared,
 			quota,
-			who,
-			insheet,
-			typ,
+			userID,
+			userName,
+			typeID,
+			typeName,
 			methodID,
 			methodName,
 			catID,
@@ -161,184 +359,100 @@ func (s *sqlite) ExpensesGetNOrderBy(limit int, orderby string) ([]*model.Expens
 		if err != nil {
 			return nil, err
 		}
-		es = append(es, e)
+		ts = append(ts, t)
 	}
 	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
 
-	return es, nil
+	return ts, nil
 }
 
-func (s *sqlite) ExpenseGet(uid uuid.UUID) (*model.Expense, error) {
+func (s *sqlite) UsersGetAll() ([]*model.User, error) {
+	rows, err := s.db.Query("SELECT * FROM users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	var (
-		id          string
-		dateCreated string
-		date        string
-		amount      decimal.Decimal
-		description string
-		shared      string
-		quota       int
-		who         string
-		insheet     bool
-		typ         int
-		methodID    int
-		methodName  string
-		catID       int
-		catName     string
-	)
+	var us []*model.User
 
-	err := s.db.QueryRow(`SELECT expenses.uuid,
-		expenses.datecreated,
-		expenses.date,
-		expenses.amount,
-		expenses.description,
-		expenses.shared,
-		expenses.quota,
-		expenses.who,
-		expenses.insheet,
-		expenses.type,
-		paymentmethods.id,
-		paymentmethods.name,
-		categories.id,
-		categories.name
-		 FROM expenses,paymentmethods,categories
-		WHERE expenses.method=paymentmethods.id AND expenses.category=categories.id AND expenses.uuid ='`+uid.String()+"'").Scan(
-		&id,
-		&dateCreated,
-		&date,
-		&amount,
-		&description,
-		&shared,
-		&quota,
-		&who,
-		&insheet,
-		&typ,
-		&methodID,
-		&methodName,
-		&catID,
-		&catName,
-	)
+	var id int
+	var name string
+
+	for rows.Next() {
+		err := rows.Scan(&id, &name)
+		if err != nil {
+			return nil, err
+		}
+		us = append(us, &model.User{id, name})
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return us, nil
+}
+
+func (s *sqlite) UserInsert(name string) (*model.User, error) {
+	stmt, err := s.db.Prepare("INSERT INTO users(name) VALUES(?)")
+	if err != nil {
+		return nil, err
+	}
+	res, err := stmt.Exec(name)
 	if err != nil {
 		return nil, err
 	}
 
-	e, err := model.NewExpense(id, dateCreated,
-		date,
-		amount,
-		description,
-		shared,
-		quota,
-		who,
-		insheet,
-		typ,
-		methodID,
-		methodName,
-		catID,
-		catName)
+	lastID, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &model.User{int(lastID), name}, nil
+}
+
+func (s *sqlite) TypesGetAll() ([]*model.Type, error) {
+	rows, err := s.db.Query("SELECT * FROM types")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tps []*model.Type
+
+	var id int
+	var name string
+
+	for rows.Next() {
+		err := rows.Scan(&id, &name)
+		if err != nil {
+			return nil, err
+		}
+		tps = append(tps, &model.Type{id, name})
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return tps, nil
+}
+
+func (s *sqlite) TypeInsert(name string) (*model.Type, error) {
+	stmt, err := s.db.Prepare("INSERT INTO types(name) VALUES(?)")
+	if err != nil {
+		return nil, err
+	}
+	res, err := stmt.Exec(name)
 	if err != nil {
 		return nil, err
 	}
 
-	return e, nil
-}
-
-func (s *sqlite) ExpenseInsert(e *model.Expense) error {
-	id := uuid.NewV4()
-
-	e.UUID = id
-	loc, err := time.LoadLocation("Europe/Rome")
+	lastID, err := res.LastInsertId()
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	e.DateCreated = time.Now().In(loc)
-
-	stmt, err := s.db.Prepare(
-		`INSERT INTO expenses(
-			uuid,
-			datecreated,
-			date,
-			who,
-			amount,
-			method,
-			description,
-			category,
-			shared,
-			quota,
-			insheet,
-			type
-		) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(
-		e.UUID.String(),
-		e.DateCreated.Format("2006-01-02T15:04:05"),
-		e.Date.Format("2006-01-02"),
-		e.Who,
-		e.Amount,
-		e.Method.ID,
-		e.Description,
-		e.Category.ID,
-		e.Shared,
-		e.ShareQuota,
-		e.InSheet,
-		e.Type,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *sqlite) ExpenseUpdate(e *model.Expense) error {
-	stmt, err := s.db.Prepare(
-		`UPDATE expenses
-		SET
-			date = ?,
-			who = ?,
-			amount = ?,
-			method = ?,
-			description = ?,
-			category = ?,
-			shared = ?,
-			quota = ?,
-			insheet = ?,
-			type = ?
-		WHERE uuid = '` + e.UUID.String() + `'`)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.Exec(
-		e.Date.Format("2006-01-02"),
-		e.Who,
-		e.Amount,
-		e.Method.ID,
-		e.Description,
-		e.Category.ID,
-		e.Shared,
-		e.ShareQuota,
-		e.InSheet,
-		e.Type,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *sqlite) ExpenseDelete(id uuid.UUID) error {
-	_, err := s.db.Exec("DELETE FROM expenses WHERE uuid=?", id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return &model.Type{int(lastID), name}, nil
 }
 
 func (s *sqlite) CategoriesGetAll() ([]*model.Category, error) {

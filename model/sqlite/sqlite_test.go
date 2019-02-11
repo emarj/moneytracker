@@ -1,11 +1,11 @@
 package sqlite
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/shopspring/decimal"
 
 	"ronche.se/moneytracker/model"
 )
@@ -22,59 +22,7 @@ func TestNew(t *testing.T) {
 
 }
 
-func TestCategoryInsert(t *testing.T) {
-	s, err := New("./test.db", true)
-	if err != nil {
-		t.Fail()
-	}
-	defer func() {
-		s.Close()
-		os.Remove("./test.db")
-	}()
-
-	cat1, err := s.CategoryInsert("Prova")
-	if err != nil {
-		t.Error(err)
-	}
-
-	if cat1.ID != 1 {
-		t.Errorf("Expecting ID %d got %d", 1, cat1.ID)
-	}
-
-	cat2, err := s.CategoryInsert("Prova2")
-	if err != nil {
-		t.Error(err)
-	}
-	if cat2.ID != 2 {
-		t.Errorf("Expecting ID %d got %d", 2, cat2.ID)
-	}
-
-}
-
-func TestCategoriesGetAll(t *testing.T) {
-	s, err := New("./test.db", true)
-	if err != nil {
-		t.Fail()
-	}
-	defer func() {
-		s.Close()
-		os.Remove("./test.db")
-	}()
-
-	s.CategoryInsert("foo")
-	s.CategoryInsert("bar")
-
-	cats, err := s.CategoriesGetAll()
-	if err != nil {
-		t.Error(err)
-	}
-	if cats[0].Name != "foo" || cats[1].Name != "bar" {
-		t.Errorf("%s != foo || %s != bar", cats[0].Name, cats[1].Name)
-	}
-
-}
-
-func TestExpenseInsert(t *testing.T) {
+func TestTransactionCRUD(t *testing.T) {
 	s, err := New("./test.db", true)
 	if err != nil {
 		t.Error(err)
@@ -84,135 +32,102 @@ func TestExpenseInsert(t *testing.T) {
 		os.Remove("./test.db")
 	}()
 
-	u := model.User{1, ""}
-	c := model.Category{1, ""}
-	pm := model.PaymentMethod{1, ""}
-	e := model.Expense{Date: time.Now().Local(), Who: &u, Method: &pm, Category: &c}
-	_, err = s.ExpenseInsert(&e)
-	if err != nil {
-		t.Error(err)
-	}
-
-}
-
-func TestExpenseUpdate(t *testing.T) {
-	s, err := New("./test.db", true)
-	if err != nil {
-		t.Error(err)
-	}
-	defer func() {
-		s.Close()
-		//os.Remove("./test.db")
-	}()
-
-	u := model.User{1, ""}
-	c := model.Category{1, ""}
-	pm := model.PaymentMethod{1, ""}
-	e := model.Expense{Date: time.Now().Local(), Who: &u, Method: &pm, Category: &c}
-	fmt.Println(e.UUID)
-	_, err = s.ExpenseInsert(&e)
+	u1, err := s.UserInsert("Marco")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	fmt.Println(e.UUID)
-
-	e.Amount = 123456
-	_, err = s.ExpenseUpdate(&e)
+	u2, err := s.UserInsert("Arianna")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	tp1, err := s.TypeInsert("Expense")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	tp2, err := s.TypeInsert("Transfer")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	cat, err := s.CategoryInsert("Uncategorized")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pm, err := s.PaymentMethodInsert("CC")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	fmt.Println(e.UUID)
-
-	res, err := s.ExpenseGet(e.UUID)
+	tr1 := model.Transaction{Date: time.Now().Local(), Type: tp1, User: u1, Method: pm, Category: cat}
+	tr2 := model.Transaction{Date: time.Now().Local(), Type: tp2, User: u2, Method: pm, Category: cat}
+	err = s.TransactionInsert(&tr1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = s.TransactionInsert(&tr2)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	if res.Amount != e.Amount {
-		t.Errorf("%d != %d", res.Amount, e.Amount)
-	}
-
-}
-
-func TestExpensesGetAll(t *testing.T) {
-	s, err := New("./test.db", true)
+	tr1.Amount, _ = decimal.NewFromString("123456")
+	err = s.TransactionUpdate(&tr1)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	defer func() {
-		s.Close()
-		os.Remove("./test.db")
-	}()
 
-	s.UserInsert("M")
-	s.UserInsert("A")
-
-	s.CategoryInsert("Uncategorized")
-	s.CategoryInsert("Spesa")
-	s.CategoryInsert("Ristorante")
-
-	s.PaymentMethodInsert("Contanti")
-	s.PaymentMethodInsert("Bancomat")
-
-	u := model.User{1, ""}
-	c := model.Category{1, ""}
-	pm := model.PaymentMethod{1, ""}
-	e1 := model.Expense{DateCreated: time.Now().Local(), Date: time.Now().Local(), Who: &u, Method: &pm, Category: &c}
-	s.ExpenseInsert(&e1)
-	s.ExpenseInsert(&e1)
-	s.ExpenseInsert(&e1)
-
-	es, err := s.ExpensesGetN(2)
+	res, err := s.TransactionGet(tr1.UUID)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 
-	for _, e := range es {
-		log.Println(*e)
+	if !res.Amount.Equal(tr1.Amount) {
+		t.Errorf("%s != %s", res.Amount.String(), tr1.Amount.String())
+		return
 	}
 
-}
-
-func TestExpenseDelete(t *testing.T) {
-	s, err := New("./test.db", true)
+	trs, err := s.TransactionsGetNOrderByDate(100)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	defer func() {
-		s.Close()
-		os.Remove("./test.db")
-	}()
 
-	s.UserInsert("M")
-	s.UserInsert("A")
+	for _, tr := range trs {
+		t.Log(*tr.User)
+	}
 
-	s.CategoryInsert("Uncategorized")
-	s.CategoryInsert("Spesa")
-	s.CategoryInsert("Ristorante")
+	if len(trs) != 2 {
+		t.Errorf("2 != %d", len(trs))
+		return
+	}
 
-	s.PaymentMethodInsert("Contanti")
-	s.PaymentMethodInsert("Bancomat")
-
-	u := model.User{1, ""}
-	c := model.Category{1, ""}
-	pm := model.PaymentMethod{1, ""}
-	e1 := model.Expense{DateCreated: time.Now().Local(), Date: time.Now().Local(), Who: &u, Method: &pm, Category: &c}
-	e, _ := s.ExpenseInsert(&e1)
-
-	err = s.ExpenseDelete(e.UUID)
+	err = s.TransactionDelete(tr1.UUID)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	es, err := s.ExpensesGetN(2)
+
+	trs, err = s.TransactionsGetNOrderByDate(100)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	for _, e := range es {
-		log.Println(*e)
+
+	for _, tr := range trs {
+		t.Log(*tr.User)
+	}
+
+	if len(trs) != 1 {
+		t.Errorf("1 != %d", len(trs))
+		return
 	}
 
 }

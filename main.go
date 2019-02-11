@@ -8,19 +8,17 @@ import (
 
 	"ronche.se/moneytracker/handler"
 	"ronche.se/moneytracker/model/sqlite"
-	"ronche.se/moneytracker/sheet"
 )
 
 func main() {
 
-	sheetsSrv, err := sheet.New("client_secret_v1.json", "1ud3T4uUPOv94Atj4Qopy1qhwatLaXsXnLOl_n-Qxya4")
 	dbPath := os.Getenv("DBPATH")
 	if dbPath == "" {
 		dbPath = "../moneytracker.sqlite"
 		fmt.Println("INFO: No DBPATH environment variable detected, defaulting to " + dbPath)
 	}
 
-	_, err = os.Open(dbPath)
+	_, err := os.Open(dbPath)
 	if err != nil {
 		log.Fatalf("impossible to open the db file: %v", err)
 	}
@@ -34,7 +32,7 @@ func main() {
 		}
 	}()
 
-	mux, err := handler.HTMLHandler(dbSrv, sheetsSrv, "handler/templates")
+	mux, err := handler.HTMLHandler(dbSrv, "handler/templates")
 	if err != nil {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}

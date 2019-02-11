@@ -8,7 +8,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var Users = []string{"A", "M"}
+type User struct {
+	ID   int
+	Name string
+}
+
+type Type struct {
+	ID   int
+	Name string
+}
 
 type Category struct {
 	ID   int
@@ -20,87 +28,97 @@ type PaymentMethod struct {
 	Name string
 }
 
-type Expense struct {
+type Transaction struct {
 	UUID        uuid.UUID
 	DateCreated time.Time
 	Date        time.Time
 	Description string
-	Who         string
-	Method      *PaymentMethod
 	Amount      decimal.Decimal
-	Shared      bool
-	ShareQuota  int
-	Category    *Category
-	InSheet     bool
-	Type        int
+	//AmountShared decimal.Decimal
+	//SharedWith *User Maybe Wallets?
+	Shared     bool
+	ShareQuota int
+
+	User     *User
+	Method   *PaymentMethod
+	Category *Category
+	Type     *Type
 }
 
-func NewExpenseNoID(
+func NewTransactionNoID(
 	dateCreated string,
 	date string,
 	amount decimal.Decimal,
 	description string,
 	shared string,
 	quota int,
-	who string,
-	inSheet bool,
-	typ int,
+	userID int,
+	userName string,
+	typeID int,
+	typeName string,
 	methodID int,
 	methodName string,
 	catID int,
-	catName string) (*Expense, error) {
+	catName string) (*Transaction, error) {
+
+	u := User{ID: userID, Name: userName}
+	tp := Type{ID: typeID, Name: typeName}
 	c := Category{ID: catID, Name: catName}
 	pm := PaymentMethod{ID: methodID, Name: methodName}
-	e := Expense{Category: &c, Method: &pm, Who: who, Type: typ, InSheet: inSheet}
+	t := Transaction{Category: &c, Method: &pm, User: &u, Type: &tp}
 
-	e.Amount = amount
-	e.ShareQuota = quota
-	e.Description = description
+	t.Amount = amount
+	t.ShareQuota = quota
+	t.Description = description
 
 	shrd, err := strconv.ParseBool(shared)
 	if err != nil {
 		return nil, err
 	}
-	e.Shared = shrd
+	t.Shared = shrd
 
 	dc, err := time.Parse("2006-01-02T15:04:05", dateCreated)
 	if err != nil {
 		return nil, err
 	}
-	e.DateCreated = dc
+	t.DateCreated = dc
 
 	d, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return nil, err
 	}
-	e.Date = d
+	t.Date = d
 
-	return &e, nil
+	return &t, nil
 }
 
-func NewExpense(id string, dateCreated string,
+func NewTransaction(
+	id string,
+	dateCreated string,
 	date string,
 	amount decimal.Decimal,
 	description string,
 	shared string,
 	quota int,
-	who string,
-	inSheet bool,
-	typ int,
+	userID int,
+	userName string,
+	typeID int,
+	typeName string,
 	methodID int,
 	methodName string,
 	catID int,
-	catName string) (*Expense, error) {
-	e, err := NewExpenseNoID(
+	catName string) (*Transaction, error) {
+	t, err := NewTransactionNoID(
 		dateCreated,
 		date,
 		amount,
 		description,
 		shared,
 		quota,
-		who,
-		inSheet,
-		typ,
+		userID,
+		userName,
+		typeID,
+		typeName,
 		methodID,
 		methodName,
 		catID,
@@ -113,25 +131,36 @@ func NewExpense(id string, dateCreated string,
 	if err != nil {
 		return nil, err
 	}
-	e.UUID = uID
-	return e, nil
+	t.UUID = uID
+	return t, nil
 }
 
 type Service interface {
-	ExpensesGetNOrderBy(limit int, orderby string) ([]*Expense, error)
-	ExpensesGetNOrderByDate(limit int) ([]*Expense, error)
-	ExpensesGetNOrderByInserted(limit int) ([]*Expense, error)
-	ExpenseGet(uuid.UUID) (*Expense, error)
-	ExpenseInsert(*Expense) error
-	ExpenseUpdate(*Expense) error
-	ExpenseDelete(uuid.UUID) error
 
+	/*Transactions*/
+	TransactionGet(uuid.UUID) (*Transaction, error)
+	TransactionInsert(*Transaction) error
+	TransactionUpdate(*Transaction) error
+	TransactionDelete(uuid.UUID) error
+
+	TransactionsGetNOrderBy(limit int, orderby string) ([]*Transaction, error)
+	TransactionsGetNOrderByDate(limit int) ([]*Transaction, error)
+	TransactionsGetNOrderByInserted(limit int) ([]*Transaction, error)
+
+	/*Types*/
+	TypesGetAll() ([]*Type, error)
+
+	/*Users*/
+	UsersGetAll() ([]*User, error)
+
+	/*Categories*/
 	CategoriesGetAll() ([]*Category, error)
 	/*CategoryGet(int) (*Category, error)*/
 	CategoryInsert(Name string) (*Category, error)
 	/*CategoryUpdate(*Category) (*Category, error)
 	CategoryDelete(int,int) error*/
 
+	/*PaymentsMethods*/
 	PaymentMethodsGetAll() ([]*PaymentMethod, error)
 	//PaymentMethodGet(int) (*PaymentMethod, error)
 	PaymentMethodInsert(Name string) (*PaymentMethod, error)
