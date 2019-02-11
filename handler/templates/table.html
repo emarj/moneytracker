@@ -12,7 +12,7 @@
     </thead>
     <tbody>
       {{range $t := .Transactions}}
-      <tr data-href="/view/{{$t.UUID}}" class="clickable {{ToLower $t.Type.Name}}">
+      <tr data-href="{{Prefix}}/view/{{$t.UUID}}" class="clickable {{ToLower $t.Type.Name}}">
         <td>{{$t.Date.Format "02/01/2006" }}</td>
         <td class="text-center">{{$t.User.Name }}</td>
         <td>{{$t.Description }}</td>

@@ -1,16 +1,16 @@
 {{define "latest"}}
 
-<h4 class="title mt-5">Latest entries <a href="/all/">(all)</a>
+<h4 class="title mt-5">Latest entries <a href="{{Prefix}}/all/">(all)</a>
 </h4>
 <ul class="list-group list-group-flush bg-light">
 
       {{range $t := .Transactions}}
-      <li data-href="/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
+      <li data-href="{{Prefix}}/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
         <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} paid <strong>{{FormatDecimal $t.Amount }}</strong> of <em>{{$t.Description }}</em> by {{$t.Method.Name }} ({{$t.Category.Name}}).<br/>
         {{ if $t.Shared }} The transaction is shared at {{$t.ShareQuota}}%{{end}}
       </li>
       {{end}}
 </ul>
-<a href="/all/">More...</a>
+<a href="{{Prefix}}/all/">More...</a>
 
   {{end}}
