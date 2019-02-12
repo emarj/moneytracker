@@ -1,0 +1,32 @@
+.transaction-positive .amount {
+    color: red
+  }
+
+  .transaction-negative .amount {
+    color: green
+  }
+
+  .transfer {
+    background-color: #ddd !important;
+    font-weight: bold
+  }
+
+  .clickable {
+    cursor: pointer
+  }
+
+  .footer {
+    margin-top: 2rem
+  }
+
+  #own-amount {
+    color: red
+  }
+
+  #shared-amount {
+    color: green
+  }
+
+  table small {
+    display: block;
+  }

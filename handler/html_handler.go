@@ -71,6 +71,8 @@ func HTMLHandler(dbSrv model.Service, tmplPath string, prefix string) (http.Hand
 	router.POST(prefix+"/sheet/add/:uuid", h.render(h.addToSheet))
 	router.GET(prefix+"/sheet/reset", h.render(h.resetSheet))*/
 
+	router.ServeFiles(prefix+"/static/*filepath", http.Dir("./static"))
+
 	protected := cookieauth.Wrap(router, "spendi", "schei")
 
 	return protected, nil

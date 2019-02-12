@@ -6,141 +6,20 @@
   <meta charset="utf-8">
   <title>MoneyTracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, shrink-to-fit=no">
+
+  <link rel="shortcut icon" href="{{Prefix}}/static/img/flyingmoney.png"> 
+
+  <!--CSS-->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
     crossorigin="anonymous">
+    <link href="{{Prefix }}/static/css/style.css" rel="stylesheet" />
+
+
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script type="text/javascript">
-    $(
-      function () {
-        $('#is-shared').change(function () {
-          if ($('input[name="Amount"]').val() == 0) {
-            $(this).prop('checked', false);
-            return
-          }
-          var checked = $(this).prop('checked');
-          $('#shared-perc').prop('disabled', !checked)
-          $('#own-amount').prop('disabled', !checked)
-          $('#shared-amount').prop('disabled', !checked)
-
-          if (checked) {
-            updateFromPerc();
-          } else {
-            $('#shared-amount').val('');
-            $('#own-amount').val('');
-          }
-        });
-
-        $('input[name="Amount"]').on('input', function () {
-          if ($('#is-shared').prop('checked')) {
-            updateFromPerc();
-          }
-        });
-        $('#shared-perc').on('input', updateFromPerc)
-          .on('dblclick', function () {
-            $(this).val(50);
-            updateFromPerc();
-          });
-
-        $('#toggle-geoloc').change(function () {
-          var checked = $(this).prop('checked');
-          $('#position').prop('disabled', !checked);
-        });
-
-        $('#shared-amount').change(updateFromAmount);
-
-        $('#type-select').change(function () {
-          value = $(this).find(":selected").attr('value')
-          cond = (value == 1)
-
-          if (cond) {
-            $("#category-select").val('1')
-          } else {
-            $("#category-select").val('0')
-          }
-        });
-
-        $(".clickable").click(function () {
-          window.document.location = $(this).data("href");
-        });
-
-        //var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
+  <script type="text/javascript" src="{{Prefix}}/static/js/app.js"></script>
 
 
 
-      });
-
-    function updateFromPerc() {
-      var quota = $('#shared-perc').val();
-      var amount = $('input[name="Amount"]').val();
-      var ownAmount = amount * (100 - quota) / 100;
-      var shrAmount = amount * (quota) / 100;
-
-      $('#own-amount').val(ownAmount);
-      $('#shared-amount').val(shrAmount);
-    }
-
-    function updateFromAmount() {
-      var shrAmount = $('#shared-amount').val();
-      var amount = $('input[name="Amount"]').val();
-      var quota = shrAmount * 100 / amount;
-
-      $('#shared-perc').val(quota).prop('disabled', true);
-
-      $('#own-amount').val(amount - shrAmount);
-    }
-
-
-
-    function geo_success(position) {
-      if (!$('#geoloc-toggle').prop('disabled')) {
-        $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
-      }
-    }
-
-    function geo_error() {
-      console.log("Sorry, no position available.");
-    }
-
-    var geo_options = {
-      enableHighAccuracy: true,
-      maximumAge: 30000,
-      timeout: 27000
-    };
-  </script>
-  <style type="text/css">
-    .transaction-positive .amount {
-      color: red
-    }
-
-    .transaction-negative .amount {
-      color: green
-    }
-
-    .transfer {
-      background-color: #ddd !important;
-      font-weight: bold
-    }
-
-    .clickable {
-      cursor: pointer
-    }
-
-    .footer {
-      margin-top: 2rem
-    }
-
-    #own-amount {
-      color: red
-    }
-
-    #shared-amount {
-      color: green
-    }
-
-    table small {
-      display: block;
-    }
-  </style>
 </head>
 
 <body class="bg-light">
@@ -151,7 +30,7 @@
   <header>
     <div class="container">
       <div class="text-center py-5">
-        <a href="{{Prefix}}/"><img src="https://ronche.se/flyingmoney.png" height="72" width="auto" /></a>
+        <a href="{{Prefix}}/"><img src="{{Prefix}}/static/img/flyingmoney.png" height="72" width="auto" /></a>
         <h3 class="title">Money Tracker</h3>
       </div>
     </div>
