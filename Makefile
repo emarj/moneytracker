@@ -16,7 +16,7 @@ clean:
 		rm -f $(BINARY_NAME)
 		rm -f $(BINARY_UNIX)
 run:
-		DBPATH="./moneytracker_geoloc.sqlite" ./$(BINARY_NAME)
+		DBPATH="./moneytracker_dev.sqlite" ./$(BINARY_NAME)
 
 prod: 
 		DBPATH="../moneytracker.sqlite" PREFIX="/money" ./$(BINARY_NAME)

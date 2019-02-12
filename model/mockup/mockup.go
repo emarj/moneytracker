@@ -49,7 +49,7 @@ func (m *mockup) TransactionInsert(t *model.Transaction) error {
 	//Actual inser
 	m.transactions[id.String()] = t
 
-	return t, nil
+	return nil
 }
 
 func (m *mockup) TransactionUpdate(t *model.Transaction) error {

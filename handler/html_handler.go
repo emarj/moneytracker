@@ -29,8 +29,11 @@ func HTMLHandler(dbSrv model.Service, tmplPath string, prefix string) (http.Hand
 		"IsNeg": func(d decimal.Decimal) bool {
 			return d.LessThan(decimal.Zero)
 		},
-		"FormatDecimal": func(d decimal.Decimal) string {
+		"FixFormatDec2": func(d decimal.Decimal) string {
 			return d.StringFixed(2)
+		},
+		"AutoFormatDec": func(d decimal.Decimal) string {
+			return d.String()
 		},
 		"Now": func(format string) string {
 			loc, _ := time.LoadLocation("Europe/Rome")
@@ -41,6 +44,12 @@ func HTMLHandler(dbSrv model.Service, tmplPath string, prefix string) (http.Hand
 		},
 		"Prefix": func() string {
 			return prefix
+		},
+		"SubDec": func(a, b decimal.Decimal) decimal.Decimal {
+			return a.Sub(b)
+		},
+		"PercDec": func(a, b decimal.Decimal) decimal.Decimal {
+			return a.Div(b).Mul(decimal.New(1, 2)).Ceil()
 		},
 	}).ParseGlob(path.Join(tmplPath, "*"))
 
@@ -284,14 +293,14 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	if r.FormValue("Shared") == "on" {
 		t.Shared = true
 
-		quota, err := strconv.Atoi(r.FormValue("ShareQuota"))
+		sq, err := decimal.NewFromString(r.FormValue("SharedQuota"))
 		if err != nil {
 			return &t, err
 		}
-		if quota == 0 {
-			return &t, fmt.Errorf("quota cannot be zero")
+		if sq.Equals(decimal.Zero) {
+			return &t, fmt.Errorf("Shared Quota cannot be zero")
 		}
-		t.ShareQuota = quota
+		t.SharedQuota = sq
 	}
 
 	t.GeoLocation = r.FormValue("GeoLoc")

@@ -12,25 +12,41 @@
   <script type="text/javascript">
     $(
       function () {
-        $('#shared-input').change(function () {
+        $('#is-shared').change(function () {
+          if ($('input[name="Amount"]').val() == 0) {
+            $(this).prop('checked', false);
+            return
+          }
           var checked = $(this).prop('checked');
-          $('#sharequota-input').prop('disabled', !checked)
-          $('#sharedamount1').prop('disabled', !checked)
-          $('#sharedamount2').prop('disabled', !checked)
+          $('#shared-perc').prop('disabled', !checked)
+          $('#own-amount').prop('disabled', !checked)
+          $('#shared-amount').prop('disabled', !checked)
 
-          if (checked) updateAmounts();
-          if (!checked) {
-            $('#sharequota-input').val(50);
-            $('#sharedamount1').val('');
-            $('#sharedamount2').val('');
-
+          if (checked) {
+            updateFromPerc();
+          } else {
+            $('#shared-amount').val('');
+            $('#own-amount').val('');
           }
         });
 
-        $('input[name="Amount"]').change(updateAmounts);
-        $('#sharequota-input').change(updateAmounts);
+        $('input[name="Amount"]').on('input', function () {
+          if ($('#is-shared').prop('checked')) {
+            updateFromPerc();
+          }
+        });
+        $('#shared-perc').on('input', updateFromPerc)
+          .on('dblclick', function () {
+            $(this).val(50);
+            updateFromPerc();
+          });
 
-        $('#sharedamount2').change(updateQuota);
+        $('#toggle-geoloc').change(function () {
+          var checked = $(this).prop('checked');
+          $('#position').prop('disabled', !checked);
+        });
+
+        $('#shared-amount').change(updateFromAmount);
 
         $('#type-select').change(function () {
           value = $(this).find(":selected").attr('value')
@@ -47,39 +63,42 @@
           window.document.location = $(this).data("href");
         });
 
-        var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
+        //var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
 
 
 
       });
 
-    function updateAmounts() {
-      var quota = $('#sharequota-input').val();
+    function updateFromPerc() {
+      var quota = $('#shared-perc').val();
       var amount = $('input[name="Amount"]').val();
-      var amount1 = amount * (100 - quota) / 100;
-      var amount2 = amount * (quota) / 100;
+      var ownAmount = amount * (100 - quota) / 100;
+      var shrAmount = amount * (quota) / 100;
 
-      $('#sharedamount1').val(amount1);
-      $('#sharedamount2').val(amount2);
+      $('#own-amount').val(ownAmount);
+      $('#shared-amount').val(shrAmount);
     }
 
-    function updateQuota() {
-      var amount2 = $('#sharedamount2').val();
+    function updateFromAmount() {
+      var shrAmount = $('#shared-amount').val();
       var amount = $('input[name="Amount"]').val();
-      var quota = amount2 * 100 / amount;
+      var quota = shrAmount * 100 / amount;
 
-      $('#sharequota-input').val(quota);
-      updateAmounts()
+      $('#shared-perc').val(quota).prop('disabled', true);
+
+      $('#own-amount').val(amount - shrAmount);
     }
 
 
 
     function geo_success(position) {
-      $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
+      if (!$('#geoloc-toggle').prop('disabled')) {
+        $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
+      }
     }
 
     function geo_error() {
-      alert("Sorry, no position available.");
+      console.log("Sorry, no position available.");
     }
 
     var geo_options = {
@@ -110,12 +129,16 @@
       margin-top: 2rem
     }
 
-    #sharedamount1 {
+    #own-amount {
       color: red
     }
 
-    #sharedamount2 {
+    #shared-amount {
       color: green
+    }
+
+    table small {
+      display: block;
     }
   </style>
 </head>

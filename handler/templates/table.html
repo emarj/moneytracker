@@ -7,7 +7,6 @@
       <th>Description</th>
       <th class="text-right">Amount</td>
       <th class="text-center">Method</th>
-      <th class="text-center">Quota</th>
       <th class="text-center">Category</th>
     </thead>
     <tbody>
@@ -16,9 +15,8 @@
         <td>{{$t.Date.Format "02/01/2006" }}</td>
         <td class="text-center">{{$t.User.Name }}</td>
         <td>{{$t.Description }}</td>
-        <td class="text-right amount">{{FormatDecimal $t.Amount }}</td>
+        <td class="text-right amount"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small>{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro;</td>
         <td class="text-center">{{$t.Method.Name }}</td>
-        <td class="text-center">{{if $t.Shared}} {{$t.ShareQuota}}% {{else}} - {{end}}</td>
         <td class="text-center">{{$t.Category.Name }}</td>
       </tr>
       {{end}}

@@ -67,7 +67,7 @@
               <label class="input-group-text" for="Amount">Amount</label>
             </div>
           
-            <input class="form-control" type="number" step="0.01" name="Amount" placeholder="0.00" {{if $t}}value="{{FormatDecimal $t.Amount}}"{{end}} required/>
+            <input class="form-control" type="number" step="0.01" name="Amount" placeholder="0.00" {{if $t}}value="{{FixFormatDec2 $t.Amount}}"{{end}} required/>
 
             <div class="input-group-append">
                 <span class="input-group-text">€</span>
@@ -104,19 +104,18 @@
             <div class="input-group-prepend">
               <label class="input-group-text" for="Shared">Shared</label>
               <div class="input-group-text">
-              <input type="checkbox" name="Shared" id="shared-input"  {{if $t}}{{if $t.Shared }}checked{{end}}{{end}}/>
+              <input type="checkbox" name="Shared" id="is-shared"  {{if $t}}{{if $t.Shared }}checked{{end}}{{end}}/>
               </div>
             </div>
-            <input class="form-control" type="range" min="1" max="100" name="ShareQuota"
-            value="{{if $t}}{{if not $t.Shared}}50{{else}}{{$t.ShareQuota}}{{end}}{{else}}50{{end}}" {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}} id="sharequota-input" />
+            <input class="form-control" id="shared-perc" type="range" min="1" max="100" value="{{if $t}}{{if $t.Shared}}{{PercDec $t.SharedQuota $t.Amount}}{{else}}50{{end}}{{end}}{{if not $t}}50{{end}}" {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
           </div>
 
             <div class="input-group mb-3">
-              <input class="form-control" type="number" step="any"  id="sharedamount1" {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
-              <input class="form-control" type="number" step="any" id="sharedamount2" {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
+              <input class="form-control" type="number" step="any"  id="own-amount" readonly {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
+              <input class="form-control" type="number" step="any" min="0.01" id="shared-amount" name="SharedQuota" value="{{if $t}}{{if $t.Shared}}{{$t.SharedQuota}}{{end}}{{end}}" {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
             </div>
 
-        <!-- Categories -->
+         <!-- Categories -->
          <div class="input-group mb-3">
             <div class="input-group-prepend">
               <label class="input-group-text" for="CategoryID">Category</label>
@@ -128,12 +127,15 @@
             </select>
         </div>
        
-        <!--Position-->
+        <!--Geolocation-->
         <div class="input-group mb-3">
           <div class="input-group-prepend">
-        <label class="input-group-text" for="GeoLoc">Position</label>
+              <label class="input-group-text" for="GeoLoc">Position</label>
+              <div class="input-group-text">
+                <input type="checkbox" id="geoloc-toggle" {{if $t}}{{if not (eq $t.GeoLocation "") }} checked {{end}}{{end}}/>
+              </div>
           </div>
-          <input class="form-control" type="text" id="position" name="GeoLoc" value="-" readonly/>
+          <input class="form-control" type="text" id="position" name="GeoLoc" value="{{if $t}}{{if not (eq $t.GeoLocation "") }} {{$t.GeoLocation}}{{end}}{{end}}" placeholder="-" readonly/>
       </div>
        
 

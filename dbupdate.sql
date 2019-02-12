@@ -41,16 +41,26 @@ CREATE TABLE transactions (
 	description	TEXT NOT NULL,
 	method_id	INTEGER,
 	shared	INTEGER NOT NULL,
-	shared_quota	INTEGER NOT NULL,
+	shared_perc INTEGER,
+	shared_quota NUMERIC NOT NULL,
 	category_id	INTEGER NOT NULL,
 	geolocation TEXT,
 	PRIMARY KEY(uuid)
 );
 
-INSERT INTO transactions(uuid,date_created,date,type_id,user_id	,amount,description,method_id,shared,shared_quota,category_id)
+INSERT INTO transactions(uuid,date_created,date,type_id,user_id	,amount,description,method_id,shared,shared_perc,category_id)
 SELECT uuid,datecreated,date,type,who,amount,description,method,shared,quota,category
 FROM expenses;
 
 DROP TABLE IF EXISTS expenses; 
 
+UPDATE transactions 
+SET shared_perc = 0,shared_quota =0
+WHERE shared = 0;
 
+UPDATE transactions 
+SET shared_quota = CAST ((CAST(amount AS REAL))*((CAST(shared_perc AS REAL)) / 100) AS NUMERIC)
+WHERE shared = 1;
+
+UPDATE transactions 
+SET geolocation = '';

@@ -33,11 +33,9 @@ type Transaction struct {
 	DateCreated time.Time
 	Date        time.Time
 	Description string
-	Amount      decimal.Decimal
-	//AmountShared decimal.Decimal
-	//SharedWith *User Maybe Wallets?
+	Amount      decimal.Decimal // Amount { My decimal.Decimal, Shared decimal.Decimal }
 	Shared      bool
-	ShareQuota  int
+	SharedQuota decimal.Decimal
 	GeoLocation string
 
 	User     *User
@@ -52,7 +50,7 @@ func NewTransactionNoID(
 	amount decimal.Decimal,
 	description string,
 	shared string,
-	quota int,
+	sharedQuota decimal.Decimal,
 	geoLoc string,
 	userID int,
 	userName string,
@@ -70,7 +68,7 @@ func NewTransactionNoID(
 	t := Transaction{Category: &c, Method: &pm, User: &u, Type: &tp}
 
 	t.Amount = amount
-	t.ShareQuota = quota
+	t.SharedQuota = sharedQuota
 	t.Description = description
 	t.GeoLocation = geoLoc
 
@@ -102,7 +100,7 @@ func NewTransaction(
 	amount decimal.Decimal,
 	description string,
 	shared string,
-	quota int,
+	sharedQuota decimal.Decimal,
 	geoLoc string,
 	userID int,
 	userName string,
@@ -118,7 +116,7 @@ func NewTransaction(
 		amount,
 		description,
 		shared,
-		quota,
+		sharedQuota,
 		geoLoc,
 		userID,
 		userName,
