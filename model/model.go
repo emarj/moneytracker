@@ -36,8 +36,9 @@ type Transaction struct {
 	Amount      decimal.Decimal
 	//AmountShared decimal.Decimal
 	//SharedWith *User Maybe Wallets?
-	Shared     bool
-	ShareQuota int
+	Shared      bool
+	ShareQuota  int
+	GeoLocation string
 
 	User     *User
 	Method   *PaymentMethod
@@ -52,6 +53,7 @@ func NewTransactionNoID(
 	description string,
 	shared string,
 	quota int,
+	geoLoc string,
 	userID int,
 	userName string,
 	typeID int,
@@ -70,6 +72,7 @@ func NewTransactionNoID(
 	t.Amount = amount
 	t.ShareQuota = quota
 	t.Description = description
+	t.GeoLocation = geoLoc
 
 	shrd, err := strconv.ParseBool(shared)
 	if err != nil {
@@ -100,6 +103,7 @@ func NewTransaction(
 	description string,
 	shared string,
 	quota int,
+	geoLoc string,
 	userID int,
 	userName string,
 	typeID int,
@@ -115,6 +119,7 @@ func NewTransaction(
 		description,
 		shared,
 		quota,
+		geoLoc,
 		userID,
 		userName,
 		typeID,

@@ -47,28 +47,46 @@
           window.document.location = $(this).data("href");
         });
 
+        var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
+
+
 
       });
 
-      function updateAmounts() {
-          var quota = $('#sharequota-input').val();
-          var amount = $('input[name="Amount"]').val();
-          var amount1 = amount*(100 - quota)/100;
-          var amount2 = amount*(quota)/100;
+    function updateAmounts() {
+      var quota = $('#sharequota-input').val();
+      var amount = $('input[name="Amount"]').val();
+      var amount1 = amount * (100 - quota) / 100;
+      var amount2 = amount * (quota) / 100;
 
-          $('#sharedamount1').val(amount1);
-          $('#sharedamount2').val(amount2);
-      }
+      $('#sharedamount1').val(amount1);
+      $('#sharedamount2').val(amount2);
+    }
 
-      function updateQuota() {
-          var amount2 = $('#sharedamount2').val();
-          var amount = $('input[name="Amount"]').val();
-          var quota = amount2*100/amount;
+    function updateQuota() {
+      var amount2 = $('#sharedamount2').val();
+      var amount = $('input[name="Amount"]').val();
+      var quota = amount2 * 100 / amount;
 
-          $('#sharequota-input').val(quota);
-          updateAmounts()
-      }
+      $('#sharequota-input').val(quota);
+      updateAmounts()
+    }
 
+
+
+    function geo_success(position) {
+      $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
+    }
+
+    function geo_error() {
+      alert("Sorry, no position available.");
+    }
+
+    var geo_options = {
+      enableHighAccuracy: true,
+      maximumAge: 30000,
+      timeout: 27000
+    };
   </script>
   <style type="text/css">
     .transaction-positive .amount {

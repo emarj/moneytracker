@@ -294,6 +294,8 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 		t.ShareQuota = quota
 	}
 
+	t.GeoLocation = r.FormValue("GeoLoc")
+
 	return &t, nil
 }
 

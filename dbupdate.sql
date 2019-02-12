@@ -43,10 +43,11 @@ CREATE TABLE transactions (
 	shared	INTEGER NOT NULL,
 	shared_quota	INTEGER NOT NULL,
 	category_id	INTEGER NOT NULL,
+	geolocation TEXT,
 	PRIMARY KEY(uuid)
 );
 
-INSERT INTO transactions
+INSERT INTO transactions(uuid,date_created,date,type_id,user_id	,amount,description,method_id,shared,shared_quota,category_id)
 SELECT uuid,datecreated,date,type,who,amount,description,method,shared,quota,category
 FROM expenses;
 

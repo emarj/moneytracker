@@ -26,6 +26,7 @@ var schema = [...]string{
 		method_id	INTEGER,
 		shared	INTEGER NOT NULL,
 		shared_quota	INTEGER NOT NULL,
+		geolocation TEXT,
 		category_id	INTEGER NOT NULL,
 		PRIMARY KEY(uuid)
 )`,
@@ -92,6 +93,7 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		description string
 		shared      string
 		quota       int
+		geoLoc      string
 		userID      int
 		userName    string
 		typeID      int
@@ -111,6 +113,7 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		transactions.description,
 		transactions.shared,
 		transactions.shared_quota,
+		transactions.geolocation,
 		users.id,
 		users.name,
 		types.id,
@@ -133,6 +136,7 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		&description,
 		&shared,
 		&quota,
+		&geoLoc,
 		&userID,
 		&userName,
 		&typeID,
@@ -154,6 +158,7 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		description,
 		shared,
 		quota,
+		geoLoc,
 		userID,
 		userName,
 		typeID,
@@ -191,6 +196,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 			category_id,
 			shared,
 			shared_quota,
+			geolocation,
 			type_id
 		) VALUES(?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
@@ -207,6 +213,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		t.Category.ID,
 		t.Shared,
 		t.ShareQuota,
+		t.GeoLocation,
 		t.Type.ID,
 	)
 
@@ -229,6 +236,7 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 			category_id = ?,
 			shared = ?,
 			shared_quota = ?,
+			geolocation = ?,
 			type_id = ?
 		WHERE uuid = '` + t.UUID.String() + `'`)
 	if err != nil {
@@ -243,6 +251,7 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		t.Category.ID,
 		t.Shared,
 		t.ShareQuota,
+		t.GeoLocation,
 		t.Type.ID,
 	)
 
@@ -279,6 +288,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		transactions.description,
 		transactions.shared,
 		transactions.shared_quota,
+		transactions.geolocation,
 		users.id,
 		users.name,
 		types.id,
@@ -310,6 +320,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		description string
 		shared      string
 		quota       int
+		geoLoc      string
 		userID      int
 		userName    string
 		typeID      int
@@ -329,6 +340,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 			&description,
 			&shared,
 			&quota,
+			&geoLoc,
 			&userID,
 			&userName,
 			&typeID,
@@ -348,6 +360,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 			description,
 			shared,
 			quota,
+			geoLoc,
 			userID,
 			userName,
 			typeID,
