@@ -6,7 +6,7 @@ GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 BINARY_NAME=./Bin/moneytracker
 	
-all: build
+all: build run
 build:
 		$(GOBUILD) -o $(BINARY_NAME) -v
 test:
@@ -14,9 +14,9 @@ test:
 clean:
 		$(GOCLEAN)
 		rm -f $(BINARY_NAME)
-		rm -f $(BINARY_UNIX)
 run:
-		DBPATH="./moneytracker_dev.sqlite" ./$(BINARY_NAME)
+		./$(BINARY_NAME) -dbpath="../moneytracker_dev.sqlite" -address="localhost"
 
-prod: 
-		DBPATH="../moneytracker.sqlite" PREFIX="/money" ./$(BINARY_NAME)
+runprod: 
+		./$(BINARY_NAME) -dbpath="../../moneytracker.sqlite" -prefix="/money"
+

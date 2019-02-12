@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -59,7 +60,14 @@ type sqlite struct {
 	db *sql.DB
 }
 
-func New(path string, createSchema bool) (*sqlite, error) {
+func New(path string, create bool) (*sqlite, error) {
+
+	if !create {
+		_, err := os.Open(path)
+		if err != nil {
+			log.Fatalf("impossible to open the db file: %v", err)
+		}
+	}
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
@@ -70,7 +78,7 @@ func New(path string, createSchema bool) (*sqlite, error) {
 		return nil, err
 	}
 
-	if createSchema {
+	if create {
 		for i := range schema {
 			_, err = db.Exec(schema[i])
 			if err != nil {

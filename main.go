@@ -1,10 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"ronche.se/moneytracker/handler"
 	"ronche.se/moneytracker/model/sqlite"
@@ -12,17 +15,24 @@ import (
 
 func main() {
 
-	dbPath := os.Getenv("DBPATH")
-	if dbPath == "" {
-		dbPath = "../moneytracker.sqlite"
-		fmt.Println("INFO: No DBPATH environment variable detected, defaulting to " + dbPath)
-	}
+	//Commandline args
+	dbPath := flag.String("dbpath", "./moneytracker.sqlite", "sqlite3 db path relative to the executable")
+	dbCreate := flag.Bool("dbcreate", false, "if true a sqlite3 db is created")
+	prefix := flag.String("prefix", "", "prefix to use behind a reverse proxy (e.g. /prefix)")
+	port := flag.Int("port", 34567, "port number")
+	address := flag.String("address", "", "bind address")
+	tmplPath := flag.String("tmplpath", "../handler/templates", "template directory path")
 
-	_, err := os.Open(dbPath)
+	flag.Parse()
+
+	//Get executable path
+	ex, err := os.Executable()
 	if err != nil {
-		log.Fatalf("impossible to open the db file: %v", err)
+		log.Fatal(err)
 	}
-	dbSrv, err := sqlite.New(dbPath, false)
+	exPath := filepath.Dir(ex)
+
+	dbSrv, err := sqlite.New(filepath.Join(exPath, *dbPath), *dbCreate)
 	if err != nil {
 		log.Fatalf("impossible to connect to db: %v", err)
 	}
@@ -32,21 +42,12 @@ func main() {
 		}
 	}()
 
-	prefix := os.Getenv("PREFIX")
-
-	mux, err := handler.HTMLHandler(dbSrv, "handler/templates", prefix)
+	mux, err := handler.HTMLHandler(dbSrv, filepath.Join(exPath, *tmplPath), *prefix)
 	if err != nil {
 		log.Fatalf("impossible to create HTMLHandler: %v", err)
 	}
-
-	port := os.Getenv("PORT")
-	// Set a default port if there is nothing in the environment
-	if port == "" {
-		port = "34567"
-		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
-	}
-
-	fmt.Printf("Listening on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	fullAddr := *address + ":" + strconv.Itoa(*port)
+	fmt.Printf("Listening and serving %s...\n", fullAddr+*prefix)
+	log.Fatal(http.ListenAndServe(fullAddr, mux))
 
 }
