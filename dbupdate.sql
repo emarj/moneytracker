@@ -48,19 +48,12 @@ CREATE TABLE transactions (
 	PRIMARY KEY(uuid)
 );
 
-INSERT INTO transactions(uuid,date_created,date,type_id,user_id	,amount,description,method_id,shared,shared_perc,category_id)
-SELECT uuid,datecreated,date,type,who,amount,description,method,shared,quota,category
+INSERT INTO transactions
+SELECT uuid,datecreated,date,type,who,amount,description,method,shared,quota,0 as shared_quota,category, "" as geolocation
 FROM expenses;
-
-DROP TABLE IF EXISTS expenses; 
-
-UPDATE transactions 
-SET shared_perc = 0,shared_quota =0
-WHERE shared = 0;
 
 UPDATE transactions 
 SET shared_quota = CAST ((CAST(amount AS REAL))*((CAST(shared_perc AS REAL)) / 100) AS NUMERIC)
 WHERE shared = 1;
 
-UPDATE transactions 
-SET geolocation = '';
+DROP TABLE IF EXISTS expenses;
