@@ -1,11 +1,16 @@
 package sqlite
 
 import (
-	"database/sql"
 	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/jmoiron/sqlx/reflectx"
+
+	"github.com/iancoleman/strcase"
+
+	"github.com/jmoiron/sqlx"
 
 	//sqlite driver
 	_ "github.com/mattn/go-sqlite3"
@@ -57,7 +62,7 @@ var schema = [...]string{
 )`}
 
 type sqlite struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
 func New(path string, create bool) (*sqlite, error) {
@@ -68,10 +73,12 @@ func New(path string, create bool) (*sqlite, error) {
 			log.Fatalf("impossible to open the db file: %v", err)
 		}
 	}
-	db, err := sql.Open("sqlite3", path)
+	db, err := sqlx.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
 	}
+
+	db.Mapper = reflectx.NewMapperFunc("json", strcase.ToSnake)
 
 	err = db.Ping()
 	if err != nil {
@@ -93,26 +100,12 @@ func New(path string, create bool) (*sqlite, error) {
 
 func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 
-	var (
-		id          string
-		dateCreated string
-		date        string
-		amount      decimal.Decimal
-		description string
-		shared      string
-		sharedQuota decimal.Decimal
-		geoLoc      string
-		userID      int
-		userName    string
-		typeID      int
-		typeName    string
-		methodID    int
-		methodName  string
-		catID       int
-		catName     string
-	)
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return nil, err
+	}
 
-	err := s.db.QueryRow(
+	stmt, err := tx.Preparex(
 		`SELECT
 		transactions.uuid,
 		transactions.date_created,
@@ -136,50 +129,22 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 				transactions.type_id=types.id AND
 				transactions.method_id=paymentmethods.id AND
 				transactions.category_id=categories.id AND
-				transactions.uuid ='`+uid.String()+"'").Scan(
-		&id,
-		&dateCreated,
-		&date,
-		&amount,
-		&description,
-		&shared,
-		&sharedQuota,
-		&geoLoc,
-		&userID,
-		&userName,
-		&typeID,
-		&typeName,
-		&methodID,
-		&methodName,
-		&catID,
-		&catName,
-	)
+				transactions.uuid=?`)
 	if err != nil {
 		return nil, err
 	}
 
-	t, err := model.NewTransaction(
-		id,
-		dateCreated,
-		date,
-		amount,
-		description,
-		shared,
-		sharedQuota,
-		geoLoc,
-		userID,
-		userName,
-		typeID,
-		typeName,
-		methodID,
-		methodName,
-		catID,
-		catName)
+	var t model.Transaction
+	err = stmt.QueryRowx(uid.String()).StructScan(&t)
 	if err != nil {
 		return nil, err
 	}
 
-	return t, nil
+	defer func() {
+		tx.Rollback()
+	}()
+
+	return &t, err
 }
 
 func (s *sqlite) TransactionInsert(t *model.Transaction) error {
@@ -190,7 +155,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 	if err != nil {
 		return err
 	}
-	t.DateCreated = time.Now().In(loc)
+	t.DateCreated = model.DateTime(time.Now().In(loc))
 
 	stmt1, err := s.db.Prepare(
 		`INSERT INTO transactions(
@@ -203,23 +168,25 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 			description,
 			category_id,
 			shared,
+			shared_quota,
 			geolocation,
 			type_id
-		) VALUES(?,?,?,?,?,?,?,?,?,?,?)`)
+		) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		return err
 	}
 
 	_, err = stmt1.Exec(
 		t.UUID.String(),
-		t.DateCreated.Format("2006-01-02T15:04:05"),
-		t.Date.Format("2006-01-02"),
+		time.Time(t.DateCreated).Format("2006-01-02T15:04:05"),
+		time.Time(t.Date).Format("2006-01-02"),
 		t.User.ID,
 		t.Amount,
-		t.Method.ID,
+		t.PaymentMethod.ID,
 		t.Description,
 		t.Category.ID,
 		t.Shared,
+		t.SharedQuota,
 		t.GeoLocation,
 		t.Type.ID,
 	)
@@ -228,13 +195,13 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		return err
 	}
 
-	if t.Shared {
+	/*if t.Shared {
 		query := `INSERT INTO sharings(
 			uuid,
 			user_id,
 			shared_quota) VALUES`
 		vals := []interface{}{}
-		for u, q := range *t.Sharing {
+		for u, q := range t.Sharing {
 			query += "(?,?,?),"
 			vals = append(vals, t.UUID.String(), u, q)
 		}
@@ -251,7 +218,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		if err != nil {
 			return err
 		}
-	}
+	}*/
 
 	return nil
 }
@@ -275,10 +242,10 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		return err
 	}
 	_, err = stmt.Exec(
-		t.Date.Format("2006-01-02"),
+		time.Time(t.Date).Format("2006-01-02"),
 		t.User.ID,
 		t.Amount,
-		t.Method.ID,
+		t.PaymentMethod.ID,
 		t.Description,
 		t.Category.ID,
 		t.Shared,

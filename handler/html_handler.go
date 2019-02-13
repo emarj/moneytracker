@@ -252,11 +252,11 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 
 	t := model.Transaction{Description: r.FormValue("Description")}
 
-	date, err := time.Parse("2006-01-02", r.FormValue("Date"))
+	d, err := time.Parse("2006-01-02", r.FormValue("Date"))
 	if err != nil {
 		return &t, err
 	}
-	t.Date = date
+	t.Date = model.Date(d)
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
@@ -271,26 +271,26 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	if err != nil {
 		return &t, err
 	}
-	t.User = &model.User{ID: userID}
+	t.User.ID = userID
 
 	typeID, err := strconv.Atoi(r.FormValue("TypeID"))
 	if err != nil {
 		return &t, err
 	}
-	t.Type = &model.Type{ID: typeID}
+	t.Type.ID = typeID
 
 	catID, err := strconv.Atoi(r.FormValue("CategoryID"))
 	if err != nil {
 		return &t, err
 	}
 
-	t.Category = &model.Category{ID: catID}
+	t.Category.ID = catID
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
 	if err != nil {
 		return &t, err
 	}
-	t.Method = &model.PaymentMethod{ID: pmid}
+	t.PaymentMethod.ID = pmid
 
 	if r.FormValue("Shared") == "on" {
 		t.Shared = true

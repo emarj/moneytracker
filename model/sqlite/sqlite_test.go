@@ -63,8 +63,8 @@ func TestTransactionCRUD(t *testing.T) {
 		return
 	}
 
-	tr1 := model.Transaction{Date: time.Now().Local(), Type: tp1, User: u1, Method: pm, Category: cat}
-	tr2 := model.Transaction{Date: time.Now().Local(), Type: tp2, User: u2, Method: pm, Category: cat}
+	tr1 := model.Transaction{Date: model.Date(time.Now().Local()), Type: *tp1, User: *u1, PaymentMethod: *pm, Category: *cat}
+	tr2 := model.Transaction{Date: model.Date(time.Now().Local()), Type: *tp2, User: *u2, PaymentMethod: *pm, Category: *cat}
 	err = s.TransactionInsert(&tr1)
 	if err != nil {
 		t.Error(err)
@@ -101,7 +101,7 @@ func TestTransactionCRUD(t *testing.T) {
 	}
 
 	for _, tr := range trs {
-		t.Log(*tr.User)
+		t.Log(tr.User)
 	}
 
 	if len(trs) != 2 {
@@ -122,7 +122,7 @@ func TestTransactionCRUD(t *testing.T) {
 	}
 
 	for _, tr := range trs {
-		t.Log(*tr.User)
+		t.Log(tr.User)
 	}
 
 	if len(trs) != 1 {

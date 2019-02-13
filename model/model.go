@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -30,21 +31,78 @@ type PaymentMethod struct {
 
 type Sharing map[int]decimal.Decimal
 
+/*func B2S(bs []uint8) string {
+	b := make([]byte, len(bs))
+	for i, v := range bs {
+		b[i] = byte(v)
+	}
+	return string(b)
+}*/
+
+func timeParse(format string, v interface{}) (time.Time, error) {
+	var vt time.Time
+	var s string
+	switch z := v.(type) {
+	case []uint8:
+		s = string(z)
+	case string:
+		s = z
+	default:
+		return vt, errors.New("cannot convert to string")
+	}
+	vt, err := time.Parse(format, s)
+	if err != nil {
+		return vt, err
+	}
+	return vt, nil
+}
+
+type DateTime time.Time
+
+func (t *DateTime) Scan(v interface{}) error {
+	vt, err := timeParse("2006-01-02T15:04:05", v)
+	if err != nil {
+		return err
+	}
+	*t = DateTime(vt)
+	return nil
+}
+
+func (t *DateTime) Format(format string) string {
+	return time.Time(*t).Format(format)
+
+}
+
+type Date time.Time
+
+func (t *Date) Scan(v interface{}) error {
+	vt, err := timeParse("2006-01-02", v)
+	if err != nil {
+		return err
+	}
+	*t = Date(vt)
+	return nil
+}
+
+func (t *Date) Format(format string) string {
+	return time.Time(*t).Format(format)
+
+}
+
 type Transaction struct {
 	UUID        uuid.UUID
-	DateCreated time.Time
-	Date        time.Time
+	DateCreated DateTime
+	Date        Date
 	Description string
-	Amount      decimal.Decimal // Amount { My decimal.Decimal, Shared decimal.Decimal }
+	Amount      decimal.Decimal
 	Shared      bool
 	SharedQuota decimal.Decimal
-	Sharing     *Sharing
-	GeoLocation string
+	GeoLocation string `json:"geolocation"`
 
-	User     *User
-	Method   *PaymentMethod
-	Category *Category
-	Type     *Type
+	User
+	PaymentMethod
+	Category
+	Type
 }
 
 func NewTransactionNoID(
@@ -68,7 +126,7 @@ func NewTransactionNoID(
 	tp := Type{ID: typeID, Name: typeName}
 	c := Category{ID: catID, Name: catName}
 	pm := PaymentMethod{ID: methodID, Name: methodName}
-	t := Transaction{Category: &c, Method: &pm, User: &u, Type: &tp}
+	t := Transaction{Category: c, PaymentMethod: pm, User: u, Type: tp}
 
 	t.Amount = amount
 	t.SharedQuota = sharedQuota
@@ -85,13 +143,13 @@ func NewTransactionNoID(
 	if err != nil {
 		return nil, err
 	}
-	t.DateCreated = dc
+	t.DateCreated = DateTime(dc)
 
 	d, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return nil, err
 	}
-	t.Date = d
+	t.Date = Date(d)
 
 	return &t, nil
 }

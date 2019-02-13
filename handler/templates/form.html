@@ -88,11 +88,11 @@
         <!-- Payment Method -->
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-              <label class="input-group-text" for="MethodID">Method</label>
+              <label class="input-group-text" for="MethodID">PaymentMethod</label>
               </div>
             <select class="custom-select" name="MethodID">
               {{range $pm := .PaymentMethods}}
-              <option value="{{$pm.ID}}" {{if $t}}{{if eq $pm.ID $t.Method.ID}} selected {{end}}{{end}}>{{$pm.Name}}</option>
+              <option value="{{$pm.ID}}" {{if $t}}{{if eq $pm.ID $t.PaymentMethod.ID}} selected {{end}}{{end}}>{{$pm.Name}}</option>
               {{end}}
             </select>
         </div>
