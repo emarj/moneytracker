@@ -28,6 +28,8 @@ type PaymentMethod struct {
 	Name string
 }
 
+type Sharing map[int]decimal.Decimal
+
 type Transaction struct {
 	UUID        uuid.UUID
 	DateCreated time.Time
@@ -36,6 +38,7 @@ type Transaction struct {
 	Amount      decimal.Decimal // Amount { My decimal.Decimal, Shared decimal.Decimal }
 	Shared      bool
 	SharedQuota decimal.Decimal
+	Sharing     *Sharing
 	GeoLocation string
 
 	User     *User

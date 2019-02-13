@@ -192,7 +192,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 	}
 	t.DateCreated = time.Now().In(loc)
 
-	stmt, err := s.db.Prepare(
+	stmt1, err := s.db.Prepare(
 		`INSERT INTO transactions(
 			uuid,
 			date_created,
@@ -203,14 +203,14 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 			description,
 			category_id,
 			shared,
-			shared_quota,
 			geolocation,
 			type_id
-		) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`)
+		) VALUES(?,?,?,?,?,?,?,?,?,?,?)`)
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(
+
+	_, err = stmt1.Exec(
 		t.UUID.String(),
 		t.DateCreated.Format("2006-01-02T15:04:05"),
 		t.Date.Format("2006-01-02"),
@@ -220,13 +220,37 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		t.Description,
 		t.Category.ID,
 		t.Shared,
-		t.SharedQuota,
 		t.GeoLocation,
 		t.Type.ID,
 	)
 
 	if err != nil {
 		return err
+	}
+
+	if t.Shared {
+		query := `INSERT INTO sharings(
+			uuid,
+			user_id,
+			shared_quota) VALUES`
+		vals := []interface{}{}
+		for u, q := range *t.Sharing {
+			query += "(?,?,?),"
+			vals = append(vals, t.UUID.String(), u, q)
+		}
+
+		query = query[0 : len(query)-2] //Remove last comma
+
+		stmt, err := s.db.Prepare(query)
+		if err != nil {
+			return err
+		}
+
+		_, err = stmt.Exec(vals...)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

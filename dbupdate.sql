@@ -29,8 +29,6 @@ UPDATE transactions SET type = 2 WHERE transactions.amount < 0*/
 
 /*Transactions*/
 
-
-
 CREATE TABLE transactions (
 	uuid	TEXT NOT NULL,
 	date_created	TEXT NOT NULL,
@@ -40,20 +38,29 @@ CREATE TABLE transactions (
 	amount	NUMERIC NOT NULL,
 	description	TEXT NOT NULL,
 	method_id	INTEGER,
-	shared	INTEGER NOT NULL,
-	shared_perc INTEGER,
-	shared_quota NUMERIC NOT NULL,
+	shared	INTEGER NOT NULL, /*Maybe even this should be removed? Count on join*/
 	category_id	INTEGER NOT NULL,
 	geolocation TEXT,
 	PRIMARY KEY(uuid)
 );
 
 INSERT INTO transactions
-SELECT uuid,datecreated,date,type,who,amount,description,method,shared,quota,0 as shared_quota,category, "" as geolocation
+SELECT uuid,datecreated,date,type,who,amount,description,method,shared,category, "" as geolocation
 FROM expenses;
 
-UPDATE transactions 
-SET shared_quota = CAST ((CAST(amount AS REAL))*((CAST(shared_perc AS REAL)) / 100) AS NUMERIC)
-WHERE shared = 1;
+/*Sharings*/
+
+CREATE TABLE sharings (
+	transaction_UUID	TEXT NOT NULL,
+	user_ID	INTEGER NOT NULL,
+	shared_quota	NUMERIC NOT NULL
+);
+
+INSERT INTO sharings
+SELECT uuid, CASE WHEN who = 1 THEN 2 ELSE 1 END, CAST ((CAST(amount AS REAL))*((CAST(quota AS REAL)) / 100) AS NUMERIC)
+FROM expenses
+WHERE shared=1;
+
+
 
 DROP TABLE IF EXISTS expenses;
