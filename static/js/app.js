@@ -1,14 +1,78 @@
-$(
-    function () {
-      $('#is-shared').change(function () {
+var isShared;
+var isLocOK;
+
+function updateFromPerc() {
+  var quota = $('#shared-perc').val();
+  var amount = $('input[name="Amount"]').val();
+  var ownAmount = amount * (100 - quota) / 100;
+  var shrAmount = amount * (quota) / 100;
+
+  $('#own-amount').val(ownAmount);
+  $('#shared-amount').val(shrAmount);
+}
+
+function updateFromAmount() {
+  var shrAmount = $('#shared-amount').val();
+  var amount = $('input[name="Amount"]').val();
+  var quota = shrAmount * 100 / amount;
+
+  $('#shared-perc').val(quota).prop('disabled', true);
+
+  $('#own-amount').val(amount - shrAmount);
+}
+
+function getPosition() {
+  navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+}
+
+function geo_success(position) {
+    console.log(position.coords.latitude)
+    $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
+}
+
+function geo_error() {
+  console.log("Sorry, no position available.");
+}
+
+var geo_options = {
+  enableHighAccuracy: true,
+  maximumAge: 30000,
+  timeout: 27000
+};
+
+$(function () {
+
+      isShared = $('#is-shared').prop('checked');
+      isLocOK = $('#loc-check').prop('checked');
+
+      if (isLocOK) {
+        getPosition();
+      }
+
+      $('#loc-check').change(function () {
+        isLocOK = $(this).prop('checked');
+        $('#position').prop('disabled', !isLocOK);
+        if (!isLocOK) {
+            $('#position').val('');
+        } else {
+          getPosition();
+        }
+      });
+
+      $('#is-shared').click(function(e){
         if ($('input[name="Amount"]').val() == 0) {
-          $(this).prop('checked', false);
+          e.preventDefault();
           return
         }
-        var checked = $(this).prop('checked');
-        $('#shared-perc').prop('disabled', !checked)
-        $('#own-amount').prop('disabled', !checked)
-        $('#shared-amount').prop('disabled', !checked)
+      });
+
+      $('#is-shared').change(function () {
+        
+        isShared = $(this).prop('checked');
+
+        $('#shared-perc').prop('disabled', !isShared)
+        $('#own-amount').prop('disabled', !isShared)
+        $('#shared-amount').prop('disabled', !isShared)
 
         if (checked) {
           updateFromPerc();
@@ -29,68 +93,13 @@ $(
           updateFromPerc();
         });
 
-      $('#toggle-geoloc').change(function () {
-        var checked = $(this).prop('checked');
-        $('#position').prop('disabled', !checked);
-      });
-
       $('#shared-amount').change(updateFromAmount);
 
-      $('#type-select').change(function () {
-        value = $(this).find(":selected").attr('value')
-        cond = (value == 1)
-
-        if (cond) {
-          $("#category-select").val('1')
-        } else {
-          $("#category-select").val('0')
-        }
-      });
 
       $(".clickable").click(function () {
         window.document.location = $(this).data("href");
       });
 
-      //var wpid = navigator.geolocation.watchPosition(geo_success, geo_error, geo_options);
-
 
 
     });
-
-  function updateFromPerc() {
-    var quota = $('#shared-perc').val();
-    var amount = $('input[name="Amount"]').val();
-    var ownAmount = amount * (100 - quota) / 100;
-    var shrAmount = amount * (quota) / 100;
-
-    $('#own-amount').val(ownAmount);
-    $('#shared-amount').val(shrAmount);
-  }
-
-  function updateFromAmount() {
-    var shrAmount = $('#shared-amount').val();
-    var amount = $('input[name="Amount"]').val();
-    var quota = shrAmount * 100 / amount;
-
-    $('#shared-perc').val(quota).prop('disabled', true);
-
-    $('#own-amount').val(amount - shrAmount);
-  }
-
-
-
-  function geo_success(position) {
-    if (!$('#geoloc-toggle').prop('disabled')) {
-      $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
-    }
-  }
-
-  function geo_error() {
-    console.log("Sorry, no position available.");
-  }
-
-  var geo_options = {
-    enableHighAccuracy: true,
-    maximumAge: 30000,
-    timeout: 27000
-  };

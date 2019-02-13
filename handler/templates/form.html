@@ -132,7 +132,7 @@
           <div class="input-group-prepend">
               <label class="input-group-text" for="GeoLoc">Position</label>
               <div class="input-group-text">
-                <input type="checkbox" id="geoloc-toggle" {{if $t}}{{if not (eq $t.GeoLocation "") }} checked {{end}}{{end}}/>
+                <input type="checkbox" id="loc-check" {{if $t}}{{if not (eq $t.GeoLocation "") }} checked {{end}}{{end}}/>
               </div>
           </div>
           <input class="form-control" type="text" id="position" name="GeoLoc" value="{{if $t}}{{if not (eq $t.GeoLocation "") }} {{$t.GeoLocation}}{{end}}{{end}}" placeholder="-" readonly/>

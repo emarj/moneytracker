@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -38,16 +37,16 @@ func main() {
 	}
 	defer func() {
 		if err := dbSrv.Close(); err != nil {
-			log.Fatalf("impossible to close db connection: %v", err)
+			log.Panicf("impossible to close db connection: %v", err)
 		}
 	}()
 
 	mux, err := handler.HTMLHandler(dbSrv, filepath.Join(exPath, *tmplPath), *prefix)
 	if err != nil {
-		log.Fatalf("impossible to create HTMLHandler: %v", err)
+		log.Panicf("impossible to create HTMLHandler: %v", err)
 	}
 	fullAddr := *address + ":" + strconv.Itoa(*port)
-	fmt.Printf("Listening and serving %s...\n", fullAddr+*prefix)
-	log.Fatal(http.ListenAndServe(fullAddr, mux))
+	log.Printf("Listening and serving %s...\n", fullAddr+*prefix)
+	log.Panic(http.ListenAndServe(fullAddr, mux))
 
 }
