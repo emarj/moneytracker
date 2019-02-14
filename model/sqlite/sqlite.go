@@ -6,11 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jmoiron/sqlx/reflectx"
-
 	"github.com/iancoleman/strcase"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 
 	//sqlite driver
 	_ "github.com/mattn/go-sqlite3"
@@ -159,7 +158,19 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 	}
 	t.DateCreated.Time = time.Now().In(loc)
 
-	stmt1, err := s.db.PrepareNamed(
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	stmt, err := tx.PrepareNamed(
 		`INSERT INTO transactions(
 			uuid,
 			date_created,
@@ -190,21 +201,22 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		return err
 	}
 
-	_, err = stmt1.Exec(t)
+	_, err = stmt.Exec(t)
 
 	if err != nil {
 		return err
 	}
 
-	/*if t.Shared {
-		query := `INSERT INTO sharings(
-			uuid,
-			user_id,
-			shared_quota) VALUES`
+	if t.Shared && (t.Shares != nil) {
+		query := `INSERT INTO shares(
+			shr_uuid,
+			shr_user_id,
+			shr_quota) VALUES`
+
 		vals := []interface{}{}
-		for u, q := range t.Sharing {
+		for _, shr := range t.Shares {
 			query += "(?,?,?),"
-			vals = append(vals, t.UUID.String(), u, q)
+			vals = append(vals, t.UUID.String(), shr.WithID, shr.Quota)
 		}
 
 		query = query[0 : len(query)-2] //Remove last comma
@@ -219,14 +231,26 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		if err != nil {
 			return err
 		}
-	}*/
+	}
 
 	return nil
 }
 
 func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 
-	stmt, err := s.db.PrepareNamed(
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	stmt, err := tx.PrepareNamed(
 		`UPDATE transactions
 		SET			
 			date = :date,
@@ -252,14 +276,61 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		return err
 	}
 
+	/*if t.Shared && (t.Shares != nil) {
+		//If t was shared and now shares are remove we should account for that!
+		//Probably get all shares by id, delete them and add them again is the quick and dirty way!
+		query := `INSERT INTO shares(
+			shr_uuid,
+			shr_user_id,
+			shr_quota) VALUES`
+
+		vals := []interface{}{}
+		for _, shr := range t.Shares {
+			query += "(?,?,?),"
+			vals = append(vals, t.UUID.String(), shr.WithID, shr.Quota)
+		}
+
+		query = query[0 : len(query)-2] //Remove last comma
+
+		stmt, err := s.db.Prepare(query)
+		if err != nil {
+			return err
+		}
+
+		_, err = stmt.Exec(vals...)
+
+		if err != nil {
+			return err
+		}
+	}*/
+
 	return nil
 }
 
 func (s *sqlite) TransactionDelete(id uuid.UUID) error {
-	_, err := s.db.Exec("DELETE FROM transactions WHERE uuid=?", id)
+
+	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	_, err = tx.Exec("DELETE FROM transactions WHERE uuid=?", id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("DELETE FROM shares WHERE tx_uuid=?", id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -353,7 +424,7 @@ func (s *sqlite) UsersGetAll() ([]*model.User, error) {
 }
 
 func (s *sqlite) UserInsert(name string) (*model.User, error) {
-	stmt, err := s.db.Prepare("INSERT INTO users(name) VALUES(?)")
+	stmt, err := s.db.Prepare("INSERT INTO users(user_name) VALUES(?)")
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +467,7 @@ func (s *sqlite) TypesGetAll() ([]*model.Type, error) {
 }
 
 func (s *sqlite) TypeInsert(name string) (*model.Type, error) {
-	stmt, err := s.db.Prepare("INSERT INTO types(name) VALUES(?)")
+	stmt, err := s.db.Prepare("INSERT INTO types(type_name) VALUES(?)")
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +510,7 @@ func (s *sqlite) CategoriesGetAll() ([]*model.Category, error) {
 }
 
 func (s *sqlite) CategoryInsert(name string) (*model.Category, error) {
-	stmt, err := s.db.Prepare("INSERT INTO categories(name) VALUES(?)")
+	stmt, err := s.db.Prepare("INSERT INTO categories(cat_name) VALUES(?)")
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +553,7 @@ func (s *sqlite) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {
 }
 
 func (s *sqlite) PaymentMethodInsert(name string) (*model.PaymentMethod, error) {
-	stmt, err := s.db.Prepare("INSERT INTO paymentmethods(name) VALUES(?)")
+	stmt, err := s.db.Prepare("INSERT INTO paymentmethods(pm_name) VALUES(?)")
 	if err != nil {
 		return nil, err
 	}

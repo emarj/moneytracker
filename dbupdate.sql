@@ -1,7 +1,8 @@
 
-/*Users*/
 
-DROP TABLE IF EXISTS users;
+BEGIN TRANSACTION;
+
+/*Users*/
 
 CREATE TABLE users (
 	user_id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -28,6 +29,53 @@ INSERT INTO types(type_id,type_name) VALUES (2,'Income');
 /* See https://github.com/emarj/moneytracker/issues/4
 UPDATE transactions SET type = 2 WHERE transactions.amount < 0*/
 
+/*PaymentMethods*/
+DROP TABLE IF EXISTS paymentmethods;
+
+CREATE TABLE "paymentmethods" (
+	`pm_id`	INTEGER NOT NULL,
+	`pm_name`	TEXT NOT NULL,
+	PRIMARY KEY(pm_id)
+);
+INSERT INTO `paymentmethods` VALUES
+ (1,'Cash'),
+ (2,'Debit Card'),
+ (3,'Credit Card'),
+ (4,'Paypal'),
+ (5,'Bank Account');
+
+
+/*Categories*/
+
+DROP TABLE IF EXISTS categories;
+CREATE TABLE "categories" (
+	`cat_id`	INTEGER NOT NULL,
+	`cat_name`	TEXT NOT NULL,
+	PRIMARY KEY(cat_id)
+);
+INSERT INTO `categories`
+VALUES (0,'Uncategorized'),
+ (1,'Trasferimento'),
+ (2,'Spesa'),
+ (3,'Ristorante'),
+ (4,'Bar / Caffè'),
+ (5,'Server / Cloud'),
+ (6,'Pasti'),
+ (7,'Salute'),
+ (8,'Sport'),
+ (9,'Uni'),
+ (10,'Svago'),
+ (11,'Trasporti'),
+ (12,'Assicurazione'),
+ (13,'Tasse'),
+ (14,'Bollette'),
+ (15,'Telefono'),
+ (16,'Varie'),
+ (17,'Spese Condominiali'),
+ (18,'Regali'),
+ (19,'Corso Inglese');
+
+
 /*Dates*/
 UPDATE expenses SET date = date || "T00:00:00";
 
@@ -52,19 +100,19 @@ INSERT INTO transactions
 SELECT uuid,datecreated,date,type,who,amount,description,method,shared,category, "" as geolocation
 FROM expenses;
 
-/*Sharings*/
+/*Shares*/
 
-CREATE TABLE sharings (
-	transaction_UUID	TEXT NOT NULL,
+CREATE TABLE shares (
+	tx_UUID	TEXT NOT NULL,
 	user_ID	INTEGER NOT NULL,
-	shared_quota	NUMERIC NOT NULL
+	quota	NUMERIC NOT NULL
 );
 
-INSERT INTO sharings
+INSERT INTO shares
 SELECT uuid, CASE WHEN who = 1 THEN 2 ELSE 1 END, CAST ((CAST(amount AS REAL))*((CAST(quota AS REAL)) / 100) AS NUMERIC)
 FROM expenses
 WHERE shared=1;
 
-
-
 DROP TABLE IF EXISTS expenses;
+
+COMMIT;

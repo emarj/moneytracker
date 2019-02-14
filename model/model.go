@@ -9,8 +9,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//type Sharing map[int]decimal.Decimal
-
 type DateTime struct{ time.Time }
 
 func (t *DateTime) Scan(v interface{}) error {
@@ -57,6 +55,12 @@ type PaymentMethod struct {
 	Name string `json:"pm_name"`
 }
 
+type Share struct {
+	Parent uuid.UUID       `json:"tx_uuid"`
+	WithID int             `json:"user_id"`
+	Quota  decimal.Decimal `json:"quota"`
+}
+
 type Transaction struct {
 	UUID        uuid.UUID
 	DateCreated DateTime
@@ -67,10 +71,27 @@ type Transaction struct {
 	SharedQuota decimal.Decimal
 	GeoLocation string `json:"geolocation"`
 
+	Shares []Share
 	User
 	PaymentMethod
 	Category
 	Type
+}
+
+func (t Transaction) SharedWith() []int {
+	userIDs := make([]int, 0, len(t.Shares))
+	for _, shr := range t.Shares {
+		userIDs = append(userIDs, shr.WithID)
+	}
+	return userIDs
+}
+
+func (t Transaction) Total() decimal.Decimal {
+	var total decimal.Decimal
+	for _, shr := range t.Shares {
+		total.Add(shr.Quota)
+	}
+	return total
 }
 
 type Service interface {
@@ -90,6 +111,8 @@ type Service interface {
 
 	/*Users*/
 	UsersGetAll() ([]*User, error)
+
+	/*Shares*/
 
 	/*Categories*/
 	CategoriesGetAll() ([]*Category, error)
