@@ -88,7 +88,7 @@
         <!-- Payment Method -->
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-              <label class="input-group-text" for="MethodID">PaymentMethod</label>
+              <label class="input-group-text" for="MethodID">Method</label>
               </div>
             <select class="custom-select" name="MethodID">
               {{range $pm := .PaymentMethods}}
@@ -114,6 +114,14 @@
               <input class="form-control" type="number" step="any"  id="own-amount" readonly {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
               <input class="form-control" type="number" step="any" min="0.01" id="shared-amount" name="SharedQuota" value="{{if $t}}{{if $t.Shared}}{{$t.SharedQuota}}{{end}}{{end}}" {{if $t}}{{if not $t.Shared}}disabled{{end}}{{end}} {{if not $t}}disabled{{end}}/>
             </div>
+
+            {{if $t}}
+            {{range $shr := $t.Shares}}
+              <input type="hidden" value="{{$shr.Quota}} with {{$shr.WithID}}" />
+            {{end}}
+            {{end}}
+
+            
 
          <!-- Categories -->
          <div class="input-group mb-3">

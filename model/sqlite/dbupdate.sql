@@ -89,9 +89,9 @@ CREATE TABLE transactions (
 	user_id	INTEGER NOT NULL,
 	amount	NUMERIC NOT NULL,
 	description	TEXT NOT NULL,
-	method_id	INTEGER,
+	pm_id	INTEGER,
 	shared	INTEGER NOT NULL, /*Maybe even this should be removed? Count on join*/
-	category_id	INTEGER NOT NULL,
+	cat_id	INTEGER NOT NULL,
 	geolocation TEXT,
 	PRIMARY KEY(uuid)
 );
@@ -103,8 +103,8 @@ FROM expenses;
 /*Shares*/
 
 CREATE TABLE shares (
-	tx_UUID	TEXT NOT NULL,
-	user_ID	INTEGER NOT NULL,
+	tx_uuid	TEXT NOT NULL,
+	with_id	INTEGER NOT NULL,
 	quota	NUMERIC NOT NULL
 );
 

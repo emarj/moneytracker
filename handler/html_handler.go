@@ -302,7 +302,7 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 		if sq.Equals(decimal.Zero) {
 			return &t, fmt.Errorf("Shared Quota cannot be zero")
 		}
-		t.SharedQuota = sq
+		t.Shares = append(t.Shares, &model.Share{t.UUID, 89, sq})
 	}
 
 	t.GeoLocation = r.FormValue("GeoLoc")

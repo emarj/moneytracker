@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"errors"
 	"log"
 	"os"
 	"strconv"
@@ -111,41 +112,65 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 	}()
 
 	stmt, err := tx.Preparex(
-		`SELECT
-		transactions.uuid,
-		transactions.date_created,
-		transactions.date,
-		transactions.amount,
-		transactions.description,
-		transactions.shared,
-		transactions.shared_quota,
-		transactions.geolocation,
-		users.user_id,
-		users.user_name,
-		types.type_id,
-		types.type_name,
-		paymentmethods.pm_id,
-		paymentmethods.pm_name,
-		categories.cat_id,
-		categories.cat_name
-		FROM transactions,users,types,paymentmethods,categories
+		`SELECT  *
+		FROM users,types,paymentmethods,categories,transactions t INNER JOIN shares s ON t.uuid = s.tx_uuid
 		WHERE 
-				transactions.user_id=users.user_id AND
-				transactions.type_id=types.type_id AND
-				transactions.pm_id=paymentmethods.pm_id AND
-				transactions.cat_id=categories.cat_id AND
-				transactions.uuid=?`)
+						t.user_id=users.user_id AND
+						t.type_id=types.type_id AND
+						t.pm_id=paymentmethods.pm_id AND
+						t.cat_id=categories.cat_id AND
+						t.uuid=?
+		UNION
+		SELECT *, ? AS tx_uuid, 0 AS with_id,0 AS quota
+		FROM users,types,paymentmethods,categories,transactions t 
+		WHERE 
+						t.user_id=users.user_id AND
+						t.type_id=types.type_id AND
+						t.pm_id=paymentmethods.pm_id AND
+						t.cat_id=categories.cat_id AND
+						t.uuid=?
+		ORDER BY date DESC`)
 	if err != nil {
 		return nil, err
 	}
 
-	var t model.Transaction
-	err = stmt.QueryRowx(uid.String()).StructScan(&t)
+	rows, err := stmt.Queryx(uid.String(), uuid.Nil.String(), uid.String())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //should not be needed if we iterate over all rows
+
+	type Result struct {
+		model.Transaction
+		model.Share
+	}
+
+	var t *model.Transaction
+	flagTx := false //A safety flag, checks that only 1 rows is actually (just) a transaction
+
+	for rows.Next() {
+		var result Result
+		err := rows.StructScan(&result)
+		if err != nil {
+			return nil, err
+		}
+		if result.Share.Parent == uuid.Nil {
+			if flagTx {
+				return nil, errors.New("multiple rows with Nil UUID in insert query")
+			}
+			flagTx = true
+			t = &result.Transaction
+		} else {
+			t.Shares = append(t.Shares, &result.Share)
+		}
+
+	}
+	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
 
-	return &t, err
+	return t, err
 }
 
 func (s *sqlite) TransactionInsert(t *model.Transaction) error {
@@ -181,7 +206,6 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 			description,
 			cat_id,
 			shared,
-			shared_quota,
 			geolocation,
 			type_id
 		) VALUES(
@@ -194,7 +218,6 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 			:description,
 			:cat_id,
 			:shared,
-			:shared_quota,
 			:geolocation,
 			:type_id)`)
 	if err != nil {
@@ -209,9 +232,9 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 
 	if t.Shared && (t.Shares != nil) {
 		query := `INSERT INTO shares(
-			shr_uuid,
-			shr_user_id,
-			shr_quota) VALUES`
+			tx_uuid,
+			with_id,
+			quota) VALUES`
 
 		vals := []interface{}{}
 		for _, shr := range t.Shares {
@@ -219,9 +242,9 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 			vals = append(vals, t.UUID.String(), shr.WithID, shr.Quota)
 		}
 
-		query = query[0 : len(query)-2] //Remove last comma
+		query = query[0 : len(query)-1] //Remove last comma
 
-		stmt, err := s.db.Prepare(query)
+		stmt, err := tx.Prepare(query)
 		if err != nil {
 			return err
 		}
@@ -260,7 +283,6 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 			description = :description,
 			cat_id = :cat_id,
 			shared = :shared,
-			shared_quota = :shared_quota,
 			geolocation = :geolocation,
 			type_id = :type_id
 		WHERE uuid = :uuid`)
@@ -276,13 +298,22 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		return err
 	}
 
-	/*if t.Shared && (t.Shares != nil) {
-		//If t was shared and now shares are remove we should account for that!
-		//Probably get all shares by id, delete them and add them again is the quick and dirty way!
+	//If t was shared and now shares are remove we should account for that!
+	//Probably get all shares by id, delete them and add them again is the quick and dirty way!
+	//OR WITH ADD A SHARE UUID
+
+	_, err = tx.Exec(`DELETE FROM shares WHERE tx_uuid =?`, t.UUID.String())
+	if err != nil {
+		return err
+	}
+	if t.Shared {
+		if t.Shares == nil {
+			return errors.New("Transaction is shared but it has no shares")
+		}
 		query := `INSERT INTO shares(
-			shr_uuid,
-			shr_user_id,
-			shr_quota) VALUES`
+				tx_uuid,
+				with_id,
+				quota) VALUES`
 
 		vals := []interface{}{}
 		for _, shr := range t.Shares {
@@ -290,19 +321,22 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 			vals = append(vals, t.UUID.String(), shr.WithID, shr.Quota)
 		}
 
-		query = query[0 : len(query)-2] //Remove last comma
+		query = query[0 : len(query)-1] //Remove last comma
 
-		stmt, err := s.db.Prepare(query)
+		stmt2, err := tx.Prepare(query)
 		if err != nil {
 			return err
 		}
 
-		_, err = stmt.Exec(vals...)
+		_, err = stmt2.Exec(vals...)
 
 		if err != nil {
 			return err
 		}
-	}*/
+	} else if t.Shares != nil {
+		return errors.New("Transaction is not shared but it has shares")
+
+	}
 
 	return nil
 }
@@ -351,7 +385,6 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		transactions.amount,
 		transactions.description,
 		transactions.shared,
-		transactions.shared_quota,
 		transactions.geolocation,
 		users.user_id,
 		users.user_name,

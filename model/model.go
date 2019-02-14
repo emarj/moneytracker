@@ -57,7 +57,7 @@ type PaymentMethod struct {
 
 type Share struct {
 	Parent uuid.UUID       `json:"tx_uuid"`
-	WithID int             `json:"user_id"`
+	WithID int             `json:"with_id"`
 	Quota  decimal.Decimal `json:"quota"`
 }
 
@@ -68,10 +68,9 @@ type Transaction struct {
 	Description string
 	Amount      decimal.Decimal
 	Shared      bool
-	SharedQuota decimal.Decimal
 	GeoLocation string `json:"geolocation"`
 
-	Shares []Share
+	Shares []*Share
 	User
 	PaymentMethod
 	Category
@@ -86,10 +85,10 @@ func (t Transaction) SharedWith() []int {
 	return userIDs
 }
 
-func (t Transaction) Total() decimal.Decimal {
+func (t Transaction) SharedQuota() decimal.Decimal {
 	var total decimal.Decimal
 	for _, shr := range t.Shares {
-		total.Add(shr.Quota)
+		total = total.Add(shr.Quota)
 	}
 	return total
 }
