@@ -44,7 +44,7 @@ func (m *mockup) TransactionInsert(t *model.Transaction) error {
 	if err != nil {
 		return err
 	}
-	t.DateCreated = model.DateTime(time.Now().In(loc))
+	t.DateCreated.Time = time.Now().In(loc)
 
 	//Actual inser
 	m.transactions[id.String()] = t

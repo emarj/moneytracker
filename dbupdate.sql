@@ -4,28 +4,32 @@
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
-	id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	name	TEXT NOT NULL
+	user_id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	user_name	TEXT NOT NULL
 );
 
-INSERT INTO users(id,name) VALUES (1,'Arianna');
-INSERT INTO users(id,name) VALUES (2,'Marco');
+INSERT INTO users(user_id,user_name) VALUES (1,'Arianna');
+INSERT INTO users(user_id,user_name) VALUES (2,'Marco');
 
 UPDATE expenses SET who=1 WHERE expenses.who = 'A';
 UPDATE expenses SET who=2 WHERE expenses.who = 'M';
 
+
 /*Types*/
 
 CREATE TABLE types (
-	id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	name	TEXT NOT NULL
+	type_id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	type_name	TEXT NOT NULL
 );
 
-INSERT INTO types(id,name) VALUES (0,'Expense');
-INSERT INTO types(id,name) VALUES (1,'Transfer');
-INSERT INTO types(id,name) VALUES (2,'Income');
+INSERT INTO types(type_id,type_name) VALUES (0,'Expense');
+INSERT INTO types(type_id,type_name) VALUES (1,'Transfer');
+INSERT INTO types(type_id,type_name) VALUES (2,'Income');
 /* See https://github.com/emarj/moneytracker/issues/4
 UPDATE transactions SET type = 2 WHERE transactions.amount < 0*/
+
+/*Dates*/
+UPDATE expenses SET date = date || "T00:00:00";
 
 /*Transactions*/
 

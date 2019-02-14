@@ -256,7 +256,7 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	if err != nil {
 		return &t, err
 	}
-	t.Date = model.Date(d)
+	t.Date.Time = d
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {

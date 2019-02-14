@@ -1,46 +1,20 @@
 package model
 
 import (
+	"database/sql/driver"
 	"errors"
-	"strconv"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 )
 
-type User struct {
-	ID   int
-	Name string
-}
+//type Sharing map[int]decimal.Decimal
 
-type Type struct {
-	ID   int
-	Name string
-}
+type DateTime struct{ time.Time }
 
-type Category struct {
-	ID   int
-	Name string
-}
+func (t *DateTime) Scan(v interface{}) error {
 
-type PaymentMethod struct {
-	ID   int
-	Name string
-}
-
-type Sharing map[int]decimal.Decimal
-
-/*func B2S(bs []uint8) string {
-	b := make([]byte, len(bs))
-	for i, v := range bs {
-		b[i] = byte(v)
-	}
-	return string(b)
-}*/
-
-func timeParse(format string, v interface{}) (time.Time, error) {
-	var vt time.Time
 	var s string
 	switch z := v.(type) {
 	case []uint8:
@@ -48,51 +22,45 @@ func timeParse(format string, v interface{}) (time.Time, error) {
 	case string:
 		s = z
 	default:
-		return vt, errors.New("cannot convert to string")
+		return errors.New("cannot convert time to string")
 	}
-	vt, err := time.Parse(format, s)
-	if err != nil {
-		return vt, err
-	}
-	return vt, nil
-}
 
-type DateTime time.Time
-
-func (t *DateTime) Scan(v interface{}) error {
-	vt, err := timeParse("2006-01-02T15:04:05", v)
+	vt, err := time.Parse("2006-01-02T15:04:05", s)
 	if err != nil {
 		return err
 	}
-	*t = DateTime(vt)
+	t.Time = vt
 	return nil
 }
 
-func (t *DateTime) Format(format string) string {
-	return time.Time(*t).Format(format)
-
+func (t DateTime) Value() (driver.Value, error) {
+	return driver.Value(t.Format("2006-01-02T15:04:05")), nil
 }
 
-type Date time.Time
-
-func (t *Date) Scan(v interface{}) error {
-	vt, err := timeParse("2006-01-02", v)
-	if err != nil {
-		return err
-	}
-	*t = Date(vt)
-	return nil
+type User struct {
+	ID   int    `json:"user_id"`
+	Name string `json:"user_name"`
 }
 
-func (t *Date) Format(format string) string {
-	return time.Time(*t).Format(format)
+type Type struct {
+	ID   int    `json:"type_id"`
+	Name string `json:"type_name"`
+}
 
+type Category struct {
+	ID   int    `json:"cat_id"`
+	Name string `json:"cat_name"`
+}
+
+type PaymentMethod struct {
+	ID   int    `json:"pm_id"`
+	Name string `json:"pm_name"`
 }
 
 type Transaction struct {
 	UUID        uuid.UUID
 	DateCreated DateTime
-	Date        Date
+	Date        DateTime
 	Description string
 	Amount      decimal.Decimal
 	Shared      bool
@@ -103,100 +71,6 @@ type Transaction struct {
 	PaymentMethod
 	Category
 	Type
-}
-
-func NewTransactionNoID(
-	dateCreated string,
-	date string,
-	amount decimal.Decimal,
-	description string,
-	shared string,
-	sharedQuota decimal.Decimal,
-	geoLoc string,
-	userID int,
-	userName string,
-	typeID int,
-	typeName string,
-	methodID int,
-	methodName string,
-	catID int,
-	catName string) (*Transaction, error) {
-
-	u := User{ID: userID, Name: userName}
-	tp := Type{ID: typeID, Name: typeName}
-	c := Category{ID: catID, Name: catName}
-	pm := PaymentMethod{ID: methodID, Name: methodName}
-	t := Transaction{Category: c, PaymentMethod: pm, User: u, Type: tp}
-
-	t.Amount = amount
-	t.SharedQuota = sharedQuota
-	t.Description = description
-	t.GeoLocation = geoLoc
-
-	shrd, err := strconv.ParseBool(shared)
-	if err != nil {
-		return nil, err
-	}
-	t.Shared = shrd
-
-	dc, err := time.Parse("2006-01-02T15:04:05", dateCreated)
-	if err != nil {
-		return nil, err
-	}
-	t.DateCreated = DateTime(dc)
-
-	d, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return nil, err
-	}
-	t.Date = Date(d)
-
-	return &t, nil
-}
-
-func NewTransaction(
-	id string,
-	dateCreated string,
-	date string,
-	amount decimal.Decimal,
-	description string,
-	shared string,
-	sharedQuota decimal.Decimal,
-	geoLoc string,
-	userID int,
-	userName string,
-	typeID int,
-	typeName string,
-	methodID int,
-	methodName string,
-	catID int,
-	catName string) (*Transaction, error) {
-	t, err := NewTransactionNoID(
-		dateCreated,
-		date,
-		amount,
-		description,
-		shared,
-		sharedQuota,
-		geoLoc,
-		userID,
-		userName,
-		typeID,
-		typeName,
-		methodID,
-		methodName,
-		catID,
-		catName)
-	if err != nil {
-		return nil, err
-	}
-
-	uID, err := uuid.FromString(id)
-	if err != nil {
-		return nil, err
-	}
-	t.UUID = uID
-	return t, nil
 }
 
 type Service interface {

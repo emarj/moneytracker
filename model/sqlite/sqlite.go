@@ -15,7 +15,6 @@ import (
 	//sqlite driver
 	_ "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
-	"github.com/shopspring/decimal"
 	"ronche.se/moneytracker/model"
 )
 
@@ -29,11 +28,11 @@ var schema = [...]string{
 		user_id	INTEGER NOT NULL,
 		amount	NUMERIC NOT NULL,
 		description	TEXT NOT NULL,
-		method_id	INTEGER,
+		pm_id	INTEGER,
 		shared	INTEGER NOT NULL,
 		shared_quota	NUMERIC NOT NULL,
 		geolocation TEXT,
-		category_id	INTEGER NOT NULL,
+		cat_id	INTEGER NOT NULL,
 		PRIMARY KEY(uuid)
 )`,
 
@@ -104,6 +103,13 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
 
 	stmt, err := tx.Preparex(
 		`SELECT
@@ -115,20 +121,20 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		transactions.shared,
 		transactions.shared_quota,
 		transactions.geolocation,
-		users.id,
-		users.name,
-		types.id,
-		types.name,
-		paymentmethods.id,
-		paymentmethods.name,
-		categories.id,
-		categories.name
+		users.user_id,
+		users.user_name,
+		types.type_id,
+		types.type_name,
+		paymentmethods.pm_id,
+		paymentmethods.pm_name,
+		categories.cat_id,
+		categories.cat_name
 		FROM transactions,users,types,paymentmethods,categories
 		WHERE 
-				transactions.user_id=users.id AND
-				transactions.type_id=types.id AND
-				transactions.method_id=paymentmethods.id AND
-				transactions.category_id=categories.id AND
+				transactions.user_id=users.user_id AND
+				transactions.type_id=types.type_id AND
+				transactions.pm_id=paymentmethods.pm_id AND
+				transactions.cat_id=categories.cat_id AND
 				transactions.uuid=?`)
 	if err != nil {
 		return nil, err
@@ -139,10 +145,6 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		tx.Rollback()
-	}()
 
 	return &t, err
 }
@@ -155,41 +157,40 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 	if err != nil {
 		return err
 	}
-	t.DateCreated = model.DateTime(time.Now().In(loc))
+	t.DateCreated.Time = time.Now().In(loc)
 
-	stmt1, err := s.db.Prepare(
+	stmt1, err := s.db.PrepareNamed(
 		`INSERT INTO transactions(
 			uuid,
 			date_created,
 			date,
 			user_id,
 			amount,
-			method_id,
+			pm_id,
 			description,
-			category_id,
+			cat_id,
 			shared,
 			shared_quota,
 			geolocation,
 			type_id
-		) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`)
+		) VALUES(
+			:uuid,
+			:date_created,
+			:date,
+			:user_id,
+			:amount,
+			:pm_id,
+			:description,
+			:cat_id,
+			:shared,
+			:shared_quota,
+			:geolocation,
+			:type_id)`)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt1.Exec(
-		t.UUID.String(),
-		time.Time(t.DateCreated).Format("2006-01-02T15:04:05"),
-		time.Time(t.Date).Format("2006-01-02"),
-		t.User.ID,
-		t.Amount,
-		t.PaymentMethod.ID,
-		t.Description,
-		t.Category.ID,
-		t.Shared,
-		t.SharedQuota,
-		t.GeoLocation,
-		t.Type.ID,
-	)
+	_, err = stmt1.Exec(t)
 
 	if err != nil {
 		return err
@@ -224,36 +225,29 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 }
 
 func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
-	stmt, err := s.db.Prepare(
+
+	stmt, err := s.db.PrepareNamed(
 		`UPDATE transactions
-		SET
-			date = ?,
-			user_id = ?,
-			amount = ?,
-			method_id = ?,
-			description = ?,
-			category_id = ?,
-			shared = ?,
-			shared_quota = ?,
-			geolocation = ?,
-			type_id = ?
-		WHERE uuid = '` + t.UUID.String() + `'`)
+		SET			
+			date = :date,
+			user_id = :user_id,
+			amount = :amount,
+			pm_id = :pm_id,
+			description = :description,
+			cat_id = :cat_id,
+			shared = :shared,
+			shared_quota = :shared_quota,
+			geolocation = :geolocation,
+			type_id = :type_id
+		WHERE uuid = :uuid`)
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(
-		time.Time(t.Date).Format("2006-01-02"),
-		t.User.ID,
-		t.Amount,
-		t.PaymentMethod.ID,
-		t.Description,
-		t.Category.ID,
-		t.Shared,
-		t.SharedQuota,
-		t.GeoLocation,
-		t.Type.ID,
-	)
 
+	_, err = stmt.Exec(t)
+	if err != nil {
+		return err
+	}
 	if err != nil {
 		return err
 	}
@@ -279,7 +273,7 @@ func (s *sqlite) TransactionsGetNOrderByInserted(limit int) ([]*model.Transactio
 
 func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Transaction, error) {
 
-	rows, err := s.db.Query(
+	stmt, err := s.db.Preparex(
 		`SELECT transactions.uuid,
 		transactions.date_created,
 		transactions.date,
@@ -288,92 +282,41 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		transactions.shared,
 		transactions.shared_quota,
 		transactions.geolocation,
-		users.id,
-		users.name,
-		types.id,
-		types.name,
-		paymentmethods.id,
-		paymentmethods.name,
-		categories.id,
-		categories.name
+		users.user_id,
+		users.user_name,
+		types.type_id,
+		types.type_name,
+		paymentmethods.pm_id,
+		paymentmethods.pm_name,
+		categories.cat_id,
+		categories.cat_name
 		FROM transactions,users,types,paymentmethods,categories
 		WHERE 
-				transactions.user_id=users.id AND
-				transactions.type_id=types.id AND
-				transactions.method_id=paymentmethods.id AND
-				transactions.category_id=categories.id
+				transactions.user_id=users.user_id AND
+				transactions.type_id=types.type_id AND
+				transactions.pm_id=paymentmethods.pm_id AND
+				transactions.cat_id=categories.cat_id
 		ORDER BY ` + orderBy + `
-		LIMIT ` + strconv.Itoa(limit))
+		LIMIT ?`)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	rows, err := stmt.Queryx(strconv.Itoa(limit))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //should not be needed if we iterate over all rows
 
 	var ts []*model.Transaction
 
-	var (
-		id          string
-		dateCreated string
-		date        string
-		amount      decimal.Decimal
-		description string
-		shared      string
-		sharedQuota decimal.Decimal
-		geoLoc      string
-		userID      int
-		userName    string
-		typeID      int
-		typeName    string
-		methodID    int
-		methodName  string
-		catID       int
-		catName     string
-	)
-
 	for rows.Next() {
-		err := rows.Scan(
-			&id,
-			&dateCreated,
-			&date,
-			&amount,
-			&description,
-			&shared,
-			&sharedQuota,
-			&geoLoc,
-			&userID,
-			&userName,
-			&typeID,
-			&typeName,
-			&methodID,
-			&methodName,
-			&catID,
-			&catName,
-		)
+		var t model.Transaction
+		err := rows.StructScan(&t)
 		if err != nil {
 			return nil, err
 		}
-
-		t, err := model.NewTransaction(
-			id,
-			dateCreated,
-			date,
-			amount,
-			description,
-			shared,
-			sharedQuota,
-			geoLoc,
-			userID,
-			userName,
-			typeID,
-			typeName,
-			methodID,
-			methodName,
-			catID,
-			catName)
-		if err != nil {
-			return nil, err
-		}
-		ts = append(ts, t)
+		ts = append(ts, &t)
 	}
 	err = rows.Err()
 	if err != nil {
