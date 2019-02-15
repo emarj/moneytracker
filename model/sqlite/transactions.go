@@ -31,12 +31,20 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 						t.pm_id=paymentmethods.pm_id AND
 						t.cat_id=categories.cat_id AND
 						t.uuid=?
-		ORDER BY t.date DESC`)
+		UNION
+		SELECT *, ? AS tx_uuid, 0 AS with_id,0 AS quota
+		FROM users,types,paymentmethods,categories,transactions t 
+		WHERE 
+						t.user_id=users.user_id AND
+						t.type_id=types.type_id AND
+						t.pm_id=paymentmethods.pm_id AND
+						t.cat_id=categories.cat_id AND
+						t.uuid=?`)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(uid.String())
+	rows, err := stmt.Queryx(uid.String(), uuid.Nil.String(), uid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +69,9 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 			t = &result.Transaction
 			flagTx = true
 		}
-
-		t.Shares = append(t.Shares, &result.Share)
+		if result.Share.TxID != uuid.Nil {
+			t.Shares = append(t.Shares, &result.Share)
+		}
 
 	}
 
@@ -291,13 +300,21 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 						t.type_id=types.type_id AND
 						t.pm_id=paymentmethods.pm_id AND
 						t.cat_id=categories.cat_id
+		UNION
+		SELECT *, ? AS tx_uuid, 0 AS with_id,0 AS quota
+		FROM users,types,paymentmethods,categories,transactions t 
+		WHERE 
+						t.user_id=users.user_id AND
+						t.type_id=types.type_id AND
+						t.pm_id=paymentmethods.pm_id AND
+						t.cat_id=categories.cat_id
 		ORDER BY ` + orderBy + `
 		LIMIT ?`)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(limit)
+	rows, err := stmt.Queryx(uuid.Nil.String(), limit)
 	if err != nil {
 		return nil, err
 	}
@@ -325,8 +342,10 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 			ts = append(ts, &result.Transaction)
 		}
 
-		i := len(ts) - 1
-		ts[i].Shares = append(ts[i].Shares, &result.Share)
+		if result.Share.TxID != uuid.Nil {
+			i := len(ts) - 1
+			ts[i].Shares = append(ts[i].Shares, &result.Share)
+		}
 
 	}
 
