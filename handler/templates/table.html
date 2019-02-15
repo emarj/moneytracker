@@ -8,6 +8,7 @@
       <th class="text-right">Amount</td>
       <th class="text-center">Method</th>
       <th class="text-center">Category</th>
+      <th>dss</th>
     </thead>
     <tbody>
       {{range $t := .Transactions}}
@@ -18,6 +19,7 @@
         <td class="text-right amount"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small>{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro;</td>
         <td class="text-center">{{$t.PaymentMethod.Name }}</td>
         <td class="text-center">{{$t.Category.Name }}</td>
+        <td> {{$t.SharedWith}} </td>
       </tr>
       {{end}}
     </tbody>

@@ -31,16 +31,57 @@ SELECT  *
 
 
 /*Get one TX and username*/
-		SELECT  *, u.user_name AS with_name
-		FROM users,types,paymentmethods,categories,transactions t INNER JOIN shares s ON t.uuid = s.tx_uuid,users u
+	SELECT
+		uuid,
+		date_created,
+		date,
+		ut.user_id,
+		ut.user_name,
+		amount,
+		t.pm_id,
+		pm_name,
+		description,
+		t.cat_id,
+		cat_name,
+		shared,
+		geolocation,
+		t.type_id,
+		type_name,
+		tx_uuid,
+		with_id,
+		us.user_name AS with_name,
+		quota
+		FROM users ut,types,paymentmethods,categories,transactions t INNER JOIN shares s ON t.uuid = s.tx_uuid,users us
 		WHERE 
-						u.user_id = s.with_id AND
+						us.user_id = s.with_id AND
+						t.user_id=ut.user_id AND
+						t.type_id=types.type_id AND
+						t.pm_id=paymentmethods.pm_id AND
+						t.cat_id=categories.cat_id
+		UNION
+		SELECT 		uuid,
+		date_created,
+		date,
+		t.user_id,
+		user_name,
+		amount,
+		t.pm_id,
+		pm_name,
+		description,
+		t.cat_id,
+		cat_name,
+		shared,
+		geolocation,
+		t.type_id,
+		type_name,
+		NULL AS tx_uuid, 0 AS with_id,"" AS with_name, 0 AS quota
+		FROM users,types,paymentmethods,categories,transactions t 
+		WHERE 
 						t.user_id=users.user_id AND
 						t.type_id=types.type_id AND
 						t.pm_id=paymentmethods.pm_id AND
-						t.cat_id=categories.cat_id AND
-						t.uuid=?
-		ORDER BY t.date DESC
+						t.cat_id=categories.cat_id
+		
 
 /*Get total shared amount*/
 SELECT  t.date,t.uuid,t.amount,t.user_id,SUM(s.shared_quota)

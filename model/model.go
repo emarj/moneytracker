@@ -78,12 +78,12 @@ type Transaction struct {
 	Type
 }
 
-func (t Transaction) SharedWith() []int {
-	userIDs := make([]int, 0, len(t.Shares))
+func (t Transaction) SharedWith() []User {
+	users := make([]User, 0, len(t.Shares))
 	for _, shr := range t.Shares {
-		userIDs = append(userIDs, shr.WithID)
+		users = append(users, User{shr.WithID, shr.WithName})
 	}
-	return userIDs
+	return users
 }
 
 func (t Transaction) SharedQuota() decimal.Decimal {
