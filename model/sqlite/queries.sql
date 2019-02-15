@@ -18,16 +18,19 @@ SELECT  *
 						t.pm_id=paymentmethods.pm_id AND
 						t.cat_id=categories.cat_id AND
 						t.uuid="bdbd93db-c5fe-4165-b237-99b27883fac3"
-		UNION
-		SELECT *, NULL AS tx_uuid, 0 AS with_id,0 AS quota
-		FROM users,types,paymentmethods,categories,transactions t 
+
+
+/*Get one TX and username*/
+		SELECT  *, u.user_name AS with_name
+		FROM users,types,paymentmethods,categories,transactions t INNER JOIN shares s ON t.uuid = s.tx_uuid,users u
 		WHERE 
+						u.user_id = s.with_id AND
 						t.user_id=users.user_id AND
 						t.type_id=types.type_id AND
 						t.pm_id=paymentmethods.pm_id AND
 						t.cat_id=categories.cat_id AND
-						t.uuid= "bdbd93db-c5fe-4165-b237-99b27883fac3"
-		ORDER BY date DESC
+						t.uuid=?
+		ORDER BY t.date DESC
 
 /*Get total shared amount*/
 SELECT  t.date,t.uuid,t.amount,t.user_id,SUM(s.shared_quota)

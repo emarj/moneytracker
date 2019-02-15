@@ -56,9 +56,10 @@ type PaymentMethod struct {
 }
 
 type Share struct {
-	Parent uuid.UUID       `json:"tx_uuid"`
-	WithID int             `json:"with_id"`
-	Quota  decimal.Decimal `json:"quota"`
+	TxID     uuid.UUID       `json:"tx_uuid"`
+	WithID   int             `json:"with_id"`
+	WithName string          `json:"with_name"`
+	Quota    decimal.Decimal `json:"quota"`
 }
 
 type Transaction struct {
