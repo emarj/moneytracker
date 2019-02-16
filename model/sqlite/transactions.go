@@ -22,65 +22,43 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		err = tx.Commit()
 	}()
 
-	stmt, err := tx.Preparex(`SELECT
-		uuid,
-		date_created,
-		date,
-		ut.user_id,
-		ut.user_name,
-		amount,
-		t.pm_id,
-		pm_name,
-		description,
-		t.cat_id,
-		cat_name,
-		shared,
-		geolocation,
-		t.type_id,
-		type_name,
-		tx_uuid,
-		with_id,
-		us.user_name AS with_name,
-		quota
-		FROM users ut,types,paymentmethods,categories,transactions t INNER JOIN shares s ON t.uuid = s.tx_uuid,users us
-		WHERE 
-						us.user_id = s.with_id AND
-						t.user_id=ut.user_id AND
+	stmt, err := tx.Preparex(
+		`SELECT
+			uuid,
+			date_created,
+			date_modified,
+			date,
+			t.user_id,
+			t.user_name,
+			amount,
+			t.pm_id,
+			pm_name,
+			description,
+			t.cat_id,
+			cat_name,
+			shared,
+			geolocation,
+			t.type_id,
+			type_name,
+			IFNULL(tx_uuid,"` + uuid.Nil.String() + `") AS tx_uuid,
+			IFNULL(with_id,0) AS with_id,
+			IFNULL(u.user_name,0) as with_name,
+			IFNULL(quota,0) AS quota
+		FROM
+			(SELECT * from transactions t,users,types,paymentmethods,categories
+				WHERE	t.user_id=users.user_id AND
 						t.type_id=types.type_id AND
 						t.pm_id=paymentmethods.pm_id AND
 						t.cat_id=categories.cat_id AND
 						t.uuid=?
-		UNION
-		SELECT
-		uuid,
-		date_created,
-		date,
-		t.user_id,
-		user_name,
-		amount,
-		t.pm_id,
-		pm_name,
-		description,
-		t.cat_id,
-		cat_name,
-		shared,
-		geolocation,
-		t.type_id,
-		type_name,
-		? AS tx_uuid, 0 AS with_id,"" AS with_name, 0 AS quota
-		FROM users,types,paymentmethods,categories,transactions t 
-		WHERE 
-						t.user_id=users.user_id AND
-						t.type_id=types.type_id AND
-						t.pm_id=paymentmethods.pm_id AND
-						t.cat_id=categories.cat_id AND
-						t.uuid = ?
-		`)
+			) t
+			LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
+			LEFT OUTER JOIN users u ON s.with_id = u.user_id`)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(uid.String(), uuid.Nil.String(), uid.String())
+	rows, err := stmt.Queryx(uid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +85,7 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		}
 		if result.Share.TxID != uuid.Nil {
 			if !t.Shared {
-				return t, errors.New("Transaction is not shared, but it has shares!")
+				return t, errors.New("transaction is not shared, but it has shares!")
 			}
 			t.Shares = append(t.Shares, &result.Share)
 		}
@@ -115,7 +93,7 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 	}
 
 	if t.Shared && len(t.Shares) == 0 {
-		return t, errors.New("Transaction is shared, but it has no shares!")
+		return t, errors.New("transaction is shared, but it has no shares!")
 	}
 
 	err = rows.Err()
@@ -135,6 +113,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		return err
 	}
 	t.DateCreated.Time = time.Now().In(loc)
+	t.DateModified = t.DateCreated
 
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -152,6 +131,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		`INSERT INTO transactions(
 			uuid,
 			date_created,
+			date_modified,
 			date,
 			user_id,
 			amount,
@@ -164,6 +144,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		) VALUES(
 			:uuid,
 			:date_created,
+			:date_modified,
 			:date,
 			:user_id,
 			:amount,
@@ -226,9 +207,16 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		err = tx.Commit()
 	}()
 
+	loc, err := time.LoadLocation("Europe/Rome")
+	if err != nil {
+		return err
+	}
+	t.DateModified.Time = time.Now().In(loc)
+
 	stmt, err := tx.PrepareNamed(
 		`UPDATE transactions
-		SET			
+		SET
+			date_modified = :date_modified,
 			date = :date,
 			user_id = :user_id,
 			amount = :amount,
@@ -339,6 +327,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		`SELECT
 				uuid,
 				date_created,
+				date_modified,
 				date,
 				t.user_id,
 				t.user_name,
@@ -352,52 +341,26 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 				geolocation,
 				t.type_id,
 				type_name,
-				tx_uuid,
-				with_id,
-				u.user_name AS with_name,
-				quota
+				IFNULL(tx_uuid,"` + uuid.Nil.String() + `") AS tx_uuid,
+				IFNULL(with_id,0) AS with_id,
+				IFNULL(u.user_name,0) as with_name,
+				IFNULL(quota,0) AS quota
 			FROM
-				(SELECT * from users,types,paymentmethods,categories,transactions t
+				(SELECT * from transactions t,users,types,paymentmethods,categories
 					WHERE	t.user_id=users.user_id AND
 							t.type_id=types.type_id AND
 							t.pm_id=paymentmethods.pm_id AND
-							t.cat_id=categories.cat_id ORDER BY ` + orderBy + ` LIMIT ?) t
-				INNER JOIN shares s ON t.uuid = s.tx_uuid,users u
-			WHERE 
-							u.user_id = s.with_id
-		UNION
-		SELECT * FROM (
-			SELECT
-				uuid,
-				date_created,
-				date,
-				t.user_id,
-				user_name,
-				amount,
-				t.pm_id,
-				pm_name,
-				description,
-				t.cat_id,
-				cat_name,
-				shared,
-				geolocation,
-				t.type_id,
-				type_name,
-				? AS tx_uuid, 0 AS with_id,"" AS with_name, 0 AS quota
-			FROM users,types,paymentmethods,categories,transactions t 
-			WHERE 
-							t.user_id=users.user_id AND
-							t.type_id=types.type_id AND
-							t.pm_id=paymentmethods.pm_id AND
 							t.cat_id=categories.cat_id
-			ORDER BY ` + orderBy + `
-			LIMIT ?)
+					ORDER BY ` + orderBy + `
+					LIMIT ?) t
+					LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
+					LEFT OUTER JOIN users u ON s.with_id = u.user_id
 			ORDER BY ` + orderBy)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(limit, uuid.Nil.String(), limit)
+	rows, err := stmt.Queryx(limit)
 	if err != nil {
 		return nil, err
 	}
@@ -445,4 +408,8 @@ func (s *sqlite) TransactionsGetNOrderByDate(limit int) ([]*model.Transaction, e
 
 func (s *sqlite) TransactionsGetNOrderByInserted(limit int) ([]*model.Transaction, error) {
 	return s.TransactionsGetNOrderBy(limit, "date_created DESC, date DESC")
+}
+
+func (s *sqlite) TransactionsGetNOrderByModified(limit int) ([]*model.Transaction, error) {
+	return s.TransactionsGetNOrderBy(limit, "date_modified DESC, date DESC")
 }

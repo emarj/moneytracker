@@ -63,13 +63,14 @@ type Share struct {
 }
 
 type Transaction struct {
-	UUID        uuid.UUID
-	DateCreated DateTime
-	Date        DateTime
-	Description string
-	Amount      decimal.Decimal
-	Shared      bool
-	GeoLocation string `json:"geolocation"`
+	UUID         uuid.UUID
+	DateCreated  DateTime
+	DateModified DateTime
+	Date         DateTime
+	Description  string
+	Amount       decimal.Decimal
+	Shared       bool
+	GeoLocation  string `json:"geolocation"`
 
 	Shares []*Share
 	User
@@ -119,6 +120,7 @@ type Service interface {
 	TransactionsGetNOrderBy(limit int, orderby string) ([]*Transaction, error)
 	TransactionsGetNOrderByDate(limit int) ([]*Transaction, error)
 	TransactionsGetNOrderByInserted(limit int) ([]*Transaction, error)
+	TransactionsGetNOrderByModified(limit int) ([]*Transaction, error)
 
 	/*Types*/
 	TypesGetAll() ([]*Type, error)

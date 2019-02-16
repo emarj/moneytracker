@@ -84,6 +84,7 @@ UPDATE expenses SET date = date || "T00:00:00";
 CREATE TABLE transactions (
 	uuid	TEXT NOT NULL,
 	date_created	TEXT NOT NULL,
+	date_modified TEXT NOT NULL,
 	date	TEXT NOT NULL,
 	type_id	INTEGER NOT NULL,
 	user_id	INTEGER NOT NULL,
@@ -97,7 +98,7 @@ CREATE TABLE transactions (
 );
 
 INSERT INTO transactions
-SELECT uuid,datecreated,date,type,who,amount,description,method,shared,category, "" as geolocation
+SELECT uuid,datecreated,datecreated,date,type,who,amount,description,method,shared,category, "" as geolocation
 FROM expenses;
 
 UPDATE transactions

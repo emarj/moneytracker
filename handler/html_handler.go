@@ -138,7 +138,7 @@ func (h *htmlHandler) render(f func(r *http.Request) *htmlResponse) http.Handler
 }
 
 func (h *htmlHandler) home(r *http.Request) *htmlResponse {
-	ts, err := h.dbSrv.TransactionsGetNOrderByInserted(5)
+	ts, err := h.dbSrv.TransactionsGetNOrderByModified(5)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}

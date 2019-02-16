@@ -22,6 +22,14 @@
           </div>
           <input class="form-control" type="datetime-local" name="DateCreated" value="{{$t.DateCreated.Format "2006-01-02T15:04" }}" readonly/>
       </div>
+
+       <!-- Date Modified-->
+       <div class="input-group mb-3">
+        <div class="input-group-prepend">
+      <label class="input-group-text" for="DateModified">Modified on</label>
+        </div>
+        <input class="form-control" type="datetime-local" name="DateModified" value="{{$t.DateModified.Format "2006-01-02T15:04" }}" readonly/>
+    </div>
       {{end}}
       
 
@@ -156,7 +164,7 @@
             {{end}}
             <button type="reset" class="btn btn-secondary">Cancel</button>
         
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Submit</button>
 
             
             
