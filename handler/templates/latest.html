@@ -7,7 +7,7 @@
       {{range $t := .Transactions}}
       <li data-href="{{Prefix}}/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
         <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} paid <strong>{{AutoFormatDec $t.Amount }}&euro;</strong> of <em>{{$t.Description }}</em> by {{$t.PaymentMethod.Name }} ({{$t.Category.Name}}).
-        {{ if $t.Shared }} {{$t.User.Name }} will have back {{AutoFormatDec $t.SharedQuota}}&euro; ({{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro;) from {{$t.SharedWith}}{{end}}
+        {{ if $t.Shared }} {{$t.User.Name }} will have back {{AutoFormatDec $t.SharedQuota}}&euro; ({{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro;) from {{$t.SharedWithName1}}{{end}}
       </li>
       {{end}}
 </ul>
