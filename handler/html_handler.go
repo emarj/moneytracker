@@ -138,7 +138,7 @@ func (h *htmlHandler) render(f func(r *http.Request) *htmlResponse) http.Handler
 }
 
 func (h *htmlHandler) home(r *http.Request) *htmlResponse {
-	ts, err := h.dbSrv.TransactionsGetNOrderByInserted(10)
+	ts, err := h.dbSrv.TransactionsGetNOrderByInserted(5)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -171,7 +171,7 @@ func (h *htmlHandler) home(r *http.Request) *htmlResponse {
 }
 
 func (h *htmlHandler) all(r *http.Request) *htmlResponse {
-	ts, err := h.dbSrv.TransactionsGetNOrderByDate(1000)
+	ts, err := h.dbSrv.TransactionsGetNOrderByDate(99999) //NEED TO IMPLEMENT NO LIMIT
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}

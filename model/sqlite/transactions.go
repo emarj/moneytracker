@@ -337,63 +337,67 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 
 	stmt, err := tx.Preparex(
 		`SELECT
-		uuid,
-		date_created,
-		date,
-		ut.user_id,
-		ut.user_name,
-		amount,
-		t.pm_id,
-		pm_name,
-		description,
-		t.cat_id,
-		cat_name,
-		shared,
-		geolocation,
-		t.type_id,
-		type_name,
-		tx_uuid,
-		with_id,
-		us.user_name AS with_name,
-		quota
-		FROM users ut,types,paymentmethods,categories,transactions t INNER JOIN shares s ON t.uuid = s.tx_uuid,users us
-		WHERE 
-						us.user_id = s.with_id AND
-						t.user_id=ut.user_id AND
-						t.type_id=types.type_id AND
-						t.pm_id=paymentmethods.pm_id AND
-						t.cat_id=categories.cat_id
+				uuid,
+				date_created,
+				date,
+				t.user_id,
+				t.user_name,
+				amount,
+				t.pm_id,
+				pm_name,
+				description,
+				t.cat_id,
+				cat_name,
+				shared,
+				geolocation,
+				t.type_id,
+				type_name,
+				tx_uuid,
+				with_id,
+				u.user_name AS with_name,
+				quota
+			FROM
+				(SELECT * from users,types,paymentmethods,categories,transactions t
+					WHERE	t.user_id=users.user_id AND
+							t.type_id=types.type_id AND
+							t.pm_id=paymentmethods.pm_id AND
+							t.cat_id=categories.cat_id ORDER BY ` + orderBy + ` LIMIT ?) t
+				INNER JOIN shares s ON t.uuid = s.tx_uuid,users u
+			WHERE 
+							u.user_id = s.with_id
 		UNION
-		SELECT
-		uuid,
-		date_created,
-		date,
-		t.user_id,
-		user_name,
-		amount,
-		t.pm_id,
-		pm_name,
-		description,
-		t.cat_id,
-		cat_name,
-		shared,
-		geolocation,
-		t.type_id,
-		type_name,
-		? AS tx_uuid, 0 AS with_id,"" AS with_name, 0 AS quota
-		FROM users,types,paymentmethods,categories,transactions t 
-		WHERE 
-						t.user_id=users.user_id AND
-						t.type_id=types.type_id AND
-						t.pm_id=paymentmethods.pm_id AND
-						t.cat_id=categories.cat_id
-		ORDER BY ` + orderBy + ` 
-		LIMIT ?`)
+		SELECT * FROM (
+			SELECT
+				uuid,
+				date_created,
+				date,
+				t.user_id,
+				user_name,
+				amount,
+				t.pm_id,
+				pm_name,
+				description,
+				t.cat_id,
+				cat_name,
+				shared,
+				geolocation,
+				t.type_id,
+				type_name,
+				? AS tx_uuid, 0 AS with_id,"" AS with_name, 0 AS quota
+			FROM users,types,paymentmethods,categories,transactions t 
+			WHERE 
+							t.user_id=users.user_id AND
+							t.type_id=types.type_id AND
+							t.pm_id=paymentmethods.pm_id AND
+							t.cat_id=categories.cat_id
+			ORDER BY ` + orderBy + `
+			LIMIT ?)
+			ORDER BY ` + orderBy)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(uuid.Nil.String(), limit)
+	rows, err := stmt.Queryx(limit, uuid.Nil.String(), limit)
 	if err != nil {
 		return nil, err
 	}
@@ -436,9 +440,9 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 }
 
 func (s *sqlite) TransactionsGetNOrderByDate(limit int) ([]*model.Transaction, error) {
-	return s.TransactionsGetNOrderBy(limit, "t.date DESC, t.date_created DESC")
+	return s.TransactionsGetNOrderBy(limit, "date DESC, date_created DESC")
 }
 
 func (s *sqlite) TransactionsGetNOrderByInserted(limit int) ([]*model.Transaction, error) {
-	return s.TransactionsGetNOrderBy(limit, "t.date_created DESC, t.date DESC")
+	return s.TransactionsGetNOrderBy(limit, "date_created DESC, date DESC")
 }

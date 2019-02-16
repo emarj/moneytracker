@@ -100,6 +100,10 @@ INSERT INTO transactions
 SELECT uuid,datecreated,date,type,who,amount,description,method,shared,category, "" as geolocation
 FROM expenses;
 
+UPDATE transactions
+SET shared=1
+WHERE type_id=1
+
 /*Shares*/
 
 CREATE TABLE shares (
@@ -112,6 +116,11 @@ INSERT INTO shares
 SELECT uuid, CASE WHEN who = 1 THEN 2 ELSE 1 END, CAST ((CAST(amount AS REAL))*((CAST(quota AS REAL)) / 100) AS NUMERIC)
 FROM expenses
 WHERE shared=1;
+
+INSERT INTO shares
+SELECT uuid, CASE WHEN who = 1 THEN 2 ELSE 1 END, -amount
+FROM expenses
+WHERE type=1;
 
 DROP TABLE IF EXISTS expenses;
 
