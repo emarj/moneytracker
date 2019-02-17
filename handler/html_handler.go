@@ -138,7 +138,7 @@ func (h *htmlHandler) render(f func(r *http.Request) *htmlResponse) http.Handler
 }
 
 func (h *htmlHandler) home(r *http.Request) *htmlResponse {
-	ts, err := h.dbSrv.TransactionsGetNOrderByInserted(10)
+	ts, err := h.dbSrv.TransactionsGetNOrderByModified(5)
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -171,7 +171,7 @@ func (h *htmlHandler) home(r *http.Request) *htmlResponse {
 }
 
 func (h *htmlHandler) all(r *http.Request) *htmlResponse {
-	ts, err := h.dbSrv.TransactionsGetNOrderByDate(1000)
+	ts, err := h.dbSrv.TransactionsGetNOrderByDate(99999) //NEED TO IMPLEMENT NO LIMIT
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
@@ -252,11 +252,11 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 
 	t := model.Transaction{Description: r.FormValue("Description")}
 
-	date, err := time.Parse("2006-01-02", r.FormValue("Date"))
+	d, err := time.Parse("2006-01-02", r.FormValue("Date"))
 	if err != nil {
 		return &t, err
 	}
-	t.Date = date
+	t.Date.Time = d
 
 	am, err := decimal.NewFromString(r.FormValue("Amount"))
 	if err != nil {
@@ -271,26 +271,26 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	if err != nil {
 		return &t, err
 	}
-	t.User = &model.User{ID: userID}
+	t.User.ID = userID
 
 	typeID, err := strconv.Atoi(r.FormValue("TypeID"))
 	if err != nil {
 		return &t, err
 	}
-	t.Type = &model.Type{ID: typeID}
+	t.Type.ID = typeID
 
 	catID, err := strconv.Atoi(r.FormValue("CategoryID"))
 	if err != nil {
 		return &t, err
 	}
 
-	t.Category = &model.Category{ID: catID}
+	t.Category.ID = catID
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
 	if err != nil {
 		return &t, err
 	}
-	t.Method = &model.PaymentMethod{ID: pmid}
+	t.PaymentMethod.ID = pmid
 
 	if r.FormValue("Shared") == "on" {
 		t.Shared = true
@@ -302,7 +302,11 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 		if sq.Equals(decimal.Zero) {
 			return &t, fmt.Errorf("Shared Quota cannot be zero")
 		}
-		t.SharedQuota = sq
+		shareWithID := 1
+		if t.User.ID == 1 {
+			shareWithID = 2
+		}
+		t.Shares = append(t.Shares, &model.Share{t.UUID, shareWithID, "", sq})
 	}
 
 	t.GeoLocation = r.FormValue("GeoLoc")

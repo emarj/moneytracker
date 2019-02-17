@@ -1,141 +1,112 @@
 package model
 
 import (
-	"strconv"
+	"database/sql/driver"
+	"errors"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/shopspring/decimal"
 )
 
+type DateTime struct{ time.Time }
+
+func (t *DateTime) Scan(v interface{}) error {
+
+	var s string
+	switch z := v.(type) {
+	case []uint8:
+		s = string(z)
+	case string:
+		s = z
+	default:
+		return errors.New("cannot convert time to string")
+	}
+
+	vt, err := time.Parse("2006-01-02T15:04:05", s)
+	if err != nil {
+		return err
+	}
+	t.Time = vt
+	return nil
+}
+
+func (t DateTime) Value() (driver.Value, error) {
+	return driver.Value(t.Format("2006-01-02T15:04:05")), nil
+}
+
 type User struct {
-	ID   int
-	Name string
+	ID   int    `json:"user_id"`
+	Name string `json:"user_name"`
 }
 
 type Type struct {
-	ID   int
-	Name string
+	ID   int    `json:"type_id"`
+	Name string `json:"type_name"`
 }
 
 type Category struct {
-	ID   int
-	Name string
+	ID   int    `json:"cat_id"`
+	Name string `json:"cat_name"`
 }
 
 type PaymentMethod struct {
-	ID   int
-	Name string
+	ID   int    `json:"pm_id"`
+	Name string `json:"pm_name"`
+}
+
+type Share struct {
+	TxID     uuid.UUID       `json:"tx_uuid"`
+	WithID   int             `json:"with_id"`
+	WithName string          `json:"with_name"`
+	Quota    decimal.Decimal `json:"quota"`
 }
 
 type Transaction struct {
-	UUID        uuid.UUID
-	DateCreated time.Time
-	Date        time.Time
-	Description string
-	Amount      decimal.Decimal // Amount { My decimal.Decimal, Shared decimal.Decimal }
-	Shared      bool
-	SharedQuota decimal.Decimal
-	GeoLocation string
+	UUID         uuid.UUID
+	DateCreated  DateTime
+	DateModified DateTime
+	Date         DateTime
+	Description  string
+	Amount       decimal.Decimal
+	Shared       bool
+	GeoLocation  string `json:"geolocation"`
 
-	User     *User
-	Method   *PaymentMethod
-	Category *Category
-	Type     *Type
+	Shares []*Share
+	User
+	PaymentMethod
+	Category
+	Type
 }
 
-func NewTransactionNoID(
-	dateCreated string,
-	date string,
-	amount decimal.Decimal,
-	description string,
-	shared string,
-	sharedQuota decimal.Decimal,
-	geoLoc string,
-	userID int,
-	userName string,
-	typeID int,
-	typeName string,
-	methodID int,
-	methodName string,
-	catID int,
-	catName string) (*Transaction, error) {
-
-	u := User{ID: userID, Name: userName}
-	tp := Type{ID: typeID, Name: typeName}
-	c := Category{ID: catID, Name: catName}
-	pm := PaymentMethod{ID: methodID, Name: methodName}
-	t := Transaction{Category: &c, Method: &pm, User: &u, Type: &tp}
-
-	t.Amount = amount
-	t.SharedQuota = sharedQuota
-	t.Description = description
-	t.GeoLocation = geoLoc
-
-	shrd, err := strconv.ParseBool(shared)
-	if err != nil {
-		return nil, err
+func (t Transaction) SharedWith() []User {
+	users := make([]User, 0, len(t.Shares))
+	for _, shr := range t.Shares {
+		users = append(users, User{shr.WithID, shr.WithName})
 	}
-	t.Shared = shrd
-
-	dc, err := time.Parse("2006-01-02T15:04:05", dateCreated)
-	if err != nil {
-		return nil, err
-	}
-	t.DateCreated = dc
-
-	d, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return nil, err
-	}
-	t.Date = d
-
-	return &t, nil
+	return users
 }
 
-func NewTransaction(
-	id string,
-	dateCreated string,
-	date string,
-	amount decimal.Decimal,
-	description string,
-	shared string,
-	sharedQuota decimal.Decimal,
-	geoLoc string,
-	userID int,
-	userName string,
-	typeID int,
-	typeName string,
-	methodID int,
-	methodName string,
-	catID int,
-	catName string) (*Transaction, error) {
-	t, err := NewTransactionNoID(
-		dateCreated,
-		date,
-		amount,
-		description,
-		shared,
-		sharedQuota,
-		geoLoc,
-		userID,
-		userName,
-		typeID,
-		typeName,
-		methodID,
-		methodName,
-		catID,
-		catName)
-	if err != nil {
-		return nil, err
+func (t Transaction) SharedWithID1() int {
+	if len(t.Shares) < 1 {
+		return -1
 	}
+	return t.Shares[0].WithID
+}
 
-	uID, err := uuid.FromString(id)
-	if err != nil {
-		return nil, err
+func (t Transaction) SharedWithName1() string {
+	if len(t.Shares) < 1 {
+		return ""
 	}
-	t.UUID = uID
-	return t, nil
+	return t.Shares[0].WithName
+}
+
+func (t Transaction) SharedQuota() decimal.Decimal {
+	var total decimal.Decimal
+	for _, shr := range t.Shares {
+		total = total.Add(shr.Quota)
+	}
+	return total
 }
 
 type Service interface {
@@ -149,12 +120,15 @@ type Service interface {
 	TransactionsGetNOrderBy(limit int, orderby string) ([]*Transaction, error)
 	TransactionsGetNOrderByDate(limit int) ([]*Transaction, error)
 	TransactionsGetNOrderByInserted(limit int) ([]*Transaction, error)
+	TransactionsGetNOrderByModified(limit int) ([]*Transaction, error)
 
 	/*Types*/
 	TypesGetAll() ([]*Type, error)
 
 	/*Users*/
 	UsersGetAll() ([]*User, error)
+
+	/*Shares*/
 
 	/*Categories*/
 	CategoriesGetAll() ([]*Category, error)

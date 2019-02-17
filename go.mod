@@ -10,7 +10,9 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
+	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/jpillora/cookieauth v0.0.0-20190129102132-63c0878642c5
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
 	github.com/julienschmidt/httprouter v1.2.0 // indirect
