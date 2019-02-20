@@ -35,6 +35,8 @@ func (s *sqlite) TypeInsert(name string) (*model.Type, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
+
 	res, err := stmt.Exec(name)
 	if err != nil {
 		return nil, err

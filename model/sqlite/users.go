@@ -7,7 +7,7 @@ import (
 )
 
 func (s *sqlite) UsersGetAll() ([]*model.User, error) {
-	rows, err := s.db.Query("SELECT * FROM users")
+	rows, err := s.db.Query("SELECT user_id,user_name FROM users")
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +37,8 @@ func (s *sqlite) UserInsert(name string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
+
 	res, err := stmt.Exec(name)
 	if err != nil {
 		return nil, err

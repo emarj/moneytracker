@@ -182,6 +182,7 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		if err != nil {
 			return err
 		}
+		defer stmt.Close()
 
 		_, err = stmt.Exec(vals...)
 
@@ -268,6 +269,7 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		if err != nil {
 			return err
 		}
+		defer stmt2.Close()
 
 		_, err = stmt2.Exec(vals...)
 

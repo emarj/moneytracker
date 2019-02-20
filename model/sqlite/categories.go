@@ -35,6 +35,8 @@ func (s *sqlite) CategoryInsert(name string) (*model.Category, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
+
 	res, err := stmt.Exec(name)
 	if err != nil {
 		return nil, err
