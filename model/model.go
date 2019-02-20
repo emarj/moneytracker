@@ -121,6 +121,7 @@ type Service interface {
 	TransactionsGetNOrderByDate(limit int) ([]*Transaction, error)
 	TransactionsGetNOrderByInserted(limit int) ([]*Transaction, error)
 	TransactionsGetNOrderByModified(limit int) ([]*Transaction, error)
+	TransactionsGetNByUser(id int, limit int) ([]*Transaction, error)
 
 	/*Types*/
 	TypesGetAll() ([]*Type, error)

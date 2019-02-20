@@ -401,7 +401,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		return nil, err
 	}
 
-	return ts, err
+	return ts, nil
 }
 
 func (s *sqlite) TransactionsGetNOrderByDate(limit int) ([]*model.Transaction, error) {
@@ -414,4 +414,133 @@ func (s *sqlite) TransactionsGetNOrderByInserted(limit int) ([]*model.Transactio
 
 func (s *sqlite) TransactionsGetNOrderByModified(limit int) ([]*model.Transaction, error) {
 	return s.TransactionsGetNOrderBy(limit, "date_modified DESC, date DESC")
+}
+
+func (s *sqlite) TransactionsGetNByUser(id int, limit int) ([]*model.Transaction, error) {
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	stmt, err := tx.Preparex(
+		`SELECT
+				uuid,
+				date_created,
+				date_modified,
+				date,
+				t.user_id,
+				t.user_name,
+				amount,
+				t.pm_id,
+				pm_name,
+				description,
+				t.cat_id,
+				cat_name,
+				shared,
+				geolocation,
+				t.type_id,
+				type_name,
+				IFNULL(tx_uuid,"` + uuid.Nil.String() + `") AS tx_uuid,
+				IFNULL(with_id,0) AS with_id,
+				IFNULL(u.user_name,0) as with_name,
+				IFNULL(quota,0) AS quota		
+					FROM
+						(SELECT * from transactions t,users,types,paymentmethods,categories
+							WHERE	t.user_id=users.user_id AND
+									t.type_id=types.type_id AND
+									t.pm_id=paymentmethods.pm_id AND
+									t.cat_id=categories.cat_id AND
+									t.user_id=?
+							ORDER BY t.date DESC
+							LIMIT ?) t
+							LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
+							LEFT OUTER JOIN users u ON s.with_id = u.user_id
+					UNION
+					SELECT *
+					FROM
+						(SELECT uuid,
+						date_created,
+						date_modified,
+						date,
+						t.user_id,
+						t.user_name,
+						amount,
+						t.pm_id,
+						pm_name,
+						description,
+						t.cat_id,
+						cat_name,
+						shared,
+						geolocation,
+						t.type_id,
+						type_name,
+						IFNULL(tx_uuid,"` + uuid.Nil.String() + `") AS tx_uuid,
+						IFNULL(with_id,0) AS with_id,
+						IFNULL(u.user_name,0) as with_name,
+						IFNULL(quota,0) AS quota
+					FROM
+						(SELECT * from transactions t,users,types,paymentmethods,categories
+							WHERE	t.user_id=users.user_id AND
+									t.type_id=types.type_id AND
+									t.pm_id=paymentmethods.pm_id AND
+									t.cat_id=categories.cat_id AND
+									t.shared = 1
+							ORDER BY t.date DESC
+							LIMIT ?) t
+							LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
+							LEFT OUTER JOIN users u ON s.with_id = u.user_id)
+							WHERE with_id =?
+					ORDER BY date DESC
+					LIMIT ?`)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Queryx(id, limit, limit, id, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() //should not be needed if we iterate over all rows
+
+	type Result struct {
+		model.Transaction
+		model.Share
+	}
+
+	var ts []*model.Transaction
+	var prevUUID uuid.UUID
+
+	for rows.Next() {
+		var result Result
+
+		err := rows.StructScan(&result)
+		if err != nil {
+			return nil, err
+		}
+		curUUID := result.Transaction.UUID
+
+		if prevUUID != curUUID {
+			prevUUID = curUUID
+			ts = append(ts, &result.Transaction)
+		}
+		if result.Share.TxID != uuid.Nil {
+			i := len(ts) - 1
+			ts[i].Shares = append(ts[i].Shares, &result.Share)
+		}
+
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return ts, err
 }

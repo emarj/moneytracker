@@ -18,7 +18,9 @@
         <td class="text-center">{{$t.User.Name }}</td>
         <td>{{$t.Description }}</td>
         <td>{{$t.Shared }}</td>
-        {{if eq $t.Type.ID 0}}<td class="text-right"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small><span class="amount">{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro; </span></td>
+        {{if eq $t.Type.ID 0}}
+          {{if $t.Shared}}<td class="text-right"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small><span class="amount">{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro; </span></td>
+          {{else}}<td class="text-right amount">{{$t.Amount}}&euro;</td>{{end}}
         {{else}}<td class="text-right amount"><small>{{$t.Type.Name}}</small>{{$t.Amount}}&euro;</td>{{end}}
         <td class="text-center">{{$t.PaymentMethod.Name }}</td>
         <td class="text-center">{{$t.Category.Name }}</td>

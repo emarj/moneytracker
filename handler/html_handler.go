@@ -63,6 +63,7 @@ func HTMLHandler(dbSrv model.Service, tmplPath string, prefix string) (http.Hand
 	router.GET(prefix+"/", h.render(h.home))
 	router.POST(prefix+"/", h.render(h.home))
 	router.GET(prefix+"/all/", h.render(h.all))
+	router.GET(prefix+"/userview/:userid", h.render(h.userView))
 	router.POST(prefix+"/add/", h.render(h.add))
 	router.GET(prefix+"/view/:uuid", h.render(h.view))
 	router.POST(prefix+"/update/", h.render(h.update))
@@ -171,6 +172,7 @@ func (h *htmlHandler) home(r *http.Request) *htmlResponse {
 }
 
 func (h *htmlHandler) all(r *http.Request) *htmlResponse {
+
 	ts, err := h.dbSrv.TransactionsGetNOrderByDate(99999) //NEED TO IMPLEMENT NO LIMIT
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
@@ -200,6 +202,45 @@ func (h *htmlHandler) all(r *http.Request) *htmlResponse {
 	}
 
 	return resOK(result{ts, cat, us, tps, pm}, "all")
+}
+
+func (h *htmlHandler) userView(r *http.Request) *htmlResponse {
+	id, err := strconv.Atoi(httprouter.GetParam(r, "userid"))
+	if err != nil {
+		return resError(err, http.StatusBadRequest)
+	}
+
+	ts, err := h.dbSrv.TransactionsGetNByUser(id, 99999)
+
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	us, err := h.dbSrv.UsersGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	tps, err := h.dbSrv.TypesGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	cat, err := h.dbSrv.CategoriesGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	pm, err := h.dbSrv.PaymentMethodsGetAll()
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	type result struct {
+		Transactions   []*model.Transaction
+		Categories     []*model.Category
+		UserID         int
+		Users          []*model.User
+		Types          []*model.Type
+		PaymentMethods []*model.PaymentMethod
+	}
+
+	return resOK(result{ts, cat, id, us, tps, pm}, "userview")
 }
 
 func (h *htmlHandler) view(r *http.Request) *htmlResponse {
