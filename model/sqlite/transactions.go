@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/shopspring/decimal"
+
 	uuid "github.com/satori/go.uuid"
 	"ronche.se/moneytracker/model"
 )
@@ -458,7 +460,7 @@ func (s *sqlite) TransactionsGetNByUser(id int, limit int) ([]*model.Transaction
 									t.pm_id=paymentmethods.pm_id AND
 									t.cat_id=categories.cat_id AND
 									t.user_id=?
-							ORDER BY t.date DESC
+							ORDER BY t.date DESC,date_created DESC
 							LIMIT ?) t
 							LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
 							LEFT OUTER JOIN users u ON s.with_id = u.user_id
@@ -492,12 +494,12 @@ func (s *sqlite) TransactionsGetNByUser(id int, limit int) ([]*model.Transaction
 									t.pm_id=paymentmethods.pm_id AND
 									t.cat_id=categories.cat_id AND
 									t.shared = 1
-							ORDER BY t.date DESC
+							ORDER BY t.date DESC, date_created DESC
 							LIMIT ?) t
 							LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
 							LEFT OUTER JOIN users u ON s.with_id = u.user_id)
 							WHERE with_id =?
-					ORDER BY date DESC
+					ORDER BY date DESC, date_created DESC
 					LIMIT ?`)
 	if err != nil {
 		return nil, err
@@ -543,4 +545,55 @@ func (s *sqlite) TransactionsGetNByUser(id int, limit int) ([]*model.Transaction
 	}
 
 	return ts, err
+}
+
+func (s *sqlite) TransactionsGetCredit(userID1 int, userID2 int) (decimal.Decimal, error) {
+
+	var credit decimal.Decimal
+
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return credit, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	stmt, err := tx.Preparex(
+		`SELECT IFNULL(SUM(	
+			CASE WHEN type_id = 0 THEN
+						CASE WHEN user_id=? THEN 
+						quota
+						ELSE -quota END
+			ELSE
+			(CASE WHEN type_id = 1
+					THEN
+						CASE WHEN user_id = ?
+							THEN amount
+							ELSE -amount
+						END
+			END)
+			END
+	),0) AS Credit
+
+		FROM transactions t LEFT OUTER JOIN shares s
+		ON t.uuid = s.tx_uuid
+		WHERE	t.shared = 1 AND ((t.user_id=? AND s.with_id=?) OR (t.user_id=? AND s.with_id=?))`)
+	if err != nil {
+		return credit, err
+	}
+	defer stmt.Close()
+
+	//fmt.Printf("Credit of %d , %d \n", userID1, userID2)
+
+	err = stmt.QueryRowx(userID1, userID1, userID1, userID2, userID2, userID1).Scan(&credit)
+	if err != nil {
+		return credit, err
+	}
+
+	return credit, nil
 }

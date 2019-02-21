@@ -1,16 +1,34 @@
 {{define "latest"}}
 
-<h4 class="title mt-5">Latest entries <a href="{{Prefix}}/all/">(all)</a>
-</h4>
+<h4 class="title mt-5">Latest entries <a href="{{Prefix}}/all/">(all)</a></h4>
 <ul class="list-group list-group-flush bg-light">
 
       {{range $t := .Transactions}}
-      <li data-href="{{Prefix}}/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
-        <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} paid <strong>{{AutoFormatDec $t.Amount }}&euro;</strong> of <em>{{$t.Description }}</em> by {{$t.PaymentMethod.Name }} ({{$t.Category.Name}}).
-        {{ if $t.Shared }} {{$t.User.Name }} will have back {{AutoFormatDec $t.SharedQuota}}&euro; ({{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro;) from {{$t.SharedWithName1}}{{end}}
-      </li>
+        <li data-href="{{Prefix}}/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
+        
+        <!-- Expense-->
+        {{if eq $t.Type.ID 0}}
+          <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} paid <strong>{{AutoFormatDec $t.Amount }}&euro;</strong> of <em>{{$t.Description }}</em> by {{$t.PaymentMethod.Name }} ({{$t.Category.Name}})
+          {{if $t.Shared }}
+            <br/>{{$t.User.Name }} will have back {{AutoFormatDec $t.SharedQuota}}&euro; ({{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro;) from {{$t.SharedWithName1}}
+          {{end}}
+        {{end}}
+
+        <!-- Transfer -->
+        {{if eq $t.Type.ID 1}}
+          <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} transfered <strong>{{AutoFormatDec $t.Amount }}&euro;</strong> to {{$t.SharedWithName1}} by {{$t.PaymentMethod.Name }}.
+          Causal: <em>{{$t.Description }}</em> ({{$t.Category.Name}})
+        {{end}}
+
+        <!-- Income -->
+        {{if eq $t.Type.ID 2}}
+          <strong>{{$t.Date.Format "02/01/06" }}</strong> {{$t.User.Name }} gained <strong>{{AutoFormatDec $t.Amount }}&euro;</strong>
+        {{end}}
+        
+        </li>
       {{end}}
+
 </ul>
 <a href="{{Prefix}}/all/">More...</a>
 
-  {{end}}
+{{end}}

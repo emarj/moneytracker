@@ -79,12 +79,17 @@ type Transaction struct {
 	Type
 }
 
-func (t Transaction) SharedWith() []User {
-	users := make([]User, 0, len(t.Shares))
-	for _, shr := range t.Shares {
-		users = append(users, User{shr.WithID, shr.WithName})
+func (t Transaction) SharedWith() []interface{} {
+	type SharePrint struct {
+		UserName string
+		Quota    decimal.Decimal
 	}
-	return users
+	shares := make([]interface{}, 0, len(t.Shares))
+	for _, shr := range t.Shares {
+		sp := SharePrint{shr.WithName, shr.Quota}
+		shares = append(shares, sp)
+	}
+	return shares
 }
 
 func (t Transaction) SharedWithID1() int {
@@ -122,6 +127,8 @@ type Service interface {
 	TransactionsGetNOrderByInserted(limit int) ([]*Transaction, error)
 	TransactionsGetNOrderByModified(limit int) ([]*Transaction, error)
 	TransactionsGetNByUser(id int, limit int) ([]*Transaction, error)
+
+	TransactionsGetCredit(userID1 int, userID2 int) (decimal.Decimal, error)
 
 	/*Types*/
 	TypesGetAll() ([]*Type, error)

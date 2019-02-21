@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,6 +69,7 @@ func HTMLHandler(dbSrv model.Service, tmplPath string, prefix string) (http.Hand
 	router.GET(prefix+"/view/:uuid", h.render(h.view))
 	router.POST(prefix+"/update/", h.render(h.update))
 	router.GET(prefix+"/delete/:uuid", h.render(h.delete))
+	router.GET(prefix+"/users/", h.getUsers)
 	/*router.GET(prefix+"/sheet/add/:uuid", h.render(h.addToSheet))
 	router.POST(prefix+"/sheet/add/:uuid", h.render(h.addToSheet))
 	router.GET(prefix+"/sheet/reset", h.render(h.resetSheet))*/
@@ -231,16 +233,37 @@ func (h *htmlHandler) userView(r *http.Request) *htmlResponse {
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
+
+	type Credit struct {
+		WithName string
+		Amount   decimal.Decimal
+	}
+
+	credits := make([]Credit, 0, len(us)-1)
+	for _, u := range us {
+		if u.ID != id {
+			c, err := h.dbSrv.TransactionsGetCredit(id, u.ID)
+			if err != nil {
+				return resError(err, http.StatusInternalServerError)
+			}
+			if !c.IsZero() {
+				credits = append(credits, Credit{u.Name, c})
+			}
+
+		}
+	}
+
 	type result struct {
 		Transactions   []*model.Transaction
 		Categories     []*model.Category
 		UserID         int
+		Credits        []Credit
 		Users          []*model.User
 		Types          []*model.Type
 		PaymentMethods []*model.PaymentMethod
 	}
 
-	return resOK(result{ts, cat, id, us, tps, pm}, "userview")
+	return resOK(result{ts, cat, id, credits, us, tps, pm}, "userview")
 }
 
 func (h *htmlHandler) view(r *http.Request) *htmlResponse {
@@ -409,51 +432,21 @@ func (h *htmlHandler) delete(r *http.Request) *htmlResponse {
 	return resRedirect("/", http.StatusTemporaryRedirect)
 }
 
-/*
-func (h *htmlHandler) addToSheet(r *http.Request) *htmlResponse {
-	id, err := uuid.FromString(httprouter.GetParam(r, "uuid"))
+func (h *htmlHandler) getUsers(w http.ResponseWriter, r *http.Request) {
+
+	users, err := h.dbSrv.UsersGetAll()
 	if err != nil {
-		return resError(err, http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
+		return
+
+	}
+	data, err := json.Marshal(users)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	t, err := h.dbSrv.TransactionGet(id)
-	if err != nil {
-		return resError(err, http.StatusBadRequest)
-	}
-
-	err = h.sheetSrv.Insert(*t)
-	if err != nil {
-		return resError(err, http.StatusInternalServerError)
-	}
-
-	t.InSheet = true
-	err = h.dbSrv.TransactionUpdate(t)
-	if err != nil {
-		return resError(err, http.StatusInternalServerError)
-	}
-
-	return resRedirect("/", http.StatusTemporaryRedirect)
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+	return
 }
-
-func (h *htmlHandler) resetSheet(r *http.Request) *htmlResponse {
-	ts, err := h.dbSrv.TransactionsGetNOrderByDate(100)
-	if err != nil {
-		return resError(err, http.StatusBadRequest)
-	}
-
-	for _, t := range ts {
-		err = h.sheetSrv.Insert(*t)
-		if err != nil {
-			return resError(err, http.StatusInternalServerError)
-		}
-
-		t.InSheet = true
-		err = h.dbSrv.TransactionUpdate(t)
-		if err != nil {
-			return resError(err, http.StatusInternalServerError)
-		}
-	}
-
-	return resRedirect("/", http.StatusTemporaryRedirect)
-}
-*/

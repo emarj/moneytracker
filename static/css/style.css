@@ -1,16 +1,25 @@
 
-  .transfer {
-    background-color: rgba(45, 55, 192, 0.5) !important;
-    font-weight: bold
-  }
+ 
 
-  .income {
-    background-color: rgba(72, 153, 18, 0.5) !important;
-    font-weight: bold
-  }
+ 
+
+  
 
   .expense .amount {
     color: red;
+  }
+
+
+ .transfer {
+    background-color: rgb(224, 232, 252) !important;
+  }
+
+  .income {
+    background-color: rgb(195, 221, 177)!important;
+  }
+
+  .income .amount {
+    color:green;
   }
 
 

@@ -6,6 +6,15 @@
 <div class="row justify-content-center">
   <div class="col-lg-8">
 
+      <a href="{{Prefix}}/all">All</a> {{range $u := .Users}}| <a href="{{Prefix}}/userview/{{$u.ID}}">{{$u.Name}}</a>{{end}}
+      <br/>
+      Credits:
+      <ul>
+      {{range $c := .Credits}}
+      <li>{{$c.WithName}} owe you {{$c.Amount}}</li>
+      {{end}}
+      </ul>
+
     <table class="table table-striped">
       <thead>
         <th>Date</th>
@@ -25,12 +34,28 @@
           <td class="text-center">{{$t.User.Name }}</td>
           <td>{{$t.Description }}</td>
           <td>{{$t.Shared }}</td>
+          <!-- Expense-->
           {{if eq $t.Type.ID 0}}
             {{if $t.Shared}}
               {{if eq $UserID $t.User.ID}}<td class="text-right"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small><span class="amount">{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro; </span></td>
               {{else}}<td class="text-right"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec (SubDec $t.Amount $t.SharedQuota) }}=</small><span class="amount">{{AutoFormatDec $t.SharedQuota  }}&euro; </span></td>{{end}}
             {{else}}<td class="text-right amount">{{$t.Amount}}&euro;</td>{{end}}
-            {{else}}<td class="text-right amount"><small>{{$t.Type.Name}}</small>{{$t.Amount}}&euro;</td>{{end}}
+          {{end}}
+
+          <!--Transfer-->
+          {{if eq $t.Type.ID 1}}
+            {{if eq $UserID $t.User.ID}}
+              <td class="text-right amount"><small>Outgoing {{$t.Type.Name}}</small>{{$t.Amount}}&euro;</td>
+            {{else}}
+              <td class="text-right amount"><small>Incoming {{$t.Type.Name}}</small>-{{$t.Amount}}&euro;</td>
+            {{end}}
+          {{end}}
+
+          <!-- Income -->
+          {{if eq $t.Type.ID 2}}
+            <td class="text-right amount"><small>{{$t.Type.Name}}</small>-{{$t.Amount}}&euro;</td>
+          {{end}}
+
           <td class="text-center">{{$t.PaymentMethod.Name }}</td>
           <td class="text-center">{{$t.Category.Name }}</td>
           <td> {{$t.SharedWith}} </td>

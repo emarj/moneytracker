@@ -79,3 +79,50 @@ SELECT  *
 SELECT  t.date,t.uuid,t.amount,t.user_id,SUM(s.shared_quota)
 FROM shares s INNER JOIN transactions t ON t.uuid = s.transaction_UUID
 GROUP BY t.uuid
+
+
+/*Balance*/
+SELECT SUM(	
+					CASE WHEN type_id = 0 THEN
+								CASE WHEN user_id=1 THEN 
+									CASE WHEN shared=1 THEN amount-quota
+									ELSE amount END
+								ELSE quota END
+					ELSE
+					(CASE WHEN type_id = 1
+							THEN
+								CASE WHEN user_id = 1
+									THEN amount
+									ELSE -amount
+								END
+							ELSE (CASE WHEN type_id = 2 THEN
+								-amount
+							END)
+					END)
+					END
+			) AS balance
+
+		FROM transactions t LEFT OUTER JOIN shares s
+		ON t.uuid = s.tx_uuid
+		WHERE	t.user_id=1 OR s.with_id=1
+
+/*Credit user 1 towards 2*/
+SELECT SUM(	
+					CASE WHEN type_id = 0 THEN
+								CASE WHEN user_id=1 THEN 
+								quota
+								ELSE -quota END
+					ELSE
+					(CASE WHEN type_id = 1
+							THEN
+								CASE WHEN user_id = 1
+									THEN amount
+									ELSE -amount
+								END
+					END)
+					END
+			) AS Credit
+
+		FROM transactions t LEFT OUTER JOIN shares s
+		ON t.uuid = s.tx_uuid
+		WHERE	t.shared = 1 AND ((t.user_id=1 AND s.with_id=2) OR (t.user_id=2 AND s.with_id=1))
