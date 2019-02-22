@@ -3,6 +3,7 @@
 BEGIN TRANSACTION;
 
 /*Users*/
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
 	user_id	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -32,12 +33,12 @@ UPDATE transactions SET type = 2 WHERE transactions.amount < 0*/
 /*PaymentMethods*/
 DROP TABLE IF EXISTS paymentmethods;
 
-CREATE TABLE "paymentmethods" (
+CREATE TABLE paymentmethods (
 	`pm_id`	INTEGER NOT NULL,
 	`pm_name`	TEXT NOT NULL,
 	PRIMARY KEY(pm_id)
 );
-INSERT INTO `paymentmethods` VALUES
+INSERT INTO paymentmethods VALUES
  (1,'Cash'),
  (2,'Debit Card'),
  (3,'Credit Card'),
@@ -48,7 +49,7 @@ INSERT INTO `paymentmethods` VALUES
 /*Categories*/
 
 DROP TABLE IF EXISTS categories;
-CREATE TABLE "categories" (
+CREATE TABLE categories (
 	`cat_id`	INTEGER NOT NULL,
 	`cat_name`	TEXT NOT NULL,
 	PRIMARY KEY(cat_id)

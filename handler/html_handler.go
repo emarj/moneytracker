@@ -234,6 +234,11 @@ func (h *htmlHandler) userView(r *http.Request) *htmlResponse {
 		return resError(err, http.StatusInternalServerError)
 	}
 
+	balance, err := h.dbSrv.TransactionsGetBalance(id)
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+
 	type Credit struct {
 		WithName string
 		Amount   decimal.Decimal
@@ -257,13 +262,14 @@ func (h *htmlHandler) userView(r *http.Request) *htmlResponse {
 		Transactions   []*model.Transaction
 		Categories     []*model.Category
 		UserID         int
+		Balance        decimal.Decimal
 		Credits        []Credit
 		Users          []*model.User
 		Types          []*model.Type
 		PaymentMethods []*model.PaymentMethod
 	}
 
-	return resOK(result{ts, cat, id, credits, us, tps, pm}, "userview")
+	return resOK(result{ts, cat, id, balance, credits, us, tps, pm}, "userview")
 }
 
 func (h *htmlHandler) view(r *http.Request) *htmlResponse {
@@ -347,7 +353,6 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	if err != nil {
 		return &t, err
 	}
-
 	t.Category.ID = catID
 
 	pmid, err := strconv.Atoi(r.FormValue("MethodID"))
@@ -371,6 +376,12 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 			shareWithID = 2
 		}
 		t.Shares = append(t.Shares, &model.Share{t.UUID, shareWithID, "", sq})
+	}
+
+	if t.Type.ID == 1 {
+		if !t.Shared {
+			return &t, fmt.Errorf("Transfers have to be shared!")
+		}
 	}
 
 	t.GeoLocation = r.FormValue("GeoLoc")

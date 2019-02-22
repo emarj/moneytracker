@@ -128,6 +128,7 @@ type Service interface {
 	TransactionsGetNOrderByModified(limit int) ([]*Transaction, error)
 	TransactionsGetNByUser(id int, limit int) ([]*Transaction, error)
 
+	TransactionsGetBalance(userID int) (decimal.Decimal, error)
 	TransactionsGetCredit(userID1 int, userID2 int) (decimal.Decimal, error)
 
 	/*Types*/

@@ -547,6 +547,62 @@ func (s *sqlite) TransactionsGetNByUser(id int, limit int) ([]*model.Transaction
 	return ts, err
 }
 
+func (s *sqlite) TransactionsGetBalance(userID int) (decimal.Decimal, error) {
+
+	var balance decimal.Decimal
+
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return balance, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+		err = tx.Commit()
+	}()
+
+	stmt, err := tx.Preparex(
+		`SELECT -SUM(	
+						CASE WHEN type_id = 0 THEN
+									CASE WHEN user_id=? THEN 
+										CASE WHEN shared=1 THEN amount-quota
+										ELSE amount END
+									ELSE quota END
+						ELSE
+						(CASE WHEN type_id = 1
+								THEN
+									CASE WHEN user_id = ?
+										THEN amount
+										ELSE -amount
+									END
+								ELSE (CASE WHEN type_id = 2 THEN
+									-amount
+								END)
+						END)
+						END
+					) AS balance
+
+					FROM transactions t LEFT OUTER JOIN shares s
+					ON t.uuid = s.tx_uuid
+					WHERE	t.user_id=? OR s.with_id=?`)
+	if err != nil {
+		return balance, err
+	}
+	defer stmt.Close()
+
+	//fmt.Printf("Credit of %d , %d \n", userID1, userID2)
+
+	err = stmt.QueryRowx(userID, userID, userID, userID).Scan(&balance)
+	if err != nil {
+		return balance, err
+	}
+
+	return balance, nil
+
+}
+
 func (s *sqlite) TransactionsGetCredit(userID1 int, userID2 int) (decimal.Decimal, error) {
 
 	var credit decimal.Decimal

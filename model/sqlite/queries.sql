@@ -81,8 +81,8 @@ FROM shares s INNER JOIN transactions t ON t.uuid = s.transaction_UUID
 GROUP BY t.uuid
 
 
-/*Balance*/
-SELECT SUM(	
+/*Balance of user 1*/
+SELECT -SUM(	
 					CASE WHEN type_id = 0 THEN
 								CASE WHEN user_id=1 THEN 
 									CASE WHEN shared=1 THEN amount-quota

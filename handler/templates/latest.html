@@ -1,6 +1,6 @@
 {{define "latest"}}
 
-<h4 class="title mt-5">Latest entries <a href="{{Prefix}}/all/">(all)</a></h4>
+<h4 class="title mt-5">Latest entries (<a href="{{Prefix}}/all/">all</a> {{range $u := .Users}}| <a href="{{Prefix}}/userview/{{$u.ID}}">{{$u.Name}}</a>{{end}})</h4>
 <ul class="list-group list-group-flush bg-light">
 
       {{range $t := .Transactions}}
