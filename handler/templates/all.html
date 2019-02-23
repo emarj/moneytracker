@@ -13,11 +13,9 @@
             <th>Date</th>
             <th class="text-center">User</th>
             <th>Description</th>
-            <th>Shared</th>
             <th class="text-right">Amount</td>
             <th class="text-center">Method</th>
             <th class="text-center">Category</th>
-            <th>Shares</th>
           </thead>
           <tbody>
             {{range $t := .Transactions}}
@@ -25,15 +23,12 @@
               <td>{{$t.Date.Format "02/01/2006" }}</td>
               <td class="text-center">{{$t.User.Name }}</td>
               <td>{{$t.Description }}</td>
-              <td>{{$t.Shared }}</td>
               {{if eq $t.Type.ID 0}}
-                {{if $t.Shared}}<td class="text-right"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small><span class="amount">{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro; </span></td>
-                {{else}}<td class="text-right amount">{{$t.Amount}}&euro;</td>{{end}}
-              {{else}}<td class="text-right amount"><small>{{$t.Type.Name}}</small>{{$t.Amount}}&euro;</td>{{end}}
+                {{if $t.Shared}}<td title="{{$t.SharedWith}}"  class="text-right"><small>{{AutoFormatDec $t.Amount }} - {{AutoFormatDec $t.SharedQuota }}=</small><span class="amount">{{AutoFormatDec ( SubDec $t.Amount $t.SharedQuota ) }}&euro; </span></td>
+                {{else}}<td  class="text-right amount">{{$t.Amount}}&euro;</td>{{end}}
+              {{else}}<td title="{{$t.SharedWith}}" class="text-right amount"><small>{{$t.Type.Name}}</small>{{$t.Amount}}&euro;</td>{{end}}
               <td class="text-center">{{$t.PaymentMethod.Name }}</td>
-              <td class="text-center">{{$t.Category.Name }}</td>
-              <td> {{$t.SharedWith}} </td>
-            </tr>
+              <td class="text-center">{{$t.Category.Name }}</td>            </tr>
             {{end}}
           </tbody>
         </table>

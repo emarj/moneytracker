@@ -4,7 +4,8 @@
 <ul class="list-group list-group-flush bg-light">
 
       {{range $t := .Transactions}}
-        <li data-href="{{Prefix}}/view/{{$t.UUID}}" class="list-group-item clickable {{ToLower $t.Type.Name}}">
+      <a href="{{Prefix}}/view/{{$t.UUID}}" class="unstyled">
+        <li class="list-group-item {{ToLower $t.Type.Name}}">
         
         <!-- Expense-->
         {{if eq $t.Type.ID 0}}
@@ -26,6 +27,7 @@
         {{end}}
         
         </li>
+        </a>
       {{end}}
 
 </ul>

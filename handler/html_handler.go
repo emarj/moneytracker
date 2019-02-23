@@ -364,17 +364,23 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 	if r.FormValue("Shared") == "on" {
 		t.Shared = true
 
-		sq, err := decimal.NewFromString(r.FormValue("SharedQuota"))
+		//This forces quota to be -amount
+		sq := t.Amount.Neg()
+		if t.Type.ID != 1 {
+			sq, err = decimal.NewFromString(r.FormValue("SharedQuota"))
+			if err != nil {
+				return &t, err
+			}
+			if sq.Equals(decimal.Zero) {
+				return &t, fmt.Errorf("Shared Quota cannot be zero")
+			}
+		}
+
+		shareWithID, err := strconv.Atoi(r.FormValue("SharedWithID"))
 		if err != nil {
 			return &t, err
 		}
-		if sq.Equals(decimal.Zero) {
-			return &t, fmt.Errorf("Shared Quota cannot be zero")
-		}
-		shareWithID := 1
-		if t.User.ID == 1 {
-			shareWithID = 2
-		}
+
 		t.Shares = append(t.Shares, &model.Share{t.UUID, shareWithID, "", sq})
 	}
 

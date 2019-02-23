@@ -73,7 +73,6 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 
 	var t *model.Transaction
 	flagTx := false
-
 	for rows.Next() {
 		var result Result
 		err := rows.StructScan(&result)
@@ -93,14 +92,16 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		}
 
 	}
+	err = rows.Err() //should stay right after for loop
+	if err != nil {
+		return nil, err
+	}
+	if !flagTx {
+		return nil, errors.New("No such transaction!")
+	}
 
 	if t.Shared && len(t.Shares) == 0 {
 		return t, errors.New("transaction is shared, but it has no shares!")
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return nil, err
 	}
 
 	return t, err

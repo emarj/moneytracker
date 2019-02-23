@@ -106,6 +106,15 @@ func (t Transaction) SharedWithName1() string {
 	return t.Shares[0].WithName
 }
 
+func (t Transaction) IsSharedWith(uID int) bool {
+	for _, shr := range t.Shares {
+		if shr.WithID == uID {
+			return true
+		}
+	}
+	return false
+}
+
 func (t Transaction) SharedQuota() decimal.Decimal {
 	var total decimal.Decimal
 	for _, shr := range t.Shares {
