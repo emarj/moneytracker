@@ -20,7 +20,7 @@ import (
 
 	"html/template"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	"ronche.se/moneytracker/model"
 )

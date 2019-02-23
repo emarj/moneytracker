@@ -6,7 +6,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"ronche.se/moneytracker/model"
 )
 
@@ -107,7 +107,10 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 }
 
 func (s *sqlite) TransactionInsert(t *model.Transaction) error {
-	id := uuid.NewV4()
+	id, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
 
 	t.UUID = id
 	loc, err := time.LoadLocation("Europe/Rome")

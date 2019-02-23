@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 	"ronche.se/moneytracker/model"
 )
 
