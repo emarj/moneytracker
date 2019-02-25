@@ -376,9 +376,13 @@ func (h *htmlHandler) parseForm(r *http.Request) (*model.Transaction, error) {
 			}
 		}
 
-		shareWithID, err := strconv.Atoi(r.FormValue("SharedWithID"))
+		/*shareWithID, err := strconv.Atoi(r.FormValue("SharedWithID"))
 		if err != nil {
 			return &t, err
+		}*/
+		shareWithID := 1
+		if t.User.ID == 1 {
+			shareWithID = 2
 		}
 
 		t.Shares = append(t.Shares, &model.Share{t.UUID, shareWithID, "", sq})
