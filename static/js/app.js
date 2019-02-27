@@ -2,6 +2,7 @@ const defaultTx = {
   UUID: "00000000-0000-0000-0000-000000000000",
   DateCreated: "0001-01-01T00:00:00",
   DateModified: "0001-01-01T00:00:00",
+  Date: undefined,
   Description: "",
   Amount: "",
   Shared: false,
@@ -53,6 +54,7 @@ var vm = new Vue({
         return this.justDate(this.transaction.Date);
       },
       set: function (v) {
+        console.log("yo");
         this.transaction.Date = v + "T00:00:00";
       }
     }
@@ -79,8 +81,8 @@ var vm = new Vue({
         .catch(res => console.log(res))
 
     },
-    fetchLatest: function (n, offset) {
-      fetch('/transactions/' + n + '/' + offset)
+    fetchLatest: function (n=5, offset=0,orderBy="date_modified DESC, date DESC") {
+      fetch('/transactions/?limit=' + n + '&offset=' + offset + '&orderBy=' + orderBy)
         .then(res => {
           if (!res.ok) {
             throw Error(res.statusText);
@@ -93,15 +95,15 @@ var vm = new Vue({
     reloadLatest: function () {
       n = this.transactions.length;
       this.transactions = [];
-      this.fetchLatest(n, 0);
+      this.fetchLatest(n);
     },
     more: function (e) {
       e.preventDefault();
       this.fetchLatest(5, this.transactions.length);
     },
-    justDate: function (dateStr) {
+    justDate: function (dateStr = "") {
 
-      if (typeof dateStr === "undefined") {
+      if (dateStr == "") {
         const date = new Date();
         dateStr = date.toISOString();
       }
@@ -156,6 +158,8 @@ var vm = new Vue({
             throw Error(res.statusText);
           }
           this.reloadLatest();
+          this.editMode = false;
+          this.transaction = defaultTx;//We have to copy the object!!!!!!!!!
         })
         .catch(res => console.log(res))
 
@@ -172,6 +176,7 @@ var vm = new Vue({
             throw Error(res.statusText);
           }
           this.reloadLatest();
+          this.transaction = defaultTx;
         })
         .catch(res => console.log(res))
 

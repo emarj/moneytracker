@@ -170,7 +170,10 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		return err
 	}
 
-	if t.Shared && (t.Shares != nil) {
+	if t.Shared {
+		if t.Shares == nil || len(t.Shares) == 0 {
+			return errors.New("a shared transaction must have at lest one expense")
+		}
 		query := `INSERT INTO shares(
 			tx_uuid,
 			with_id,
@@ -255,7 +258,7 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		return err
 	}
 	if t.Shared {
-		if t.Shares == nil {
+		if t.Shares == nil || len(t.Shares) == 0 {
 			return errors.New("Transaction is shared but it has no shares")
 		}
 		query := `INSERT INTO shares(

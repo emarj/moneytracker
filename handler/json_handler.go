@@ -24,7 +24,7 @@ func NewJSONHandler(dbSrv model.Service, prefix string) (http.Handler, error) {
 
 	router.GET(prefix+"/home/", h.render(h.home))
 
-	router.GET(prefix+"/transactions/:limit/:offset", h.render(h.getTxs))
+	router.GET(prefix+"/transactions/", h.render(h.getTxs))
 
 	router.GET(prefix+"/transaction/:uuid", h.render(h.getTx))
 	router.POST(prefix+"/transaction/", h.render(h.addTx))
@@ -106,16 +106,32 @@ func (h *JSONHandler) home(r *http.Request) (interface{}, int, error) {
 }
 
 func (h *JSONHandler) getTxs(r *http.Request) (interface{}, int, error) {
-	limit, err := strconv.Atoi(httprouter.GetParam(r, "limit"))
-	if err != nil {
-		return nil, http.StatusBadRequest, err
-	}
-	offset, err := strconv.Atoi(httprouter.GetParam(r, "offset"))
-	if err != nil {
-		return nil, http.StatusBadRequest, err
+	var err error
+
+	l := 99999 // No limit
+	lStr := r.URL.Query().Get("limit")
+	if lStr != "" {
+		l, err = strconv.Atoi(lStr)
+		if err != nil {
+			return nil, http.StatusBadRequest, err
+		}
 	}
 
-	ts, err := h.dbSrv.TransactionsGetNOrderByDate(limit, offset)
+	o := 0 // No offset
+	oStr := r.URL.Query().Get("offset")
+	if oStr != "" {
+		o, err = strconv.Atoi(oStr)
+		if err != nil {
+			return nil, http.StatusBadRequest, err
+		}
+	}
+
+	orderBy := r.URL.Query().Get("orderBy")
+	if orderBy == "" {
+		orderBy = "date DESC, date_created DESC"
+	}
+
+	ts, err := h.dbSrv.TransactionsGetNOrderBy(l, o, orderBy)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
