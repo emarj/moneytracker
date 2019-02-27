@@ -53,6 +53,46 @@ func (t DateTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.Format("2006-01-02T15:04:05"))
 }
 
+type Date struct{ time.Time }
+
+func (t *Date) Scan(v interface{}) error {
+
+	var s string
+	switch z := v.(type) {
+	case []uint8:
+		s = string(z)
+	case string:
+		s = z
+	default:
+		return errors.New("cannot convert time to string")
+	}
+
+	vt, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return err
+	}
+	t.Time = vt
+	return nil
+}
+
+func (t Date) Value() (driver.Value, error) {
+	return driver.Value(t.Format("2006-01-02")), nil
+}
+
+func (t *Date) UnmarshalJSON(json []byte) error {
+	str := string(json[1 : len(json)-1])
+	vt, err := time.Parse("2006-01-02", str)
+	if err != nil {
+		return err
+	}
+	t.Time = vt
+	return nil
+}
+
+func (t Date) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.Format("2006-01-02"))
+}
+
 type User struct {
 	ID   int    `schema:"user_id"`
 	Name string `schema:"user_name"`
@@ -84,7 +124,7 @@ type Transaction struct {
 	UUID         uuid.UUID
 	DateCreated  DateTime
 	DateModified DateTime
-	Date         DateTime
+	Date         Date
 	Description  string
 	Amount       decimal.Decimal
 	Shared       bool
@@ -96,42 +136,6 @@ type Transaction struct {
 	Method   `json:"Method"`
 	Category `json:"Category"`
 	Type     `json:"Type"`
-}
-
-func (t Transaction) SharedWith() []interface{} {
-	type SharePrint struct {
-		UserName string
-		Quota    decimal.Decimal
-	}
-	shares := make([]interface{}, 0, len(t.Shares))
-	for _, shr := range t.Shares {
-		sp := SharePrint{shr.WithName, shr.Quota}
-		shares = append(shares, sp)
-	}
-	return shares
-}
-
-func (t Transaction) SharedWithID1() int {
-	if len(t.Shares) < 1 {
-		return -1
-	}
-	return t.Shares[0].WithID
-}
-
-func (t Transaction) SharedWithName1() string {
-	if len(t.Shares) < 1 {
-		return ""
-	}
-	return t.Shares[0].WithName
-}
-
-func (t Transaction) IsSharedWith(uID int) bool {
-	for _, shr := range t.Shares {
-		if shr.WithID == uID {
-			return true
-		}
-	}
-	return false
 }
 
 func (t Transaction) SharedQuota() decimal.Decimal {

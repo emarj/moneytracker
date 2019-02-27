@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -209,6 +210,14 @@ func (h *JSONHandler) addTx(r *http.Request) (interface{}, int, error) {
 	err := decoder.Decode(t)
 	if err != nil {
 		return nil, http.StatusBadRequest, err
+	}
+
+	if t.Amount.IsZero() {
+		return nil, http.StatusBadRequest, errors.New("amount cannot be zero")
+	}
+
+	if t.Description == "" {
+		return nil, http.StatusBadRequest, errors.New("description cannot be empty")
 	}
 
 	err = h.dbSrv.TransactionInsert(t)

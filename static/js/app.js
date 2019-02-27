@@ -1,11 +1,18 @@
+function todayStr() {
+  var t = new Date();
+  return t.toISOString().split('T')[0]
+}
+
+function parseDecimal(d) {
+  return (d == "") ? new Decimal(0) : new Decimal(d)
+}
+
 const defaultTx = {
-  UUID: "00000000-0000-0000-0000-000000000000",
-  DateCreated: "0001-01-01T00:00:00",
-  DateModified: "0001-01-01T00:00:00",
-  Date: undefined,
+  Date: todayStr(),
   Description: "",
   Amount: "",
   Shared: false,
+  Shares: [],
   GeoLocation: "",
   User: {
     ID: 1
@@ -34,29 +41,20 @@ var vm = new Vue({
   },
   computed: {
     SharedQuota: function () {
-      if (Array.isArray(this.transaction.Shares)) {
+      if (this.transaction.Shared && Array.isArray(this.transaction.Shares) && this.transaction.Shares.length > 0) {
         return this.transaction.Shares.reduce((sum, shr) => {
-          const q = new Decimal(shr.Quota);
+          const q = parseDecimal(shr.Quota);
 
           return q.plus(sum)
         }, new Decimal(0));
       } else return "";
     },
     OwnQuota: function () {
-      if (Array.isArray(this.transaction.Shares)) {
-        const a = new Decimal(this.transaction.Amount);
-        const sq = new Decimal(this.SharedQuota);
+      if (this.transaction.Shared && Array.isArray(this.transaction.Shares) && this.transaction.Shares.length > 0) {
+        const a = parseDecimal(this.transaction.Amount);
+        const sq = parseDecimal(this.SharedQuota);
         return a.minus(sq).toString();
       } else return "";
-    },
-    TxDate: {
-      get: function () {
-        return this.justDate(this.transaction.Date);
-      },
-      set: function (v) {
-        console.log("yo");
-        this.transaction.Date = v + "T00:00:00";
-      }
     }
 
 
@@ -75,13 +73,12 @@ var vm = new Vue({
           this.types = data.types;
           this.users = data.users;
           this.categories = data.categories;
-          //this.transaction = data.transaction;
           this.methods = data.methods;
         })
         .catch(res => console.log(res))
 
     },
-    fetchLatest: function (n=5, offset=0,orderBy="date_modified DESC, date DESC") {
+    fetchLatest: function (n = 5, offset = 0, orderBy = "date_modified DESC, date DESC") {
       fetch('/api/transactions/?limit=' + n + '&offset=' + offset + '&orderBy=' + orderBy)
         .then(res => {
           if (!res.ok) {
@@ -101,16 +98,9 @@ var vm = new Vue({
       e.preventDefault();
       this.fetchLatest(5, this.transactions.length);
     },
-    justDate: function (dateStr = "") {
-
-      if (dateStr == "") {
-        const date = new Date();
-        dateStr = date.toISOString();
-      }
-      return dateStr.split('T')[0];
-    },
     fetchTransaction: function (uuid, e) {
       e.preventDefault();
+      document.getElementById('app').scrollIntoView();
       fetch('/api/transaction/' + uuid)
         .then(res => {
           if (!res.ok) {
@@ -138,11 +128,9 @@ var vm = new Vue({
           if (!res.ok) {
             throw Error(res.statusText);
           }
-          const i = this.transactions.findIndex(function (t) {
-            if (t.UUID == uuid) return true
-          });
-
-          this.transactions.splice(i, 1)
+          this.reloadLatest();
+          this.editMode = false;
+          this.resetForm();
         })
         .catch(res => console.log(res))
     },
@@ -159,7 +147,7 @@ var vm = new Vue({
           }
           this.reloadLatest();
           this.editMode = false;
-          this.transaction = defaultTx;//We have to copy the object!!!!!!!!!
+          this.resetForm();
         })
         .catch(res => console.log(res))
 
@@ -176,7 +164,7 @@ var vm = new Vue({
             throw Error(res.statusText);
           }
           this.reloadLatest();
-          this.transaction = defaultTx;
+          this.resetForm();
         })
         .catch(res => console.log(res))
 
@@ -188,7 +176,7 @@ var vm = new Vue({
       }
 
       if (!Array.isArray(this.transaction.Shares)) {
-        this.transaction.Shares = [];
+        this.transaction.Shares = new Array();
       }
 
       this.transaction.Shares.push({
@@ -196,10 +184,13 @@ var vm = new Vue({
         Quota: 0
       });
     },
+    resetForm: function(){
+      this.transaction = JSON.parse(JSON.stringify(defaultTx)); //This is an hack
+    }
 
   },
   created: function () {
     this.fetchInitialState();
-    this.transaction = defaultTx;
+    this.resetForm();
   }
 })

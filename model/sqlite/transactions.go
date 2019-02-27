@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -195,7 +196,6 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		defer stmt.Close()
 
 		_, err = stmt.Exec(vals...)
-
 		if err != nil {
 			return err
 		}
@@ -246,11 +246,16 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		return err
 	}
 
-	_, err = stmt.Exec(t)
+	res, err := stmt.Exec(t)
 	if err != nil {
 		return err
 	}
+	n, err := res.RowsAffected()
 	if err != nil {
+		return err
+	}
+	if n < 1 {
+		err = fmt.Errorf("transaction with UUID='%s' does not exists", t.UUID.String())
 		return err
 	}
 
