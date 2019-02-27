@@ -22,20 +22,20 @@ func NewJSONHandler(dbSrv model.Service, prefix string) (http.Handler, error) {
 
 	router := httprouter.New()
 
-	router.GET(prefix+"/home/", h.render(h.home))
+	router.GET(prefix+"/api/home/", h.render(h.home))
 
-	router.GET(prefix+"/transactions/", h.render(h.getTxs))
+	router.GET(prefix+"/api/transactions/", h.render(h.getTxs))
 
-	router.GET(prefix+"/transaction/:uuid", h.render(h.getTx))
-	router.POST(prefix+"/transaction/", h.render(h.addTx))
-	router.PUT(prefix+"/transaction/", h.render(h.updateTx))
-	router.DELETE(prefix+"/transaction/:uuid", h.render(h.deleteTx))
+	router.GET(prefix+"/api/transaction/:uuid", h.render(h.getTx))
+	router.POST(prefix+"/api/transaction/", h.render(h.addTx))
+	router.PUT(prefix+"/api/transaction/", h.render(h.updateTx))
+	router.DELETE(prefix+"/api/transaction/:uuid", h.render(h.deleteTx))
 
-	router.GET(prefix+"/users/", h.render(h.getUsers))
-	router.GET(prefix+"/categories/", h.render(h.getCategories))
-	router.GET(prefix+"/types/", h.render(h.getTypes))
+	router.GET(prefix+"/api/users/", h.render(h.getUsers))
+	router.GET(prefix+"/api/categories/", h.render(h.getCategories))
+	router.GET(prefix+"/api/types/", h.render(h.getTypes))
 
-	router.ServeFiles(prefix+"/static/*filepath", http.Dir("./static"))
+	router.ServeFiles(prefix+"/s/*filepath", http.Dir("./static"))
 
 	protected := cookieauth.Wrap(router, "spendi", "schei")
 

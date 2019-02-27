@@ -85,9 +85,9 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 			flagTx = true
 		}
 		if result.Share.TxID != uuid.Nil {
-			if !t.Shared {
-				return t, errors.New("transaction is not shared, but it has shares!")
-			}
+			/*if !t.Shared {
+				return t, errors.New("transaction is not shared, but it has shares")
+			}*/
 			t.Shares = append(t.Shares, &result.Share)
 		}
 
@@ -97,12 +97,12 @@ func (s *sqlite) TransactionGet(uid uuid.UUID) (*model.Transaction, error) {
 		return nil, err
 	}
 	if !flagTx {
-		return nil, errors.New("No such transaction!")
+		return nil, errors.New("no such transaction")
 	}
 
-	if t.Shared && len(t.Shares) == 0 {
-		return t, errors.New("transaction is shared, but it has no shares!")
-	}
+	/*if t.Shared && len(t.Shares) == 0 {
+		return t, errors.New("transaction is shared, but it has no shares")
+	}*/
 
 	return t, err
 }
@@ -172,7 +172,8 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 
 	if t.Shared {
 		if t.Shares == nil || len(t.Shares) == 0 {
-			return errors.New("a shared transaction must have at lest one expense")
+			err = errors.New("shared transaction MUST have shares")
+			return err
 		}
 		query := `INSERT INTO shares(
 			tx_uuid,
@@ -198,6 +199,10 @@ func (s *sqlite) TransactionInsert(t *model.Transaction) error {
 		if err != nil {
 			return err
 		}
+	} else if t.Shares != nil && len(t.Shares) > 0 {
+		err = errors.New("not shared transaction CANNOT have shares")
+		return err
+
 	}
 
 	return nil
@@ -259,7 +264,8 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 	}
 	if t.Shared {
 		if t.Shares == nil || len(t.Shares) == 0 {
-			return errors.New("Transaction is shared but it has no shares")
+			err = errors.New("shared transaction MUST have shares")
+			return err
 		}
 		query := `INSERT INTO shares(
 				tx_uuid,
@@ -285,8 +291,9 @@ func (s *sqlite) TransactionUpdate(t *model.Transaction) error {
 		if err != nil {
 			return err
 		}
-	} else if t.Shares != nil {
-		return errors.New("Transaction is not shared but it has shares")
+	} else if t.Shares != nil && len(t.Shares) > 0 {
+		err = errors.New("not shared transaction CANNOT have shares")
+		return err
 
 	}
 

@@ -63,7 +63,7 @@ var vm = new Vue({
   },
   methods: {
     fetchInitialState: function () {
-      fetch('/home/')
+      fetch('/api/home/')
         .then(res => {
           if (!res.ok) {
             throw Error(res.statusText);
@@ -82,7 +82,7 @@ var vm = new Vue({
 
     },
     fetchLatest: function (n=5, offset=0,orderBy="date_modified DESC, date DESC") {
-      fetch('/transactions/?limit=' + n + '&offset=' + offset + '&orderBy=' + orderBy)
+      fetch('/api/transactions/?limit=' + n + '&offset=' + offset + '&orderBy=' + orderBy)
         .then(res => {
           if (!res.ok) {
             throw Error(res.statusText);
@@ -111,7 +111,7 @@ var vm = new Vue({
     },
     fetchTransaction: function (uuid, e) {
       e.preventDefault();
-      fetch('/transaction/' + uuid)
+      fetch('/api/transaction/' + uuid)
         .then(res => {
           if (!res.ok) {
             throw Error(res.statusText);
@@ -130,7 +130,7 @@ var vm = new Vue({
 
       const uuid = this.transaction.UUID;
 
-      fetch('/transaction/' + uuid, {
+      fetch('/api/transaction/' + uuid, {
           method: `DELETE`,
           credentials: `same-origin`
         })
@@ -148,7 +148,7 @@ var vm = new Vue({
     },
     updateTx: function (e) {
       e.preventDefault();
-      fetch('/transaction/', {
+      fetch('/api/transaction/', {
           method: `PUT`,
           credentials: `same-origin`,
           body: JSON.stringify(this.transaction)
@@ -166,7 +166,7 @@ var vm = new Vue({
     },
     addTx: function (e) {
       e.preventDefault();
-      fetch('/transaction/', {
+      fetch('/api/transaction/', {
           method: `POST`,
           credentials: `same-origin`,
           body: JSON.stringify(this.transaction)
