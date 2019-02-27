@@ -4,14 +4,14 @@ import (
 	"ronche.se/moneytracker/model"
 )
 
-func (s *sqlite) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {
+func (s *sqlite) PaymentMethodsGetAll() ([]*model.Method, error) {
 	rows, err := s.db.Query("SELECT * FROM paymentmethods")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var pms []*model.PaymentMethod
+	var pms []*model.Method
 
 	var id int
 	var name string
@@ -21,7 +21,7 @@ func (s *sqlite) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {
 		if err != nil {
 			return nil, err
 		}
-		pms = append(pms, &model.PaymentMethod{id, name})
+		pms = append(pms, &model.Method{id, name})
 	}
 	err = rows.Err()
 	if err != nil {
@@ -30,7 +30,7 @@ func (s *sqlite) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {
 	return pms, nil
 }
 
-func (s *sqlite) PaymentMethodInsert(name string) (*model.PaymentMethod, error) {
+func (s *sqlite) PaymentMethodInsert(name string) (*model.Method, error) {
 	stmt, err := s.db.Prepare("INSERT INTO paymentmethods(pm_name) VALUES(?)")
 	if err != nil {
 		return nil, err
@@ -46,5 +46,5 @@ func (s *sqlite) PaymentMethodInsert(name string) (*model.PaymentMethod, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &model.PaymentMethod{int(lastID), name}, nil
+	return &model.Method{int(lastID), name}, nil
 }

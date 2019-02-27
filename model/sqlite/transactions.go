@@ -317,7 +317,7 @@ func (s *sqlite) TransactionDelete(id uuid.UUID) error {
 	return nil
 }
 
-func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Transaction, error) {
+func (s *sqlite) TransactionsGetNOrderBy(limit int, offset int, orderBy string) ([]*model.Transaction, error) {
 
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -360,7 +360,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 							t.pm_id=paymentmethods.pm_id AND
 							t.cat_id=categories.cat_id
 					ORDER BY ` + orderBy + `
-					LIMIT ?) t
+					LIMIT ? OFFSET ?) t
 					LEFT OUTER JOIN shares s ON t.uuid = s.tx_uuid
 					LEFT OUTER JOIN users u ON s.with_id = u.user_id
 			ORDER BY ` + orderBy)
@@ -368,7 +368,7 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 		return nil, err
 	}
 
-	rows, err := stmt.Queryx(limit)
+	rows, err := stmt.Queryx(limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -410,16 +410,16 @@ func (s *sqlite) TransactionsGetNOrderBy(limit int, orderBy string) ([]*model.Tr
 	return ts, nil
 }
 
-func (s *sqlite) TransactionsGetNOrderByDate(limit int) ([]*model.Transaction, error) {
-	return s.TransactionsGetNOrderBy(limit, "date DESC, date_created DESC")
+func (s *sqlite) TransactionsGetNOrderByDate(limit int, offset int) ([]*model.Transaction, error) {
+	return s.TransactionsGetNOrderBy(limit, offset, "date DESC, date_created DESC")
 }
 
-func (s *sqlite) TransactionsGetNOrderByInserted(limit int) ([]*model.Transaction, error) {
-	return s.TransactionsGetNOrderBy(limit, "date_created DESC, date DESC")
+func (s *sqlite) TransactionsGetNOrderByInserted(limit int, offset int) ([]*model.Transaction, error) {
+	return s.TransactionsGetNOrderBy(limit, offset, "date_created DESC, date DESC")
 }
 
-func (s *sqlite) TransactionsGetNOrderByModified(limit int) ([]*model.Transaction, error) {
-	return s.TransactionsGetNOrderBy(limit, "date_modified DESC, date DESC")
+func (s *sqlite) TransactionsGetNOrderByModified(limit int, offset int) ([]*model.Transaction, error) {
+	return s.TransactionsGetNOrderBy(limit, offset, "date_modified DESC, date DESC")
 }
 
 func (s *sqlite) TransactionsGetNByUser(id int, limit int) ([]*model.Transaction, error) {

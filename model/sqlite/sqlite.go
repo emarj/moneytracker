@@ -72,7 +72,7 @@ func New(path string, create bool) (*sqlite, error) {
 		return nil, err
 	}
 
-	db.Mapper = reflectx.NewMapperFunc("json", strcase.ToSnake)
+	db.Mapper = reflectx.NewMapperFunc("schema", strcase.ToSnake)
 
 	err = db.Ping()
 	if err != nil {

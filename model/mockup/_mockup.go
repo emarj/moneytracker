@@ -13,7 +13,7 @@ type mockup struct {
 	types        map[int]*model.Type
 	users        map[int]*model.User
 	categories   map[int]*model.Category
-	pmethods     map[int]*model.PaymentMethod
+	pmethods     map[int]*model.Method
 }
 
 func New() (model.Service, error) {
@@ -21,7 +21,7 @@ func New() (model.Service, error) {
 		make(map[int]*model.Type),
 		make(map[int]*model.User),
 		make(map[int]*model.Category),
-		make(map[int]*model.PaymentMethod),
+		make(map[int]*model.Method),
 	}, nil
 
 }
@@ -135,8 +135,8 @@ func (m *mockup) CategoryInsert(name string) (*model.Category, error) {
 	return &cat, nil
 }
 
-func (m *mockup) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {
-	pm := make([]*model.PaymentMethod, len(m.pmethods))
+func (m *mockup) PaymentMethodsGetAll() ([]*model.Method, error) {
+	pm := make([]*model.Method, len(m.pmethods))
 	i := 0
 	for _, value := range m.pmethods {
 		pm[i] = value
@@ -145,9 +145,9 @@ func (m *mockup) PaymentMethodsGetAll() ([]*model.PaymentMethod, error) {
 	return pm, nil
 }
 
-func (m *mockup) PaymentMethodInsert(name string) (*model.PaymentMethod, error) {
+func (m *mockup) PaymentMethodInsert(name string) (*model.Method, error) {
 	id := len(m.pmethods)
-	pm := model.PaymentMethod{id, name}
+	pm := model.Method{id, name}
 	m.pmethods[id] = &pm
 	return &pm, nil
 }

@@ -1,45 +1,46 @@
-
- 
-
- 
-
-  
-
-  .expense .amount {
-    color: red;
-  }
-
-
- .transfer {
-    background-color: rgb(224, 232, 252) !important;
-  }
-
-  .income {
-    background-color: rgb(195, 221, 177)!important;
-  }
-
-  .income .amount {
-    color:green;
-  }
+a.unstyled {
+  color: inherit;
+  text-decoration: none;
+}
 
 
 
-  .clickable {
-    cursor: pointer
-  }
 
-  .footer {
-    margin-top: 2rem
-  }
+.expense .amount {
+  color: red;
+}
 
-  #own-amount {
-    color: red
-  }
 
-  #shared-amount {
-    color: green
-  }
+.transfer {
+  background-color: rgb(224, 232, 252) !important;
+}
 
-  table small {
-    display: block;
-  }
+.income {
+  background-color: rgb(195, 221, 177) !important;
+}
+
+.income .amount {
+  color: green;
+}
+
+
+
+.clickable {
+  cursor: pointer
+}
+
+.footer {
+  margin-top: 2rem
+}
+
+#own-amount {
+  color: red
+}
+
+#shared-amount {
+  color: green
+}
+
+table small {
+  display: block;
+}

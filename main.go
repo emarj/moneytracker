@@ -20,7 +20,7 @@ func main() {
 	prefix := flag.String("prefix", "", "prefix to use behind a reverse proxy (e.g. /prefix)")
 	port := flag.Int("port", 34567, "port number")
 	address := flag.String("address", "", "bind address")
-	tmplPath := flag.String("tmplpath", "../handler/templates", "template directory path")
+	//tmplPath := flag.String("tmplpath", "../handler/templates", "template directory path")
 
 	flag.Parse()
 
@@ -41,9 +41,13 @@ func main() {
 		}
 	}()
 
-	mux, err := handler.HTMLHandler(dbSrv, filepath.Join(exPath, *tmplPath), *prefix)
+	/*mux, err := handler.HTMLHandler(dbSrv, filepath.Join(exPath, *tmplPath), *prefix)
 	if err != nil {
 		log.Panicf("impossible to create HTMLHandler: %v", err)
+	}*/
+	mux, err := handler.NewJSONHandler(dbSrv, *prefix)
+	if err != nil {
+		log.Panicf("impossible to create JSONHandler: %v", err)
 	}
 	fullAddr := *address + ":" + strconv.Itoa(*port)
 	log.Printf("Listening and serving %s...\n", fullAddr+*prefix)

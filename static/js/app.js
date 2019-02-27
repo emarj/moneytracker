@@ -1,105 +1,200 @@
-var isShared;
-var isLocOK;
-
-function updateFromPerc() {
-  var quota = $('#shared-perc').val();
-  var amount = $('input[name="Amount"]').val();
-  var ownAmount = amount * (100 - quota) / 100;
-  var shrAmount = amount * (quota) / 100;
-
-  $('#own-amount').val(ownAmount);
-  $('#shared-amount').val(shrAmount);
-}
-
-function updateFromAmount() {
-  var shrAmount = $('#shared-amount').val();
-  var amount = $('input[name="Amount"]').val();
-  var quota = shrAmount * 100 / amount;
-
-  $('#shared-perc').val(quota).prop('disabled', true);
-
-  $('#own-amount').val(amount - shrAmount);
-}
-
-function getPosition() {
-  navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
-}
-
-function geo_success(position) {
-    console.log(position.coords.latitude)
-    $('#position').val(position.coords.latitude + ',' + position.coords.longitude);
-}
-
-function geo_error() {
-  console.log("Sorry, no position available.");
-}
-
-var geo_options = {
-  enableHighAccuracy: true,
-  maximumAge: 30000,
-  timeout: 27000
+const defaultTx = {
+  UUID: "00000000-0000-0000-0000-000000000000",
+  DateCreated: "0001-01-01T00:00:00",
+  DateModified: "0001-01-01T00:00:00",
+  Description: "",
+  Amount: "",
+  Shared: false,
+  GeoLocation: "",
+  User: {
+    ID: 1
+  },
+  Method: {
+    ID: 1
+  },
+  Category: {
+    ID: 0
+  },
+  Type: {
+    ID: 0
+  }
 };
 
-$(function () {
+var vm = new Vue({
+  el: '#app',
+  data: {
+    editMode: false,
+    transaction: {},
+    users: [],
+    categories: [],
+    types: [],
+    transactions: [],
+    methods: []
+  },
+  computed: {
+    SharedQuota: function () {
+      if (Array.isArray(this.transaction.Shares)) {
+        return this.transaction.Shares.reduce((sum, shr) => {
+          const q = new Decimal(shr.Quota);
 
-      isShared = $('#is-shared').prop('checked');
-      isLocOK = $('#loc-check').prop('checked');
+          return q.plus(sum)
+        }, new Decimal(0));
+      } else return "";
+    },
+    OwnQuota: function () {
+      if (Array.isArray(this.transaction.Shares)) {
+        const a = new Decimal(this.transaction.Amount);
+        const sq = new Decimal(this.SharedQuota);
+        return a.minus(sq).toString();
+      } else return "";
+    },
+    TxDate: {
+      get: function () {
+        return this.justDate(this.transaction.Date);
+      },
+      set: function (v) {
+        this.transaction.Date = v + "T00:00:00";
+      }
+    }
 
-      if (isLocOK) {
-        getPosition();
+
+  },
+  methods: {
+    fetchInitialState: function () {
+      fetch('/home/')
+        .then(res => {
+          if (!res.ok) {
+            throw Error(res.statusText);
+          }
+          return res.json()
+        })
+        .then(data => {
+          this.transactions = data.transactions;
+          this.types = data.types;
+          this.users = data.users;
+          this.categories = data.categories;
+          //this.transaction = data.transaction;
+          this.methods = data.methods;
+        })
+        .catch(res => console.log(res))
+
+    },
+    fetchLatest: function (n, offset) {
+      fetch('/transactions/' + n + '/' + offset)
+        .then(res => {
+          if (!res.ok) {
+            throw Error(res.statusText);
+          }
+          return res.json()
+        })
+        .then(data => this.transactions.push(...data))
+        .catch(res => console.log(res))
+    },
+    reloadLatest: function () {
+      n = this.transactions.length;
+      this.transactions = [];
+      this.fetchLatest(n, 0);
+    },
+    more: function (e) {
+      e.preventDefault();
+      this.fetchLatest(5, this.transactions.length);
+    },
+    justDate: function (dateStr) {
+
+      if (typeof dateStr === "undefined") {
+        const date = new Date();
+        dateStr = date.toISOString();
+      }
+      return dateStr.split('T')[0];
+    },
+    fetchTransaction: function (uuid, e) {
+      e.preventDefault();
+      fetch('/transaction/' + uuid)
+        .then(res => {
+          if (!res.ok) {
+            throw Error(res.statusText);
+          }
+          return res.json()
+        })
+        .then(data => {
+          this.editMode = true;
+          this.transaction = data;
+        })
+        .catch(res => console.log(res))
+
+    },
+    deleteTx: function (e) {
+      e.preventDefault();
+
+      const uuid = this.transaction.UUID;
+
+      fetch('/transaction/' + uuid, {
+          method: `DELETE`,
+          credentials: `same-origin`
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw Error(res.statusText);
+          }
+          const i = this.transactions.findIndex(function (t) {
+            if (t.UUID == uuid) return true
+          });
+
+          this.transactions.splice(i, 1)
+        })
+        .catch(res => console.log(res))
+    },
+    updateTx: function (e) {
+      e.preventDefault();
+      fetch('/transaction/', {
+          method: `PUT`,
+          credentials: `same-origin`,
+          body: JSON.stringify(this.transaction)
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw Error(res.statusText);
+          }
+          this.reloadLatest();
+        })
+        .catch(res => console.log(res))
+
+    },
+    addTx: function (e) {
+      e.preventDefault();
+      fetch('/transaction/', {
+          method: `POST`,
+          credentials: `same-origin`,
+          body: JSON.stringify(this.transaction)
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw Error(res.statusText);
+          }
+          this.reloadLatest();
+        })
+        .catch(res => console.log(res))
+
+    },
+    addShare: function (e) {
+      e.preventDefault();
+      if (!this.transaction.Shared) {
+        return;
       }
 
-      $('#loc-check').change(function () {
-        isLocOK = $(this).prop('checked');
-        $('#position').prop('disabled', !isLocOK);
-        if (!isLocOK) {
-            $('#position').val('');
-        } else {
-          getPosition();
-        }
+      if (!Array.isArray(this.transaction.Shares)) {
+        this.transaction.Shares = [];
+      }
+
+      this.transaction.Shares.push({
+        WithID: 0,
+        Quota: 0
       });
+    },
 
-      $('#is-shared').click(function(e){
-        if ($('input[name="Amount"]').val() == 0) {
-          e.preventDefault();
-          return
-        }
-      });
-
-      $('#is-shared').change(function () {
-        
-        isShared = $(this).prop('checked');
-
-        $('#shared-perc').prop('disabled', !isShared)
-        $('#own-amount').prop('disabled', !isShared)
-        $('#shared-amount').prop('disabled', !isShared)
-
-        if (checked) {
-          updateFromPerc();
-        } else {
-          $('#shared-amount').val('');
-          $('#own-amount').val('');
-        }
-      });
-
-      $('input[name="Amount"]').on('input', function () {
-        if ($('#is-shared').prop('checked')) {
-          updateFromPerc();
-        }
-      });
-      $('#shared-perc').on('input', updateFromPerc)
-        .on('dblclick', function () {
-          $(this).val(50);
-          updateFromPerc();
-        });
-
-      $('#shared-amount').change(updateFromAmount);
-
-
-      $(".clickable").click(function () {
-        window.document.location = $(this).data("href");
-      });
-
-
-
-    });
+  },
+  created: function () {
+    this.fetchInitialState();
+    this.transaction = defaultTx;
+  }
+})
