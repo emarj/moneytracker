@@ -44,210 +44,27 @@
       <div class="row justify-content-center">
         <div class="col-lg-6">
 
-          <form>
-            <fieldset>
+          <div v-if="error != ''" class="alert alert-danger" role="alert">
+            {{error}}
+          </div>
 
-              <div v-if="editMode">
-                <!-- UUID -->
-                <div class="input-group input-group-lg mb-3">
-                  <div class="input-group-prepend">
-                    <label class="input-group-text" for="UUID">UUID</label>
-                  </div>
-                  <input type="text" class="form-control" name="UUID" v-bind:value="transaction.UUID" required readonly />
-                </div>
-
-                <!-- Date Created-->
-                <div class="input-group input-group-lg mb-3">
-                  <div class="input-group-prepend">
-                    <label class="input-group-text" for="DateCreated">Created on</label>
-                  </div>
-                  <input class="form-control" type="datetime-local" name="DateCreated" v-bind:value="transaction.DateCreated"
-                    readonly />
-                </div>
-
-                <!-- Date Modified-->
-                <div class="input-group input-group-lg mb-3">
-                  <div class="input-group-prepend">
-                    <label class="input-group-text" for="DateModified">Modified on</label>
-                  </div>
-                  <input class="form-control" type="datetime-local" name="DateModified" v-bind:value="transaction.DateModified"
-                    readonly />
-                </div>
-              </div>
-
-
-
-              <!-- Type -->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="Type">Type</label>
-                </div>
-                <select class="custom-select" v-model="transaction.Type.ID">
-                  <option v-for="t in types" v-bind:value="t.ID">{{t.Name}}</option>
-                </select>
-              </div>
-
-
-
-
-              <!-- Date -->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="Date">When</label>
-                </div>
-                <input class="form-control" type="date" name="Date" v-model="transaction.Date" />
-              </div>
-
-              <!-- User -->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="User">User</label>
-                </div>
-                <select class="custom-select" v-model="transaction.User.ID">
-                  <option v-for="u in users" v-bind:value="u.ID">{{u.Name}}</option>
-                </select>
-              </div>
-
-
-              <!-- Amount -->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="Amount">Amount</label>
-                </div>
-
-                <input class="form-control" type="number" step="0.01" name="Amount" placeholder="0.00" v-model="transaction.Amount"
-                  required />
-
-                <div class="input-group-append">
-                  <span class="input-group-text">€</span>
-                </div>
-
-
-              </div>
-
-              <!-- Description -->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="Description">Description</label>
-                </div>
-                <input type="text" class="form-control" name="Description" placeholder="Something..." v-model="transaction.Description"
-                  required />
-
-              </div>
-
-              <!-- Payment Method -->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="MethodID">Method</label>
-                </div>
-                <select class="custom-select" name="MethodID" v-model="transaction.Method.ID">
-                  <option v-for="m in methods" v-bind:value="m.ID">{{m.Name}}</option>
-                </select>
-              </div>
-
-              <!-- Sharing -->
-              <div class="input-group input-group-lg">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="Shared">Shared</label>
-                  <div class="input-group-text">
-                    <input type="checkbox" v-model="transaction.Shared" />
-                  </div>
-                </div>
-                <input class="form-control" type="number" step="any" v-bind:value="OwnQuota" readonly style="color:red;" />
-                <input class="form-control" type="number" step="any" v-bind:value="SharedQuota" readonly style="color:green;" />
-              </div>
-
-              <div class="input-group input-group-lg mb-3" v-for="s in transaction.Shares">
-                <select class="custom-select" v-model="s.WithID">
-                  <option v-for="u in users" v-bind:value="u.ID">{{u.Name}}</option>
-                </select>
-                <input class="form-control" type="number" step="any" required v-model.number="s.Quota" />
-                <button class="btn btn-warning">-</button>
-              </div>
-              <button class="btn btn-secondary" v-on:click="addShare">Add share</button>
-
-
-
-              <!-- Categories -->
-              <div class="input-group input-group-lg mb-3 mt-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="CategoryID">Category</label>
-                </div>
-                <select class="custom-select" name="CategoryID" v-model="transaction.Category.ID">
-                  <option v-for="cat in categories" v-bind:value="cat.ID" v-bind:selected="(transaction.Category.ID == cat.ID)">{{cat.Name}}</option>
-                </select>
-              </div>
-
-              <!--Geolocation-->
-              <div class="input-group input-group-lg mb-3">
-                <div class="input-group-prepend">
-                  <label class="input-group-text" for="GeoLoc">Position</label>
-                </div>
-                <input class="form-control" type="text" id="position" name="GeoLoc" v-bind:value="transaction.GeoLoc"
-                  placeholder="-" readonly />
-                <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button">Get Position</button>
-                </div>
-              </div>
-
-
-
-              <!-- Buttons -->
-              <div class="form-group mb-3 text-right">
-
-
-                <button class="btn btn-danger" v-on:click="deleteTx" v-if="editMode">Delete</button>
-
-                <button type="reset" class="btn btn-secondary">Cancel</button>
-
-                <button type="submit" class="btn btn-primary" v-on:click="updateTx" v-if="editMode">Update</button>
-                <button type="submit" class="btn btn-primary" v-on:click="addTx" v-if="!editMode">Add</button>
-
-
-
-              </div>
-
-
-            </fieldset>
-          </form>
-        </div>
-
+          <tx-form v-bind:edit="edit" v-bind:transaction.sync="transaction" v-bind:types="types" v-bind:users="users" v-bind:categories="categories"
+            v-bind:methods="methods" v-on:put="updateTx" v-on:post="addTx" v-on:delete="deleteTx"></tx-form>
+          </div>
+        <tx-latest v-bind:transactions="transactions" v-on:edit="loadTx" v-on:more="moreLatest"></tx-latest>
       </div>
 
-      <div class="row justify-content-center">
-        <div class="col-lg-6">
-          <h4 class="title mt-5">Latest entries</h4>
-          <ul class="list-group list-group-flush bg-light">
 
-            <li v-for="t in transactions" class="list-group-item expense">
-              <a v-on:click="fetchTransaction(t.UUID,$event)" v-bind:href="'#'+t.UUID" class="unstyled">
-                <strong>{{t.Date}}</strong> {{t.User.Name}} paid <strong>{{t.Amount}}&euro;</strong> by
-                {{t.Method.Name}} for {{t.Description}} ({{t.Category.Name}})<span v-if="t.Shared">, and will receive back
-                  <span v-for="s in t.Shares">
-                    {{s.Quota}} from {{s.WithName}} 
-                  </span>
-                </span>
-              </a>
-            </li>
-          </ul>
-          <a v-on:click="more" href="#more">More...</a>
+      <footer class="footer">
+        <div class="container">
+          <div class="row  justify-content-center">
+            <div class="col-lg-6 my-2 text-center">
+              <span class="text-muted">Made with much &hearts; by Donco, for Donca</span>
+            </div>
+          </div>
         </div>
-      </div>
-
-    </div>
-  </div>
-
-
-  <footer class="footer">
-    <div class="container">
-      <div class="row  justify-content-center">
-        <div class="col-lg-6 my-2 text-center">
-          <span class="text-muted">Made with much &hearts; by Donco, for Donca</span>
-        </div>
-      </div>
-    </div>
-  </footer>
-  <script src="/s/js/App.js"></script>
+      </footer>
+      <script src="/s/js/App.js"></script>
 </body>
 
 </html>
