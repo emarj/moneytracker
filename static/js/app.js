@@ -191,6 +191,11 @@ Vue.component('tx-form', {
     'types',
     'users'
   ],
+  data: function () {
+    return {
+
+    }
+  },
   computed: {
     SharedQuota: function () {
       if (this.transaction.Shared && Array.isArray(this.transaction.Shares) && this.transaction.Shares.length > 0) {
@@ -207,26 +212,39 @@ Vue.component('tx-form', {
         const sq = parseDecimal(this.SharedQuota);
         return a.minus(sq).toString();
       } else return "";
+    },
+    transferTo: {
+      get: function () {
+        if (this.transaction.Shares.length != 1) {return 0;} 
+        return this.transaction.Shares[0].WithID
+      },
+      // setter
+      set: function (id) {
+        this.transaction.Shared = true;
+        this.transaction.Shares[0] = {
+          WithID: id,
+          Quota: -this.transaction.Amount
+        };
+      }
     }
-
-
   },
   methods: {
-  addShare: function (e) {
-    e.preventDefault();
-    if (!this.transaction.Shared) {
-      return;
-    }
+    addShare: function (e) {
+      e.preventDefault();
+      if (!this.transaction.Shared) {
+        return;
+      }
 
-    if (!Array.isArray(this.transaction.Shares)) {
-      this.transaction.Shares = new Array();
-    }
+      if (!Array.isArray(this.transaction.Shares)) {
+        this.transaction.Shares = new Array();
+      }
 
-    this.transaction.Shares.push({
-      WithID: 0,
-      Quota: 0
-    });
-  }},
+      this.transaction.Shares.push({
+        WithID: 0,
+        Quota: 0
+      });
+    }
+  },
   template: `          <form>
   <fieldset>
 
@@ -329,6 +347,7 @@ Vue.component('tx-form', {
     </div>
 
     <!-- Sharing -->
+    <div v-if="transaction.Type.ID != 1">
     <div class="input-group input-group-lg">
       <div class="input-group-prepend">
         <label class="input-group-text" for="Shared">Shared</label>
@@ -348,6 +367,20 @@ Vue.component('tx-form', {
       <button class="btn btn-warning">-</button>
     </div>
     <button class="btn btn-secondary" v-on:click="addShare">Add share</button>
+    </div>
+
+    <div v-if="transaction.Type.ID == 1">
+    <div class="input-group input-group-lg">
+      <div class="input-group-prepend">
+        <label class="input-group-text" for="Shared">To</label>
+      </div>
+      <select class="custom-select" v-model="transferTo">
+      <option v-for="u in users" v-bind:value="u.ID">{{u.Name}}</option>
+    </select>
+    </div>
+    </div>
+
+
 
 
 
