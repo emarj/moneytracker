@@ -19,4 +19,4 @@ run:
 		 DBPATH="./moneytracker.sqlite" ./$(BINARY_NAME)
 
 prod: 
-		DBPATH="../moneytracker.sqlite" PREFIX="/money" ./$(BINARY_NAME)
+		DBPATH="../db/moneytracker.sqlite" PREFIX="/money" ./$(BINARY_NAME)
