@@ -427,6 +427,16 @@ func (s *sqlite) PaymentMethodInsert(name string) (*model.PaymentMethod, error) 
 	return &model.PaymentMethod{int(lastID), name}, nil
 }
 
+func (s *sqlite) GetAmount(user string) (decimal.Decimal, error) {
+	var amount decimal.Decimal
+	err := s.db.QueryRow("SELECT SUM(amount) FROM expenses WHERE shared=1 AND who='" + user + "'").Scan(&amount)
+	if err != nil {
+		return amount, err
+	}
+
+	return amount, nil
+}
+
 func (s *sqlite) Close() error {
 	return s.db.Close()
 }

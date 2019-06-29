@@ -161,14 +161,27 @@ func (h *htmlHandler) all(r *http.Request) *htmlResponse {
 	if err != nil {
 		return resError(err, http.StatusInternalServerError)
 	}
-	type result struct {
-		Expenses       []*model.Expense
-		Categories     []*model.Category
-		Users          []string
-		PaymentMethods []*model.PaymentMethod
+
+	amountA, err := h.dbSrv.GetAmount("A")
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
+	}
+	amountM, err := h.dbSrv.GetAmount("M")
+	if err != nil {
+		return resError(err, http.StatusInternalServerError)
 	}
 
-	return resOK(result{es, cat, model.Users, pm}, "all")
+	delta := amountM.Sub(amountA)
+
+	type result struct {
+		Expenses                  []*model.Expense
+		Categories                []*model.Category
+		Users                     []string
+		PaymentMethods            []*model.PaymentMethod
+		BalanceM, BalanceA, Delta decimal.Decimal
+	}
+
+	return resOK(result{es, cat, model.Users, pm, amountM, amountA, delta}, "all")
 }
 
 func (h *htmlHandler) view(r *http.Request) *htmlResponse {
