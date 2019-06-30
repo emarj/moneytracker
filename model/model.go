@@ -138,7 +138,7 @@ type Service interface {
 	/*PaymentMethodUpdate(*PaymentMethod) (*PaymentMethod, error)
 	PaymentMethodDelete(int) error*/
 
-	GetAmount(User string) (decimal.Decimal, error)
+	GetBalance() (decimal.Decimal, error)
 
 	Close() error
 }

@@ -427,9 +427,22 @@ func (s *sqlite) PaymentMethodInsert(name string) (*model.PaymentMethod, error) 
 	return &model.PaymentMethod{int(lastID), name}, nil
 }
 
-func (s *sqlite) GetAmount(user string) (decimal.Decimal, error) {
+//Avere Arianna - Avere Marco = Soldi che Marco deve ad Arianna
+func (s *sqlite) GetBalance() (decimal.Decimal, error) {
 	var amount decimal.Decimal
-	err := s.db.QueryRow("SELECT SUM(amount) FROM expenses WHERE shared=1 AND who='" + user + "'").Scan(&amount)
+	err := s.db.QueryRow(`SELECT SUM(tot/100) FROM
+							(SELECT SUM(tot) as tot FROM
+		(SELECT SUM(amount*quota) as tot FROM expenses WHERE shared=1 AND who='A' AND type =0
+		UNION
+		SELECT -SUM(amount*100) as tot FROM expenses WHERE shared=1 AND who='M' AND type =1)
+	
+	UNION
+	
+	SELECT -SUM(tot) as tot FROM
+		(SELECT SUM(amount*quota) as tot FROM expenses WHERE shared=1 AND who='M' AND type =0
+		UNION
+		SELECT -SUM(amount*100) as tot FROM expenses WHERE shared=1 AND who='A' AND type =1)
+		)`).Scan(&amount)
 	if err != nil {
 		return amount, err
 	}
