@@ -1,5 +1,7 @@
 module ronche.se/moneytracker
 
+go 1.14
+
 require (
 	github.com/ajg/form v0.0.0-20160822230020-523a5da1a92f // indirect
 	github.com/bouk/httprouter v0.0.0-20160817010721-ee8b3818a7f5
