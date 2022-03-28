@@ -54,7 +54,7 @@ func (m *MockStore) GetTransactionsByUser(uID string) ([]*domain.Transaction, er
 }
 
 func (m *MockStore) InsertTransaction(t *domain.Transaction) (uuid.UUID, error) {
-	id, err := uuid.NewV1()
+	id, err := uuid.NewV4()
 	if err != nil {
 		return uuid.Nil, err
 	}

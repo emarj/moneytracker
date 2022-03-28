@@ -48,7 +48,7 @@ func Populate(s Store) {
 	s.AddAccount(&acc4)
 
 	s.InsertTransaction(&domain.Transaction{
-		Date:        domain.Date{time.Now()},
+		Date:        domain.DateTime{time.Now()},
 		Description: "TX1",
 		Notes:       "",
 		Amount:      decimal.New(30, 0),
@@ -58,7 +58,7 @@ func Populate(s Store) {
 	})
 
 	s.InsertTransaction(&domain.Transaction{
-		Date:        domain.Date{time.Now()},
+		Date:        domain.DateTime{time.Now()},
 		Description: "TX2",
 		Notes:       "",
 		Amount:      decimal.New(120, 0),

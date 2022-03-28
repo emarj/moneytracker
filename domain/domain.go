@@ -65,10 +65,10 @@ const (
 // A transaction is always a transfer between 2 accounts
 type Transaction struct {
 	ID           uuid.UUID
-	DateCreated  DateTime
-	DateModified DateTime
+	DateCreated  DateTime `json:"-"`
+	DateModified DateTime `json:"-"`
 
-	Date Date
+	Date DateTime
 
 	Description string
 	Notes       string
@@ -77,7 +77,7 @@ type Transaction struct {
 	FromID string
 	ToID   string
 
-	Type string
+	Type string `json:"-"`
 }
 
 /*

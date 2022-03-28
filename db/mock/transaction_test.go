@@ -15,7 +15,7 @@ func TestGetInsertTransaction(t *testing.T) {
 	db.Populate(ms)
 
 	id, err := ms.InsertTransaction(&domain.Transaction{
-		Date:        domain.Date{time.Now()},
+		Date:        domain.DateTime{time.Now()},
 		Description: "sds",
 		Notes:       "fdf",
 		Amount:      decimal.New(50, 0),
