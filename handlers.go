@@ -23,15 +23,19 @@ func (s *Server) getUsers(c echo.Context) error {
 }
 
 func (s *Server) getAccount(c echo.Context) error {
-	a, err := s.store.GetAccount(c.Param("aid"))
+	aid, err := uuid.FromString(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+	a, err := s.store.GetAccount(aid)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, a)
 }
 
-func (s *Server) getAccountsOfUser(c echo.Context) error {
-	al, err := s.store.GetAccountsOfUser(c.Param("uid"))
+func (s *Server) GetAccountsByUser(c echo.Context) error {
+	al, err := s.store.GetAccountsByUser(c.Param("uid"))
 	if err != nil {
 		return err
 	}
@@ -53,7 +57,11 @@ func (s *Server) getTransaction(c echo.Context) error {
 }
 
 func (s *Server) getTransactions(c echo.Context) error {
-	tl, err := s.store.GetTransactionsByAccount(c.Param("aid"))
+	aid, err := uuid.FromString(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+	tl, err := s.store.GetTransactionsByAccount(aid)
 	if err != nil {
 		return err
 	}
@@ -76,7 +84,7 @@ func (s *Server) insertTransaction(c echo.Context) error {
 		return err
 	}
 
-	_, err = s.store.InsertTransaction(&t)
+	err = s.store.AddTransaction(&t)
 	if err != nil {
 		return err
 	}

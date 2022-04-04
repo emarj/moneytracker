@@ -6,11 +6,21 @@ import (
 	"ronche.se/moneytracker/domain"
 )
 
-func (m *MockStore) GetUsers() ([]*domain.User, error) {
-	ul := make([]*domain.User, len(m.users))
+type mockUserStore struct {
+	users map[string]*domain.User
+}
+
+func newMockUserStore() *mockUserStore {
+	return &mockUserStore{
+		users: map[string]*domain.User{},
+	}
+}
+
+func (us *mockUserStore) GetUsers() ([]*domain.User, error) {
+	ul := make([]*domain.User, len(us.users))
 
 	k := 0
-	for _, u := range m.users {
+	for _, u := range us.users {
 		ul[k] = u
 		k++
 	}
@@ -18,8 +28,8 @@ func (m *MockStore) GetUsers() ([]*domain.User, error) {
 	return ul, nil
 }
 
-func (m *MockStore) GetUser(uID string) (*domain.User, error) {
-	u, ok := m.users[uID]
+func (us *mockUserStore) GetUser(uID string) (*domain.User, error) {
+	u, ok := us.users[uID]
 	if !ok {
 		return nil, fmt.Errorf("a user with id=%s does not exists", uID)
 	}
@@ -27,13 +37,13 @@ func (m *MockStore) GetUser(uID string) (*domain.User, error) {
 	return u, nil
 }
 
-func (m *MockStore) AddUser(u *domain.User) (string, error) {
-	_, ok := m.users[u.ID]
+func (us *mockUserStore) AddUser(u *domain.User) error {
+	_, ok := us.users[u.ID]
 	if ok {
-		return "", fmt.Errorf("a user with id=%s already not exists", u.ID)
+		return fmt.Errorf("a user with id=%s already not exists", u.ID)
 	}
 
-	m.users[u.ID] = u
+	us.users[u.ID] = u
 
-	return u.ID, nil
+	return nil
 }

@@ -3,64 +3,97 @@ package mock
 import (
 	"testing"
 
-	"github.com/shopspring/decimal"
-	"ronche.se/moneytracker/db"
+	"ronche.se/moneytracker/domain"
 )
 
-func TestGetAccount(t *testing.T) {
+func populateAccounts(as *mockAccountStore) {
 
-	ms := NewMockStore()
+	u1 := domain.User{ID: "marco", Name: "Marco"}
+	u2 := domain.User{ID: "arianna", Name: "Arianna"}
 
-	db.Populate(ms)
-
-	a, err := ms.GetAccount("primary")
-	if err != nil {
-		t.Fatal(a)
+	acc1 := domain.Account{
+		Name:        "primary",
+		Owners:      []domain.User{u1},
+		DisplayName: "Primary M",
 	}
 
-	_, err = ms.GetAccount("shared")
-	if err != nil {
+	acc2 := domain.Account{
+		Name:        "secondary",
+		Owners:      []domain.User{u1},
+		DisplayName: "Secondary M",
+	}
+
+	acc3 := domain.Account{
+		Name:        "shared",
+		Owners:      []domain.User{u1, u2},
+		DisplayName: "Shared AM",
+	}
+
+	acc4 := domain.Account{
+		Name:        "primary",
+		Owners:      []domain.User{u2},
+		DisplayName: "Primary A",
+	}
+
+	as.AddAccount(&acc1)
+	as.AddAccount(&acc2)
+	as.AddAccount(&acc3)
+	as.AddAccount(&acc4)
+}
+
+func TestGetAccountByUserAndName(t *testing.T) {
+
+	as := newMockAccountStore()
+
+	populateAccounts(as)
+
+	var al []*domain.Account
+	var err error
+
+	al, err = as.GetAccountsByUserAndName("marco", "primary")
+	if err != nil || len(al) != 1 {
 		t.Fatal(err)
 	}
 
-	_, err = ms.GetAccount("NotExistent")
-	if err == nil {
+	al, err = as.GetAccountsByUserAndName("arianna", "shared")
+	if err != nil || len(al) != 1 {
+		t.Fatal(err)
+	}
+
+	al, _ = as.GetAccountsByUserAndName("marco", "NotExistent")
+	if len(al) != 0 {
+		t.Fatal(err)
+	}
+
+	al, _ = as.GetAccountsByUserAndName("sda", "shared")
+	if len(al) != 0 {
+		t.Fatal(err)
+	}
+
+	al, _ = as.GetAccountsByUserAndName("sdsdasda", "gdfgfshared")
+	if len(al) != 0 {
 		t.Fatal(err)
 	}
 }
 
-func TestGetAccounts(t *testing.T) {
+func TestGetAccountsByUser(t *testing.T) {
 
-	ms := NewMockStore()
-	db.Populate(ms)
+	as := newMockAccountStore()
 
-	al, _ := ms.GetAccountsOfUser("nonexistentuser")
+	populateAccounts(as)
+
+	al, _ := as.GetAccountsByUser("nonexistentuser")
 	if len(al) != 0 {
 		t.Fatal(al)
 	}
 
-	al, _ = ms.GetAccountsOfUser("marco")
+	al, _ = as.GetAccountsByUser("marco")
 	if len(al) != 3 {
 		t.Fatal(al)
 	}
 
-	al, _ = ms.GetAccountsOfUser("arianna")
+	al, _ = as.GetAccountsByUser("arianna")
 	if len(al) != 2 {
 		t.Fatal(al)
-	}
-}
-
-func TestBalance(t *testing.T) {
-
-	ms := NewMockStore()
-	db.Populate(ms)
-
-	acc, _ := ms.GetAccount("primary")
-	b := acc.Balance
-
-	ms.Balance("primary", decimal.New(30, 0))
-
-	if !acc.Balance.Equals(b.Add(decimal.New(30, 0))) {
-		t.Fatal(acc)
 	}
 }

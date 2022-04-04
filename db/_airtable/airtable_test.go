@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/shopspring/decimal"
 	"ronche.se/moneytracker/domain"
 )
@@ -21,8 +22,8 @@ func TestInsertTransaction(t *testing.T) {
 		Description: "sds",
 		Notes:       "fdf",
 		Amount:      decimal.NewFromInt(50),
-		FromID:      "sasas",
-		ToID:        "asasa",
+		FromAccount: uuid.Must(uuid.NewV4()),
+		ToAccount:   uuid.Must(uuid.NewV4()),
 	})
 	if err != nil {
 		t.Fatal(err)

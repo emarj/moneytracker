@@ -16,54 +16,48 @@ func Populate(s Store) {
 
 	acc1 := domain.Account{
 		Name:        "primary",
-		OwnersID:    []string{"marco"},
+		Owners:      []domain.User{u1},
 		DisplayName: "Primary M",
 	}
-	acc1.AlterBalance(decimal.New(100, 0))
 
 	acc2 := domain.Account{
 		Name:        "secondary",
-		OwnersID:    []string{"marco"},
+		Owners:      []domain.User{u1},
 		DisplayName: "Secondary M",
 	}
-	acc2.AlterBalance(decimal.New(50, 0))
 
 	acc3 := domain.Account{
 		Name:        "shared",
-		OwnersID:    []string{"marco", "arianna"},
-		DisplayName: "Shared AM 🌍",
+		Owners:      []domain.User{u1, u2},
+		DisplayName: "Shared AM",
 	}
-	acc3.AlterBalance(decimal.New(200, 0))
 
 	acc4 := domain.Account{
 		Name:        "primary",
-		OwnersID:    []string{"arianna"},
+		Owners:      []domain.User{u2},
 		DisplayName: "Primary A",
 	}
-	acc4.AlterBalance(decimal.New(100, 0))
 
 	s.AddAccount(&acc1)
 	s.AddAccount(&acc2)
 	s.AddAccount(&acc3)
 	s.AddAccount(&acc4)
 
-	s.InsertTransaction(&domain.Transaction{
-		Date:        domain.DateTime{time.Now()},
-		Description: "TX1",
+	s.AddTransaction(&domain.Transaction{
+		Date:        time.Now(),
+		Description: "Transferimento",
 		Notes:       "",
 		Amount:      decimal.New(30, 0),
-		FromID:      acc1.ID(),
-		ToID:        acc2.ID(),
-		Type:        "",
+		FromID:      acc1.ID,
+		ToID:        acc2.ID,
 	})
 
-	s.InsertTransaction(&domain.Transaction{
-		Date:        domain.DateTime{time.Now()},
+	s.AddTransaction(&domain.Transaction{
+		Date:        time.Now(),
 		Description: "TX2",
 		Notes:       "",
 		Amount:      decimal.New(120, 0),
-		FromID:      acc2.ID(),
-		ToID:        acc3.ID(),
-		Type:        "",
+		FromID:      acc2.ID,
+		ToID:        acc3.ID,
 	})
 }

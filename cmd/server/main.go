@@ -4,19 +4,17 @@ import (
 	"log"
 
 	"ronche.se/moneytracker"
-	"ronche.se/moneytracker/db"
-	"ronche.se/moneytracker/db/mock"
 )
 
 const apiKey = "keyAuR8F3wLAUXZAL"
 
 func main() {
 
-	s := mock.NewMockStore()
+	//s := mock.NewMockStore()
 
-	db.Populate(s)
+	//db.Populate(s)
 
-	srv := moneytracker.NewServer(s)
+	srv := moneytracker.NewServer(nil)
 
 	log.Fatal(srv.Start("localhost:3245"))
 

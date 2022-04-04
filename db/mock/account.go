@@ -3,16 +3,26 @@ package mock
 import (
 	"fmt"
 
-	"github.com/shopspring/decimal"
+	"github.com/gofrs/uuid"
 	"ronche.se/moneytracker/domain"
 )
 
-func (m *MockStore) GetAccountsOfUser(uID string) ([]*domain.Account, error) {
+type mockAccountStore struct {
+	accounts map[string]*domain.Account
+}
+
+func newMockAccountStore() *mockAccountStore {
+	return &mockAccountStore{
+		accounts: map[string]*domain.Account{},
+	}
+}
+
+func (as *mockAccountStore) GetAccountsByUser(uID string) ([]*domain.Account, error) {
 	al := []*domain.Account{}
 
-	for _, a := range m.accounts {
-		for _, id := range a.OwnersID {
-			if id == uID {
+	for _, a := range as.accounts {
+		for _, o := range a.Owners {
+			if o.ID == uID {
 				al = append(al, a)
 			}
 		}
@@ -21,34 +31,45 @@ func (m *MockStore) GetAccountsOfUser(uID string) ([]*domain.Account, error) {
 	return al, nil
 }
 
-func (m *MockStore) GetAccount(aID string) (*domain.Account, error) {
-	a, ok := m.accounts[aID]
+func (as *mockAccountStore) GetAccountsByUserAndName(uID string, name string) ([]*domain.Account, error) {
+	al := []*domain.Account{}
+
+	for _, a := range as.accounts {
+		if a.Name == name {
+			for _, o := range a.Owners {
+				if o.ID == uID {
+					al = append(al, a)
+				}
+			}
+		}
+	}
+
+	return al, nil
+}
+
+func (as *mockAccountStore) GetAccount(aID uuid.UUID) (*domain.Account, error) {
+	a, ok := as.accounts[aID.String()]
 	if !ok {
-		return nil, fmt.Errorf("an account with id=%s does not exist", aID)
+		return nil, fmt.Errorf("an account with id=%s does not exist", aID.String())
 	}
 
 	return a, nil
 }
 
-func (m *MockStore) AddAccount(a *domain.Account) (string, error) {
-	aID := a.ID()
-	_, ok := m.accounts[aID]
+func (as *mockAccountStore) AddAccount(a *domain.Account) error {
+	var err error
+	a.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	// Double check for uuid collision
+	_, ok := as.accounts[a.ID.String()]
 	if ok {
-		return "", fmt.Errorf("an account with id=%s already exists", aID)
+		return fmt.Errorf("CRITICAL: UUID collision detected. An account with id=%s already exists", a.ID)
 	}
 
-	m.accounts[aID] = a
+	as.accounts[a.ID.String()] = a
 
-	return aID, nil
-}
-
-func (m *MockStore) Balance(id string, delta decimal.Decimal) (*domain.Account, error) {
-	a, ok := m.accounts[id]
-	if !ok {
-		return nil, fmt.Errorf("a account with id=%s does not exist", id)
-	}
-
-	a.AlterBalance(delta)
-
-	return a, nil
+	return nil
 }

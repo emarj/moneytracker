@@ -3,13 +3,20 @@ package mock
 import (
 	"testing"
 
-	"ronche.se/moneytracker/db"
+	"ronche.se/moneytracker/domain"
 )
+
+func populateUserStore(us *mockUserStore) {
+	u1 := domain.User{ID: "marco", Name: "Marco"}
+	u2 := domain.User{ID: "arianna", Name: "Arianna"}
+	us.AddUser(&u1)
+	us.AddUser(&u2)
+}
 
 func TestGetUser(t *testing.T) {
 
-	ms := NewMockStore()
-	db.Populate(ms)
+	ms := newMockUserStore()
+	populateUserStore(ms)
 
 	u, err := ms.GetUser("marco")
 	if err != nil {
@@ -28,8 +35,8 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUsers(t *testing.T) {
 
-	ms := NewMockStore()
-	db.Populate(ms)
+	ms := newMockUserStore()
+	populateUserStore(ms)
 
 	ul, err := ms.GetUsers()
 	if err != nil {

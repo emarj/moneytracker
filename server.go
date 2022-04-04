@@ -42,7 +42,7 @@ func (s *Server) setup() {
 	s.router.GET("/api/users", s.getUsers)
 	s.router.GET("/api/account/:aid", s.getAccount)
 	//e.GET("/accounts/", s.GetAccounts)
-	s.router.GET("/api/accounts/:uid", s.getAccountsOfUser)
+	s.router.GET("/api/accounts/:uid", s.GetAccountsByUser)
 	s.router.GET("/api/transactions/:uid", s.getTransactionsOfUser)
 	s.router.GET("/api/transaction/:tid", s.getTransaction)
 	s.router.POST("/api/transaction/", s.insertTransaction)
