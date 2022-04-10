@@ -1,12 +1,15 @@
 <script>
     import SharesForm from './SharesForm.svelte';
-    import {users,addTransaction, login} from '../src/stores'
+    import {users,addTransaction, login, accounts} from '../src/stores'
 
     let description;
     let date = new Date().toISOString().slice(0,16);
     let notes;
     let amount;
     let ownerID = $login.userID;
+
+    let fromID;
+    let toID;
 
     let shares = [];
     $: shared = (shares && shares.length > 0);
@@ -17,13 +20,13 @@
     function submit() {
         let newDate = new Date(date + 'Z');
         let t = {
-            //owner: {id : 'marco', name: 'Marco'},
+            owner: {id : 'marco', name: 'Marco'},
             date: newDate,
             description: description,
             notes: notes,
             amount: amount,
-            //from   : 'asdad',
-            //to     : 'asdada',
+            fromID   : fromID,
+            toID     : toID,
             //Related []Transaction
             shared: shared,
             shares: shares,
@@ -50,6 +53,24 @@
     <input type="number" bind:value={amount} step=".01" required placeholder="0.00">
 
     <SharesForm ownerID={ownerID} bind:shares={shares} amount={amount} />
+
+    <div>
+        <select bind:value={fromID}>
+            {#each $accounts as a}
+                <option value={a.id}>
+                {a.displayName}
+                </option>
+            {/each}
+        </select>
+        ->
+        <select bind:value={toID}>
+            {#each $accounts as a}
+                <option value={a.id}>
+                {a.displayName}
+                </option>
+            {/each}
+        </select>
+    </div>
 
     <button type="reset">Reset</button>
     <button type="submit">Submit</button>

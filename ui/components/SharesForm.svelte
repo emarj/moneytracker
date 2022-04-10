@@ -47,6 +47,8 @@
                 max={amount}
                 step="0.01"
                 bind:value={share.quota}>/{amount} ~ {share.quota * 100/amount}%
+                <label>Paid: <input type="checkbox" bind:checked={share.paid}></label>
+                
             </li>
         {/each}
     </ul>
