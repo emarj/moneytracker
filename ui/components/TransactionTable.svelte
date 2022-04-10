@@ -1,15 +1,14 @@
 <script>
 import TransactionRow from "./TransactionRow.svelte";
-
-export let transactions;
+import {transactions,deleteTransaction} from '../src/stores'
 </script>
 
 
 
 
 <table>
-    {#each transactions as t}
-        <TransactionRow transaction={t} on:delete-tx />
+    {#each $transactions as t}
+        <TransactionRow transaction={t} on:delete-tx={e =>  deleteTransaction(e.detail.id)} />
     {/each}
 </table>
 

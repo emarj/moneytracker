@@ -1,20 +1,23 @@
 <script>
-        import { createEventDispatcher } from 'svelte';
+    import SharesForm from './SharesForm.svelte';
+    import {users,addTransaction, login} from '../src/stores'
 
     let description;
     let date = new Date().toISOString().slice(0,16);
     let notes;
     let amount;
-    let shared;
-    let paymentMethod;
+    let ownerID = $login.userID;
 
-    const dispatch = createEventDispatcher();
+    let shares = [];
+    $: shared = (shares && shares.length > 0);
+    
+    let paymentMethod;
 
 
     function submit() {
         let newDate = new Date(date + 'Z');
         let t = {
-            //owner  : {id : 'marco', name: 'Marco'},
+            //owner: {id : 'marco', name: 'Marco'},
             date: newDate,
             description: description,
             notes: notes,
@@ -23,22 +26,31 @@
             //to     : 'asdada',
             //Related []Transaction
             shared: shared,
-            //Shares []Share
+            shares: shares,
             paymentMethod: paymentMethod,
         };
 
-        dispatch('add-tx', {
-			transaction: t,
-		});
+        console.log(shares);
+
+        addTransaction(t)
     }
 </script>
 
 <form method="post" on:submit|preventDefault={submit}>
+    <select bind:value={ownerID}>
+        {#each $users as u,i}
+            <option value={u.id}>
+            {u.name}
+            </option>
+        {/each}
+    </select>
     <input type="datetime-local" bind:value={date} required>
     <input bind:value={description} placeholder="Description" required/>
     <textarea bind:value={notes} placeholder="Notes"></textarea>
     <input type="number" bind:value={amount} step=".01" required placeholder="0.00">
-    <label>Shared: <input type="checkbox" bind:checked="{shared}"></label>
+
+    <SharesForm ownerID={ownerID} bind:shares={shares} amount={amount} />
+
     <button type="reset">Reset</button>
     <button type="submit">Submit</button>
 </form>
@@ -47,7 +59,7 @@
     form {
         width: 50%;
     }
-    form > * {
+    form > :global(*) {
         display: block;
         width: 100%;
     }
