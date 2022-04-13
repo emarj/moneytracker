@@ -2,6 +2,8 @@
     import { createEventDispatcher } from 'svelte';
     import {users, accounts, getAccountByID} from '../src/stores';
 
+    import {dateToLocalISOLikeString,dateToRFC3339} from '../src/date.js'
+
     export let transaction;
 
     const dispatch = createEventDispatcher();
@@ -18,7 +20,7 @@
 </script>
 
 <tr>
-    <td>{transaction.date > 0 ? transaction.date.toISOString(): transaction.date}</td>
+    <td>{dateToLocalISOLikeString(new Date(transaction.date))}</td>
     <td>{transaction.owner.id}</td>
     <td contenteditable="true" bind:textContent={transaction.description}></td>
     <td>{transaction.amount}</td>

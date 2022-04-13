@@ -1,9 +1,10 @@
 <script>
     import SharesForm from './SharesForm.svelte';
     import {users,addTransaction, login, accounts} from '../src/stores'
+    import {dateToLocalISOLikeString,dateToRFC3339} from '../src/date.js'
 
     let description;
-    let date = new Date().toISOString().slice(0,16);
+    let date = dateToLocalISOLikeString(new Date());
     let notes;
     let amount;
     let ownerID = $login.userID;
@@ -18,10 +19,9 @@
 
 
     function submit() {
-        let newDate = new Date(date + 'Z');
         let t = {
             owner: {id : 'marco', name: 'Marco'},
-            date: newDate,
+            date: new Date(date),
             description: description,
             notes: notes,
             amount: amount,
@@ -32,8 +32,6 @@
             shares: shares,
             paymentMethod: paymentMethod,
         };
-
-        console.log(shares);
 
         addTransaction(t)
     }
@@ -48,6 +46,7 @@
         {/each}
     </select>
     <input type="datetime-local" bind:value={date} required>
+
     <input bind:value={description} placeholder="Description" required/>
     <textarea bind:value={notes} placeholder="Notes"></textarea>
     <input type="number" bind:value={amount} step=".01" required placeholder="0.00">
