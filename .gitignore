@@ -1,6 +1,5 @@
 *.sqlite
 .vscode
-Bin
 .DS_Store
 bin/
 public/

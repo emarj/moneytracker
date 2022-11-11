@@ -1,4 +1,4 @@
-package domain
+package moneytracker
 
 import (
 	"database/sql/driver"

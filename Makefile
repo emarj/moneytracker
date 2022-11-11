@@ -4,7 +4,7 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
-BINARY_NAME=./Bin/moneytracker
+BINARY_NAME=./bin/moneytracker
 	
 all: build run
 build:

@@ -6,8 +6,6 @@ import (
 	"ronche.se/moneytracker"
 )
 
-const apiKey = "keyAuR8F3wLAUXZAL"
-
 func main() {
 
 	//s := mock.NewMockStore()
