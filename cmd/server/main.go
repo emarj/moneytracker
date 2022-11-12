@@ -4,15 +4,25 @@ import (
 	"log"
 
 	"ronche.se/moneytracker"
+	"ronche.se/moneytracker/store/sqlite"
 )
 
 func main() {
 
-	//s := mock.NewMockStore()
+	s := sqlite.New("./db.sqlite", true)
 
-	//db.Populate(s)
+	err := s.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		err := s.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	srv := moneytracker.NewServer(nil)
+	srv := moneytracker.NewServer(s)
 
 	log.Fatal(srv.Start("localhost:3245"))
 

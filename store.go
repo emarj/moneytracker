@@ -1,13 +1,11 @@
 package moneytracker
 
-import (
-	"github.com/gofrs/uuid"
-)
-
 type Store interface {
 	GetAccounts() ([]Account, error)
-	AddAccount(a Account) error
+	AddAccount(a Account) (int, error)
+
+	GetTransaction(int) (Transaction, error)
 	GetTransactions() ([]Transaction, error)
-	GetTransactionsByAccount(aID uuid.UUID) ([]Transaction, error)
-	AddTransaction(t Transaction) error
+	GetTransactionsByAccount(aID int) ([]Transaction, error)
+	AddTransaction(t Transaction) (int, error)
 }

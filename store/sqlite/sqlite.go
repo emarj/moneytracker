@@ -2,22 +2,51 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"os"
+
+	_ "embed"
 
 	_ "modernc.org/sqlite"
 )
 
+//go:embed queries/schema.sql
+var schema string
+
+//go:embed queries/seeds.sql
+var seeds string
+
 type SQLiteStore struct {
-	db *sql.DB
+	url    string
+	create bool
+	db     *sql.DB
 }
 
-func (s *SQLiteStore) Open(url string) error {
-	db, err := sql.Open("sqlite", url)
-	if err != nil {
+func New(url string, create bool) *SQLiteStore {
+	return &SQLiteStore{url: url, create: create}
+}
+
+func (s *SQLiteStore) Open() error {
+	_, err := os.Stat(s.url)
+	newDB := errors.Is(err, os.ErrNotExist)
+
+	if newDB && !s.create {
 		return err
 	}
 
+	db, err := sql.Open("sqlite", s.url)
+	if err != nil {
+		return err
+	}
 	s.db = db
+
+	if newDB {
+		err = s.Migrate()
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -31,52 +60,11 @@ func (s *SQLiteStore) Close() error {
 }
 
 func (s *SQLiteStore) Migrate() error {
+
 	var query string
 
-	query += `CREATE TABLE "recipes" (
-		"id"	INTEGER,
-		"date_created"	TEXT DEFAULT (datetime('now', 'localtime')),
-		"date_modified"	TEXT DEFAULT (datetime('now', 'localtime')),
-		"body"	TEXT NOT NULL DEFAULT '{}',
-		"author_id" INTEGER GENERATED ALWAYS AS (IFNULL(json_extract(body, '$.author_id'),0)) STORED NOT NULL,
-		"json" TEXT GENERATED ALWAYS AS (json_patch(body,json_object('id',id,'date_created',date_created,'date_modified',date_modified))) STORED,
-		PRIMARY KEY("id")
-	);`
-
-	query += `CREATE TRIGGER update_date
-			AFTER UPDATE ON recipes
- 			BEGIN
-				UPDATE recipes SET date_modified = datetime('now', 'localtime')
-	 			WHERE id = NEW.id;
- 			END;`
-
-	query += `CREATE TRIGGER strip_json_on_update
-			 AFTER UPDATE OF body ON recipes
-			  BEGIN
-				 UPDATE recipes SET body = json_remove(body, '$.id','$.date_created','$.date_modified')
-				  WHERE id = NEW.id;
-			  END;
-			  CREATE TRIGGER strip_json_on_insert
-			  AFTER INSERT ON recipes
-			   BEGIN
-				  UPDATE recipes SET body = json_remove(body, '$.id','$.date_created','$.date_modified')
-				   WHERE id = NEW.id;
-			   END;`
-
-	query += `CREATE TABLE "authors" (
-				"id"	INTEGER,
-				"name"	TEXT NOT NULL,
-				"type" TEXT,
-				"desc" TEXT,
-				PRIMARY KEY("id")
-			);`
-
-	query += `CREATE TABLE "extra_fields" (
-				"id"	INTEGER,
-				"name"	TEXT NOT NULL,
-				"desc" TEXT,
-				PRIMARY KEY("id")
-			);`
+	query += schema
+	query += seeds
 
 	fmt.Println("Executing:\n " + query)
 	_, err := s.db.Exec(query)

@@ -2,13 +2,13 @@ package moneytracker
 
 import (
 	_ "embed"
+	"encoding/json"
+	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
-
-//go:embed embed/debug.html
-var debugPage string
 
 type Server struct {
 	store  Store
@@ -17,13 +17,8 @@ type Server struct {
 
 func NewServer(store Store) *Server {
 
-	srv := &Server{store: store, router: echo.New()}
-	srv.setup()
+	s := &Server{store: store, router: echo.New()}
 
-	return srv
-}
-
-func (s *Server) setup() {
 	// Middlewares
 	//s.router.Pre(middleware.AddTrailingSlash())
 	s.router.Use(middleware.Logger())
@@ -40,13 +35,13 @@ func (s *Server) setup() {
 	// API Routes
 	/*s.router.GET("/api/users", s.getUsers)
 	s.router.GET("/api/account/:aid", s.getAccount)*/
-	//e.GET("/accounts/", s.GetAccounts)
-	/*s.router.GET("/api/accounts/:uid", s.GetAccountsByUser)
-	s.router.GET("/api/transactions/:uid", s.getTransactionsOfUser)
+	//s.router.GET("/api/accounts/:uid", s.GetAccountsByUser)
+	s.router.GET("/api/transactions", s.getTransactions)
+	s.router.GET("/api/transactions/:aid", s.getTransactionsByAccount)
 	s.router.GET("/api/transaction/:tid", s.getTransaction)
-	s.router.POST("/api/transaction/", s.insertTransaction)*/
-	s.router.GET("/debug/", func(c echo.Context) error { return c.HTML(200, debugPage) })
+	s.router.POST("/api/transaction/", s.addTransaction)
 
+	return s
 }
 
 func (s *Server) Start(url string) error {
@@ -54,6 +49,60 @@ func (s *Server) Start(url string) error {
 }
 
 //Handlers
+
+func (s *Server) getTransactions(c echo.Context) error {
+	tl, err := s.store.GetTransactions()
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, tl)
+}
+
+func (s *Server) getTransactionsByAccount(c echo.Context) error {
+	aID, err := strconv.Atoi(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+
+	tl, err := s.store.GetTransactionsByAccount(aID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, tl)
+}
+
+func (s *Server) getTransaction(c echo.Context) error {
+
+	tID, err := strconv.Atoi(c.Param("tid"))
+	if err != nil {
+		return err
+	}
+
+	t, err := s.store.GetTransaction(tID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, t)
+}
+
+func (s *Server) addTransaction(c echo.Context) error {
+	t := Transaction{}
+
+	err := json.NewDecoder(c.Request().Body).Decode(&t)
+	if err != nil {
+		return err
+	}
+
+	id, err := s.store.AddTransaction(t)
+	if err != nil {
+		return err
+	}
+
+	t.ID = id
+
+	return c.JSON(http.StatusOK, t)
+}
+
 /*
 func (s *Server) getUsers(c echo.Context) error {
 	ul, err := s.store.GetUsers()
@@ -117,17 +166,4 @@ func (s *Server) getTransactionsOfUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, tl)
 }
 
-func (s *Server) insertTransaction(c echo.Context) error {
-	t := Transaction{}
-
-	err := json.NewDecoder(c.Request().Body).Decode(&t)
-	if err != nil {
-		return err
-	}
-
-	err = s.store.AddTransaction(&t)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, t)
-}*/
+*/

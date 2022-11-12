@@ -1,8 +1,6 @@
 package moneytracker
 
 import (
-	"time"
-
 	"github.com/shopspring/decimal"
 )
 
@@ -15,24 +13,24 @@ type Entity struct {
 type Account struct {
 	ID       int
 	Name     string
-	Owner    string
-	Virtual  bool            //Real money or assets?
-	External bool            //External means that can't accept transaction
-	Balance  decimal.Decimal // This should probably be computed stored
-	System   bool            //Is this a system account
-	// More properties
+	Owner    string          // TODO: Allow for shared accounts
+	Money    bool            // Is it money or assets?
+	External bool            // Allow for direct balance manipulation
+	System   bool            // Is this a system account
+	Balance  decimal.Decimal `json:"omitempty"` // This would be computed from the transactions
 }
 
-/*type Balance struct {
-	AccountID string
-	Computed  DateTime
-	At        DateTime
-	Balance   decimal.Decimal
-}*/
+type Balance struct {
+	AccountID int
+	Timestamp DateTime
+	Value     decimal.Decimal
+	Computed  bool
+	Notes     string
+}
 
 type Transaction struct {
 	ID          int
-	Timestamp   time.Time
+	Timestamp   DateTime
 	From        string
 	To          string
 	Amount      decimal.Decimal
@@ -41,11 +39,11 @@ type Transaction struct {
 
 type Operation struct {
 	ID           string
-	DateCreated  time.Time
-	DateModified time.Time
+	DateCreated  DateTime
+	DateModified DateTime
 	CreatedBy    string
 	////////
-	Timestamp   time.Time
+	Timestamp   DateTime
 	Description string
 	Movements   []string
 	Category    Category
