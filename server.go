@@ -33,13 +33,18 @@ func NewServer(store Store) *Server {
 	s.router.Static("/", filepath.Join(basePath, "../static/"))*/
 
 	// API Routes
-	/*s.router.GET("/api/users", s.getUsers)
-	s.router.GET("/api/account/:aid", s.getAccount)*/
-	//s.router.GET("/api/accounts/:uid", s.GetAccountsByUser)
+	s.router.GET("/api/entity/:eid", s.getEntity)
+	s.router.GET("/api/entities/", s.getEntities)
+	s.router.GET("/api/account/:aid", s.getAccount)
+	s.router.GET("/api/accounts/:eid", s.getAccountsOfEntity)
+	s.router.GET("/api/balances/:aid", s.getBalances)
+	s.router.POST("/api/balance/", s.addBalance)
+	s.router.GET("/api/balance/:aid", s.getBalance)
 	s.router.GET("/api/transactions", s.getTransactions)
 	s.router.GET("/api/transactions/:aid", s.getTransactionsByAccount)
 	s.router.GET("/api/transaction/:tid", s.getTransaction)
 	s.router.POST("/api/transaction/", s.addTransaction)
+	//s.router.DELETE("/api/transaction/", s.deleteTransaction)
 
 	return s
 }
@@ -48,7 +53,101 @@ func (s *Server) Start(url string) error {
 	return s.router.Start(url)
 }
 
-//Handlers
+// Handlers
+func (s *Server) getEntity(c echo.Context) error {
+
+	eID, err := strconv.Atoi(c.Param("eid"))
+	if err != nil {
+		return err
+	}
+
+	e, err := s.store.GetEntity(eID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, e)
+}
+
+func (s *Server) getEntities(c echo.Context) error {
+	el, err := s.store.GetEntities()
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, el)
+}
+
+func (s *Server) getAccount(c echo.Context) error {
+
+	aID, err := strconv.Atoi(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+
+	a, err := s.store.GetAccount(aID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, a)
+}
+
+func (s *Server) getAccountsOfEntity(c echo.Context) error {
+	eID, err := strconv.Atoi(c.Param("eid"))
+	if err != nil {
+		return err
+	}
+	el, err := s.store.GetAccountsOfEntity(eID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, el)
+}
+
+func (s *Server) getBalances(c echo.Context) error {
+	aID, err := strconv.Atoi(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+	bl, err := s.store.GetBalances(aID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, bl)
+}
+
+func (s *Server) getBalance(c echo.Context) error {
+
+	aID, err := strconv.Atoi(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+
+	b, err := s.store.GetBalance(aID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, b)
+}
+
+func (s *Server) addBalance(c echo.Context) error {
+	b := Balance{}
+
+	err := json.NewDecoder(c.Request().Body).Decode(&b)
+	if err != nil {
+		return err
+	}
+
+	if b.Value != nil {
+		err = s.store.ComputeBalance(b.AccountID)
+	} else {
+		err = s.store.AddBalance(b)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
 
 func (s *Server) getTransactions(c echo.Context) error {
 	tl, err := s.store.GetTransactions()
@@ -97,73 +196,6 @@ func (s *Server) addTransaction(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-
-	t.ID = id
-
-	return c.JSON(http.StatusOK, t)
+	//do not return t since it might be incomplete
+	return c.JSON(http.StatusOK, id)
 }
-
-/*
-func (s *Server) getUsers(c echo.Context) error {
-	ul, err := s.store.GetUsers()
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, ul)
-}
-
-func (s *Server) getAccount(c echo.Context) error {
-	aid, err := uuid.FromString(c.Param("aid"))
-	if err != nil {
-		return err
-	}
-	a, err := s.store.GetAccount(aid)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, a)
-}
-
-func (s *Server) GetAccountsByUser(c echo.Context) error {
-	al, err := s.store.GetAccountsByUser(c.Param("uid"))
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, al)
-}
-
-func (s *Server) getTransaction(c echo.Context) error {
-
-	tID, err := uuid.FromString(c.Param("tid"))
-	if err != nil {
-		return err
-	}
-
-	t, err := s.store.GetTransaction(tID)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, t)
-}
-
-func (s *Server) getTransactions(c echo.Context) error {
-	aid, err := uuid.FromString(c.Param("aid"))
-	if err != nil {
-		return err
-	}
-	tl, err := s.store.GetTransactionsByAccount(aid)
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, tl)
-}
-
-func (s *Server) getTransactionsOfUser(c echo.Context) error {
-	tl, err := s.store.GetTransactionsByUser(c.Param("uid"))
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, tl)
-}
-
-*/

@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"fmt"
+	"time"
 
 	mt "ronche.se/moneytracker"
 )
@@ -27,26 +28,34 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 	return accounts, nil
 }
 
-func (s *SQLiteStore) GetAccount(id int) (*mt.Account, error) {
+func (s *SQLiteStore) GetAccountsOfEntity(eID int) ([]mt.Account, error) {
+
+	rows, err := s.db.Query(`SELECT  id,name FROM accounts WHERE owner_id = ?`, eID)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts := []mt.Account{}
+	var a mt.Account
+
+	for rows.Next() {
+		if err = rows.Scan(&a.ID, &a.Name); err != nil {
+			return nil, err
+		}
+
+		accounts = append(accounts, a)
+	}
+
+	return accounts, nil
+}
+
+func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 
 	var a mt.Account
 
-	err := s.db.QueryRow(`SELECT id,name,income - expense AS balance
-	FROM
-	((
-		SELECT *
-		FROM accounts
-		WHERE id = ?), (
-		SELECT  SUM(amount) AS income
-		FROM transactions
-		WHERE to_id = ?), (
-		SELECT  SUM(amount) AS expense
-		FROM transactions
-		WHERE from_id = ?)
-	)`, id, id, id).Scan(
+	err := s.db.QueryRow(`SELECT id,name FROM accounts WHERE id = ?`, aID).Scan(
 		&a.ID,
 		&a.Name,
-		&a.Balance,
 	)
 	if err != nil {
 		return nil, err
@@ -55,30 +64,74 @@ func (s *SQLiteStore) GetAccount(id int) (*mt.Account, error) {
 	return &a, nil
 }
 
-func (s *SQLiteStore) GetAccountBalance(id int) (*mt.Account, error) {
+func (s *SQLiteStore) GetBalances(aID int) ([]mt.Balance, error) {
 
-	var a mt.Account
-
-	err := s.db.QueryRow(`SELECT "value" + income - expense  FROM balances WHERE account_id = ? ORDER BY computed_at DESC LIMIT 1
-	FROM
-	(	
-		(SELECT "value" FROM balances WHERE account_id = ? ORDER BY computed_at DESC LIMIT 1),
-		(SELECT  SUM(amount) AS income
-		FROM transactions
-		WHERE to_id = ?),
-		(SELECT  SUM(amount) AS expense
-		FROM transactions
-		WHERE from_id = ?)
-	)`, id, id, id).Scan(
-		&a.ID,
-		&a.Name,
-		&a.Balance,
-	)
+	rows, err := s.db.Query(`SELECT  timestamp,value,computed,notes FROM balances WHERE account_id = ?`, aID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &a, nil
+	balances := []mt.Balance{}
+	var b mt.Balance
+	b.AccountID = aID
+
+	for rows.Next() {
+		if err = rows.Scan(&b.Timestamp, &b.Value, &b.Computed, &b.Notes); err != nil {
+			return nil, err
+		}
+
+		balances = append(balances, b)
+	}
+
+	return balances, nil
+}
+
+func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
+
+	var b mt.Balance
+
+	err := s.db.QueryRow(`SELECT last_balance + balance AS balance
+	FROM (
+			(
+				SELECT value AS last_balance
+				FROM balances
+				WHERE account_id = ?
+				ORDER BY timestamp DESC
+				LIMIT 1
+			), (
+				SELECT IFNULL(
+						SUM(
+							CASE
+								WHEN to_id = ? THEN amount
+								WHEN from_id = ? THEN amount
+							END
+						),
+						0
+					) AS balance
+				FROM transactions
+				WHERE (
+						to_id = ?
+						OR from_id = ?
+					)
+					AND timestamp > (
+						SELECT timestamp
+						FROM balances
+						WHERE account_id = ?
+						ORDER BY timestamp DESC
+						LIMIT 1
+					)
+			)
+		)`, aID, aID, aID, aID, aID, aID).Scan(
+		&b.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	b.AccountID = aID
+	b.Timestamp = mt.DateTime{Time: time.Now()}
+	b.Computed = true
+
+	return &b, nil
 }
 
 func (s *SQLiteStore) AddAccount(a mt.Account) (int, error) {
@@ -97,49 +150,131 @@ func (s *SQLiteStore) AddAccount(a mt.Account) (int, error) {
 
 }
 
-func (s *SQLiteStore) AddBalance(b mt.Balance) (*mt.Balance, error) {
+func (s *SQLiteStore) AddBalance(b mt.Balance) error {
 
-	if b.Computed {
-		return nil, fmt.Errorf("b.Computed cannot be true")
+	if b.Value == nil {
+		return fmt.Errorf("Balance.Value cannot be nil")
 	}
 
-	b.Computed = false // This is not needed, but it's here for safety
-
-	_, err := s.db.Exec(`INSERT INTO balances ("account_id","computed_at","value","computed","notes") VALUES(?,?,?,?,?)`,
+	_, err := s.db.Exec(`INSERT INTO balances ("account_id","timestamp","value","computed","notes") VALUES(?,?,?,?,?)`,
 		b.AccountID,
 		b.Timestamp,
 		b.Value,
-		b.Computed, // b.Computed is ignored since this is clearly not computed
+		false, // this is not computed
 		b.Notes,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &b, nil
+	return nil
 
 }
 
-/*func (s *SQLiteStore) ComputeBalance(id int) (*mt.Balance, error) {
+func (s *SQLiteStore) ComputeBalance(aID int) error {
 
-	_, err := s.db.Exec(`INSERT INTO balances ("account_id","computed_at","value","computed","notes") VALUES(?,?,?,?,?)`,
-		b.AccountID,
-		b.ComputedAt,
-		b.Value,
-		b.Computed, // b.Computed is ignored since this is clearly not computed
-		b.Notes,
+	_, err := s.db.Exec(`INSERT INTO balances (account_id, value, computed)
+	SELECT ?,
+		last_balance + balance AS balance,
+		TRUE
+	FROM (
+			(
+				SELECT value AS last_balance
+				FROM balances
+				WHERE account_id = ?
+				ORDER BY timestamp DESC
+				LIMIT 1
+			), (
+				SELECT IFNULL(
+						SUM(
+							CASE
+								WHEN to_id = ? THEN amount
+								WHEN from_id = ? THEN amount
+							END
+						),
+						0
+					) AS balance
+				FROM transactions
+				WHERE (
+						to_id = ?
+						OR from_id = ?
+					)
+					AND timestamp > (
+						SELECT timestamp
+						FROM balances
+						WHERE account_id = ?
+						ORDER BY timestamp DESC
+						LIMIT 1
+					)
+			)
+		)
+		WHERE EXISTS (
+		SELECT *
+		FROM transactions
+		WHERE (
+				to_id = ?
+				OR from_id = ?
+			)
+			AND timestamp > (
+				SELECT timestamp
+				FROM balances
+				WHERE account_id = ?
+				ORDER BY timestamp DESC
+				LIMIT 1
+			)
+	)`,
+		aID, aID, aID, aID, aID, aID, aID, aID, aID, aID,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &b, nil
+	return nil
 
-}*/
+}
+
+func (s *SQLiteStore) DeleteBalancesAfter(aID int, date mt.DateTime) error {
+	_, err := s.db.Exec(`
+			DELETE FROM balances
+			WHERE account_id = ?
+			AND timestamp >= ?
+			AND computed = TRUE
+	`, aID, date)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
 
 func (s *SQLiteStore) DeleteAccount(id int) error {
-	_, err := s.db.Exec("DELETE FROM accounts WHERE id=?", id)
+
+	tx, err := s.db.Begin()
 	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`DELETE FROM accounts WHERE id=?`, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.Exec(`DELETE FROM balances WHERE account_id=?`, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.Exec(`DELETE FROM transactions WHERE account_id=?`, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 

@@ -3,7 +3,6 @@ module ronche.se/moneytracker
 go 1.18
 
 require (
-	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/shopspring/decimal v1.3.1
 	modernc.org/sqlite v1.19.1

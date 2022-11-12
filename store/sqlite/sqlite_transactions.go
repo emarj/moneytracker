@@ -4,7 +4,7 @@ import mt "ronche.se/moneytracker"
 
 func (s *SQLiteStore) GetTransactions() ([]mt.Transaction, error) {
 
-	rows, err := s.db.Query("SELECT id,from_id,to_id,amount FROM transactions")
+	rows, err := s.db.Query("SELECT id,timestamp,from_id,to_id,amount,operation_id FROM transactions")
 	if err != nil {
 		return nil, err
 	}
@@ -13,7 +13,7 @@ func (s *SQLiteStore) GetTransactions() ([]mt.Transaction, error) {
 	var t mt.Transaction
 
 	for rows.Next() {
-		if err = rows.Scan(&t.ID, &t.From, &t.To, &t.Amount); err != nil {
+		if err = rows.Scan(&t.ID, &t.Timestamp, &t.From, &t.To, &t.Amount, &t.OperationID); err != nil {
 			return nil, err
 		}
 
@@ -25,7 +25,7 @@ func (s *SQLiteStore) GetTransactions() ([]mt.Transaction, error) {
 
 func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error) {
 
-	rows, err := s.db.Query("SELECT id,from_id,to_id,amount FROM transactions WHERE from_id = ? OR to_id = ?", aID, aID)
+	rows, err := s.db.Query("SELECT id,timestamp,from_id,to_id,amount,operation_id FROM transactions WHERE from_id = ? OR to_id = ?", aID, aID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error
 	var t mt.Transaction
 
 	for rows.Next() {
-		if err = rows.Scan(&t.ID, &t.From, &t.To, &t.Amount); err != nil {
+		if err = rows.Scan(&t.ID, &t.Timestamp, &t.From, &t.To, &t.Amount, &t.OperationID); err != nil {
 			return nil, err
 		}
 
@@ -44,22 +44,22 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error
 	return transactions, nil
 }
 
-func (s *SQLiteStore) GetTransaction(id int) (mt.Transaction, error) {
+func (s *SQLiteStore) GetTransaction(aID int) (*mt.Transaction, error) {
 
-	row := s.db.QueryRow("SELECT id,from_id,to_id,amount FROM transactions WHERE id = ?", id)
+	row := s.db.QueryRow("SELECT id,from_id,to_id,amount FROM transactions WHERE id = ?", aID)
 
 	var t mt.Transaction
 
-	if err := row.Scan(&t.ID, &t.From, &t.To, &t.Amount); err != nil {
-		return t, err
+	if err := row.Scan(&t.ID, &t.Timestamp, &t.From, &t.To, &t.Amount, &t.OperationID); err != nil {
+		return nil, err
 	}
 
-	return t, nil
+	return &t, nil
 }
 
 func (s *SQLiteStore) AddTransaction(t mt.Transaction) (int, error) {
 
-	res, err := s.db.Exec("INSERT INTO transactions (from_id,to_id,amount) VALUES(?,?,?)", t.From, t.To, t.Amount)
+	res, err := s.db.Exec("INSERT INTO transactions (timestamp,from_id,to_id,amount) VALUES(?,?,?,?)", t.Timestamp, t.From, t.To, t.Amount)
 	if err != nil {
 		return -1, err
 	}
@@ -73,46 +73,13 @@ func (s *SQLiteStore) AddTransaction(t mt.Transaction) (int, error) {
 
 }
 
-/*func (s *SQLiteStore) AddTransaction(t mt.Transaction) (int, error) {
-
-	tx, err := s.db.Begin()
-	if err != nil {
-		return -1, err
-	}
-	res, err := tx.Exec("INSERT INTO transactions (from_id,to_id,amount) VALUES(?,?,?)", t.From, t.To, t.Amount)
-	if err != nil {
-		return -1, err
-	}
-
-	id, err := res.LastInsertId()
-	if err != nil {
-		return -1, err
-	}
-
-	_, err = tx.Exec("UPDATE accounts SET balance = balance + ? WHERE  id = ?", t.Amount, t.To)
-	if err != nil {
-		return -1, err
-	}
-
-	_, err = tx.Exec("UPDATE accounts SET balance = balance - ? WHERE  id = ?", t.Amount, t.From)
-	if err != nil {
-		return -1, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return -1, err
-	}
-
-	return int(id), nil
-
-}*/
-
-func (s *SQLiteStore) DeleteTransaction(id int) error {
-	_, err := s.db.Exec("DELETE FROM transactions WHERE id=?", id)
+func (s *SQLiteStore) DeleteTransaction(tID int) error {
+	_, err := s.db.Exec("DELETE FROM transactions WHERE id=?", tID)
 	if err != nil {
 		return err
 	}
+
+	// We should reset balances with a trigger in the database
 
 	return nil
 }

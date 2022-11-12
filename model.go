@@ -5,25 +5,26 @@ import (
 )
 
 type Entity struct {
-	ID     string
+	ID     int
 	Name   string
 	System bool
+	//External bool //?
 }
 
 type Account struct {
 	ID       int
 	Name     string
-	Owner    string          // TODO: Allow for shared accounts
-	Money    bool            // Is it money or assets?
-	External bool            // Allow for direct balance manipulation
-	System   bool            // Is this a system account
-	Balance  decimal.Decimal `json:"omitempty"` // This would be computed from the transactions
+	Owner    int  // TODO: Allow for shared accounts
+	Money    bool // Is it money or assets?
+	External bool // Allow for direct balance manipulation
+	System   bool // Is this a system account
+	//Balance  *decimal.Decimal `json:"omitempty"` // This would be computed from the transactions
 }
 
 type Balance struct {
 	AccountID int
 	Timestamp DateTime
-	Value     decimal.Decimal
+	Value     *decimal.Decimal
 	Computed  bool
 	Notes     string
 }
