@@ -1,6 +1,7 @@
 package moneytracker
 
 import (
+	"embed"
 	_ "embed"
 	"encoding/json"
 	"net/http"
@@ -8,7 +9,12 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+
+	_ "embed"
 )
+
+//go:embed frontend/dist/*
+var content embed.FS
 
 type Server struct {
 	store  Store
@@ -25,12 +31,12 @@ func NewServer(store Store) *Server {
 	s.router.Use(middleware.Recover())
 
 	// Static Routes
-	/*ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	basePath := filepath.Dir(ex)
-	s.router.Static("/", filepath.Join(basePath, "../static/"))*/
+
+	var contentHandler = echo.WrapHandler(http.FileServer(http.FS(content)))
+	// The embedded files will all be in the '/frontend/dist/' folder so need to rewrite the request (could also do this with fs.Sub)
+	var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/frontend/dist/$1"})
+
+	s.router.GET("/*", contentHandler, contentRewrite)
 
 	// API Routes
 	s.router.GET("/api/entity/:eid", s.getEntity)

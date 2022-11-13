@@ -7,8 +7,11 @@ GOGET=$(GOCMD) get
 BINARY_NAME=./bin/moneytracker
 	
 all: build run
-build:
-		$(GOBUILD) -o $(BINARY_NAME) -v
+build: build-frontend build-backend
+build-backend:
+		$(GOBUILD) -o $(BINARY_NAME) -v cmd/server/main.go
+build-frontend:
+		(cd frontend && pnpm run build)
 test:
 		$(GOTEST) -v ./...
 clean:
