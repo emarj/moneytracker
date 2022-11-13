@@ -37,33 +37,6 @@ FROM (
 				)
 		)
 	);
--- Get Account with current balance
-SELECT *,
-	last_balance + income - expense AS balance
-FROM (
-		(
-			SELECT *
-			FROM accounts
-			WHERE id = 1
-		),
-		(
-			SELECT value AS last_balance,
-				timestamp AS last_balance_date
-			FROM balances
-			WHERE account_id = 1
-			ORDER BY timestamp DESC
-			LIMIT 1
-		), (
-			SELECT SUM(amount) AS income
-			FROM transactions
-			WHERE to_id = 1
-		),
-		(
-			SELECT SUM(amount) AS expense
-			FROM transactions
-			WHERE from_id = 1
-		)
-	);
 --
 SELECT *
 from transactions;

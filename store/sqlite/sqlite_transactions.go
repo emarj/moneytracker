@@ -13,7 +13,7 @@ func (s *SQLiteStore) GetTransactions() ([]mt.Transaction, error) {
 	var t mt.Transaction
 
 	for rows.Next() {
-		if err = rows.Scan(&t.ID, &t.Timestamp, &t.From, &t.To, &t.Amount, &t.OperationID); err != nil {
+		if err = rows.Scan(&t.ID, &t.Timestamp, &t.FromID, &t.ToID, &t.Amount, &t.OperationID); err != nil {
 			return nil, err
 		}
 
@@ -34,7 +34,7 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error
 	var t mt.Transaction
 
 	for rows.Next() {
-		if err = rows.Scan(&t.ID, &t.Timestamp, &t.From, &t.To, &t.Amount, &t.OperationID); err != nil {
+		if err = rows.Scan(&t.ID, &t.Timestamp, &t.FromID, &t.ToID, &t.Amount, &t.OperationID); err != nil {
 			return nil, err
 		}
 
@@ -50,7 +50,7 @@ func (s *SQLiteStore) GetTransaction(aID int) (*mt.Transaction, error) {
 
 	var t mt.Transaction
 
-	if err := row.Scan(&t.ID, &t.Timestamp, &t.From, &t.To, &t.Amount, &t.OperationID); err != nil {
+	if err := row.Scan(&t.ID, &t.Timestamp, &t.FromID, &t.ToID, &t.Amount, &t.OperationID); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func (s *SQLiteStore) GetTransaction(aID int) (*mt.Transaction, error) {
 
 func (s *SQLiteStore) AddTransaction(t mt.Transaction) (int, error) {
 
-	res, err := s.db.Exec("INSERT INTO transactions (timestamp,from_id,to_id,amount) VALUES(?,?,?,?)", t.Timestamp, t.From, t.To, t.Amount)
+	res, err := s.db.Exec("INSERT INTO transactions (timestamp,from_id,to_id,amount) VALUES(?,?,?,?)", t.Timestamp, t.FromID, t.ToID, t.Amount)
 	if err != nil {
 		return -1, err
 	}

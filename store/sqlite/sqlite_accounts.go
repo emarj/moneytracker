@@ -30,7 +30,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
 func (s *SQLiteStore) GetAccountsOfEntity(eID int) ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  id,name FROM accounts WHERE owner_id = ?`, eID)
+	rows, err := s.db.Query(`SELECT  id,name,display_name FROM accounts WHERE owner_id = ?`, eID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (s *SQLiteStore) GetAccountsOfEntity(eID int) ([]mt.Account, error) {
 	var a mt.Account
 
 	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name); err != nil {
+		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName); err != nil {
 			return nil, err
 		}
 
@@ -76,7 +76,7 @@ func (s *SQLiteStore) GetBalances(aID int) ([]mt.Balance, error) {
 	b.AccountID = aID
 
 	for rows.Next() {
-		if err = rows.Scan(&b.Timestamp, &b.Value, &b.Computed, &b.Notes); err != nil {
+		if err = rows.Scan(&b.Timestamp, &b.Value, &b.IsComputed, &b.Notes); err != nil {
 			return nil, err
 		}
 
@@ -129,7 +129,7 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 
 	b.AccountID = aID
 	b.Timestamp = mt.DateTime{Time: time.Now()}
-	b.Computed = true
+	b.IsComputed = true
 
 	return &b, nil
 }

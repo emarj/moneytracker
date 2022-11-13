@@ -17,6 +17,8 @@ test:
 clean:
 		$(GOCLEAN)
 		rm -f $(BINARY_NAME)
+dev:
+		go run ./cmd/server/main.go
 run:
 		./$(BINARY_NAME) -dbpath="../moneytracker_sharing.sqlite" -address="localhost"
 

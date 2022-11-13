@@ -9,6 +9,7 @@ CREATE TABLE "accounts" (
 	"created" TEXT DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	"owner_id" INTEGER NOT NULL,
 	"name" TEXT NOT NULL,
+	"display_name" TEXT NOT NULL,
 	"is_money" INTEGER NOT NULL,
 	"is_external" INTEGER NOT NULL,
 	"is_system" INTEGER NOT NULL,

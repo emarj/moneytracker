@@ -5,52 +5,52 @@ import (
 )
 
 type Entity struct {
-	ID     int
-	Name   string
-	System bool
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	System bool   `json:"is_system"`
 	//External bool //?
 }
 
 type Account struct {
-	ID       int
-	Name     string
-	Owner    int  // TODO: Allow for shared accounts
-	Money    bool // Is it money or assets?
-	External bool // Allow for direct balance manipulation
-	System   bool // Is this a system account
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	OwnerID     int    `json:"owner_id"`    // TODO: Allow for shared accounts
+	IsMoney     bool   `json:"is_money"`    // Is it money or assets?
+	IsExternal  bool   `json:"is_external"` // Allow for direct balance manipulation
+	IsSystem    bool   `json:"is_system"`   // Is this a system account
 	//Balance  *decimal.Decimal `json:"omitempty"` // This would be computed from the transactions
 }
 
 type Balance struct {
-	AccountID int
-	Timestamp DateTime
-	Value     *decimal.Decimal
-	Computed  bool
-	Notes     string
+	AccountID  int              `json:"id"`
+	Timestamp  DateTime         `json:"timestamp"`
+	Value      *decimal.Decimal `json:"value"`
+	IsComputed bool             `json:"is_computed"`
+	Notes      string           `json:"notes"`
 }
 
 type Transaction struct {
-	ID          int
-	Timestamp   DateTime
-	From        string
-	To          string
-	Amount      decimal.Decimal
-	OperationID string
+	ID          int             `json:"id"`
+	Timestamp   DateTime        `json:"timestamp"`
+	FromID      string          `json:"from_id"`
+	ToID        string          `json:"to_id"`
+	Amount      decimal.Decimal `json:"amount"`
+	OperationID string          `json:"operation_id"`
 }
 
 type Operation struct {
-	ID           string
-	DateCreated  DateTime
-	DateModified DateTime
-	CreatedBy    string
+	ID           string   `json:"id"`
+	DateCreated  DateTime `json:"date_created"`
+	DateModified DateTime `json:"date_modified"`
+	CreatedByID  string   `json:"create_by_id"`
 	////////
-	Timestamp   DateTime
-	Description string
-	Movements   []string
-	Category    Category
+	Timestamp   DateTime `json:"timestamp"`
+	Description string   `json:"description"`
+	Movements   []string `json:"movements"`
+	CategoryID  int      `json:"cateogry_id"`
+	Details     string   `json:"details"`
 }
-
-type Category int
 
 const (
 	CategoryExpense = iota

@@ -2,15 +2,12 @@ package moneytracker
 
 import (
 	"embed"
-	_ "embed"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-
-	_ "embed"
 )
 
 //go:embed frontend/dist/*
@@ -29,6 +26,8 @@ func NewServer(store Store) *Server {
 	//s.router.Pre(middleware.AddTrailingSlash())
 	s.router.Use(middleware.Logger())
 	s.router.Use(middleware.Recover())
+
+	s.router.Use(middleware.CORS())
 
 	// Static Routes
 
