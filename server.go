@@ -41,12 +41,13 @@ func NewServer(store Store) *Server {
 	s.router.GET("/api/entity/:eid", s.getEntity)
 	s.router.GET("/api/entities/", s.getEntities)
 	s.router.GET("/api/account/:aid", s.getAccount)
-	s.router.GET("/api/accounts/:eid", s.getAccountsOfEntity)
+	s.router.GET("/api/accounts/:eid", s.getAccountsByEntity)
 	s.router.GET("/api/balances/:aid", s.getBalances)
 	s.router.POST("/api/balance/", s.addBalance)
 	s.router.GET("/api/balance/:aid", s.getBalance)
 	s.router.GET("/api/transactions", s.getTransactions)
-	s.router.GET("/api/transactions/:aid", s.getTransactionsByAccount)
+	s.router.GET("/api/transactions/entity/:eid", s.getTransactionsByEntity)
+	s.router.GET("/api/transactions/account/:aid", s.getTransactionsByAccount)
 	s.router.GET("/api/transaction/:tid", s.getTransaction)
 	s.router.POST("/api/transaction/", s.addTransaction)
 	//s.router.DELETE("/api/transaction/", s.deleteTransaction)
@@ -95,12 +96,12 @@ func (s *Server) getAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, a)
 }
 
-func (s *Server) getAccountsOfEntity(c echo.Context) error {
+func (s *Server) getAccountsByEntity(c echo.Context) error {
 	eID, err := strconv.Atoi(c.Param("eid"))
 	if err != nil {
 		return err
 	}
-	el, err := s.store.GetAccountsOfEntity(eID)
+	el, err := s.store.GetAccountsByEntity(eID)
 	if err != nil {
 		return err
 	}
@@ -169,6 +170,19 @@ func (s *Server) getTransactionsByAccount(c echo.Context) error {
 	}
 
 	tl, err := s.store.GetTransactionsByAccount(aID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, tl)
+}
+
+func (s *Server) getTransactionsByEntity(c echo.Context) error {
+	aID, err := strconv.Atoi(c.Param("eid"))
+	if err != nil {
+		return err
+	}
+
+	tl, err := s.store.GetTransactionsByEntity(aID)
 	if err != nil {
 		return err
 	}

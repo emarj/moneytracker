@@ -18,7 +18,7 @@ FROM (
 					SUM(
 						CASE
 							WHEN to_id = 1 THEN amount
-							WHEN from_id = 1 THEN amount
+							WHEN from_id = 1 THEN - amount
 						END
 					),
 					0
@@ -59,7 +59,7 @@ FROM (
 					SUM(
 						CASE
 							WHEN to_id = 1 THEN amount
-							WHEN from_id = 1 THEN amount
+							WHEN from_id = 1 THEN - amount
 						END
 					),
 					0

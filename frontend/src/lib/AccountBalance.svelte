@@ -1,6 +1,7 @@
 <script>
     import { getAccountBalance } from "../data";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
+    import Amount from "./Amount.svelte";
 
     export let id;
 
@@ -15,10 +16,11 @@
     {:else if $balanceQuery.error}
         Error: {$balanceQuery.error.message}
     {:else}
-        <span>{$balanceQuery.data.value} &euro;</span>
+        <span> <Amount value={$balanceQuery.data.value} /></span>
     {/if}
     <button
         on:click={() => {
+            console.log(`Invalidating Account ${id} balance`);
             queryClient.invalidateQueries(["balance", id]);
         }}
     >

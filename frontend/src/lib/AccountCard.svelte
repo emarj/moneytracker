@@ -1,14 +1,29 @@
 <script>
+    import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
+    import { getTransactionsByAccount } from "../data";
     import AccountBalance from "./AccountBalance.svelte";
+    import AccountTransactions from "./AccountTransactions.svelte";
 
     export let account;
+
+    const queryClient = useQueryClient();
+
+    const transactionsQuery = useQuery(["transactions", account.id], () =>
+        getTransactionsByAccount(account.id)
+    );
 </script>
 
 <div>
-    <h3>{account.display_name}</h3>
-    {account.name}
+    <h3>{account.display_name} (id = {account.id})</h3>
 
     <AccountBalance id={account.id} />
+    <!--{#if $transactionsQuery.isLoading}
+        Loading...
+    {:else if $transactionsQuery.error}
+        Error: {$transactionsQuery.error.message}
+    {:else}
+        <AccountTransactions transactions={$transactionsQuery.data} />
+    {/if}-->
 </div>
 
 <style>

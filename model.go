@@ -15,7 +15,7 @@ type Account struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
-	OwnerID     int    `json:"owner_id"`    // TODO: Allow for shared accounts
+	EntityID    int    `json:"entity_id"`   // TODO: Allow for shared accounts
 	IsMoney     bool   `json:"is_money"`    // Is it money or assets?
 	IsExternal  bool   `json:"is_external"` // Allow for direct balance manipulation
 	IsSystem    bool   `json:"is_system"`   // Is this a system account
@@ -34,7 +34,9 @@ type Transaction struct {
 	ID          int             `json:"id"`
 	Timestamp   DateTime        `json:"timestamp"`
 	FromID      string          `json:"from_id"`
+	From        Account         `json:"from"`
 	ToID        string          `json:"to_id"`
+	To          Account         `json:"to"`
 	Amount      decimal.Decimal `json:"amount"`
 	OperationID string          `json:"operation_id"`
 }
@@ -47,9 +49,9 @@ type Operation struct {
 	////////
 	Timestamp   DateTime `json:"timestamp"`
 	Description string   `json:"description"`
-	Movements   []string `json:"movements"`
-	CategoryID  int      `json:"cateogry_id"`
-	Details     string   `json:"details"`
+	//Movements   []string `json:"movements"`
+	CategoryID int    `json:"cateogry_id"`
+	Details    string `json:"details"`
 }
 
 const (

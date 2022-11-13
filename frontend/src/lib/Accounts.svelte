@@ -1,5 +1,5 @@
 <script>
-  import { getAccountsForEntity } from "../data";
+  import { getAccountsByEntity } from "../data";
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
@@ -7,7 +7,7 @@
   const eID = 1;
 
   const queryResult = useQuery(["accounts", eID], () =>
-    getAccountsForEntity(eID)
+    getAccountsByEntity(eID)
   );
 </script>
 
