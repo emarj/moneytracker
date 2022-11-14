@@ -20,8 +20,10 @@
 <h2>Last transactions</h2>
 {#if $transactionsQuery.isLoading}
     Loading...
-{:else if $transactionsQuery.error}
-    Error: {$transactionsQuery.error.message}
+{:else if $transactionsQuery.error || $transactionsQuery.data.message}
+    Error: {$transactionsQuery?.error?.message
+        ? $transactionsQuery?.error?.message
+        : $transactionsQuery.data.message}
 {:else}
     <ol>
         {#each $transactionsQuery.data as t}

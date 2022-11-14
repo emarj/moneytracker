@@ -103,3 +103,5 @@ WHERE account_id = 1
 	AND computed = TRUE;
 --
 SELECT  timestamp,value,computed,notes FROM balances WHERE account_id = 1
+--
+SELECT * from balances b INNER JOIN accounts a ON b.account_id = a.id ;

@@ -29,7 +29,7 @@ CREATE TABLE "transactions" (
 	"from_id" INTEGER NOT NULL,
 	"to_id" INTEGER NOT NULL,
 	"amount" INTEGER NOT NULL,
-	"operation_id" TEXT NOT NULL DEFAULT '',
+	"operation_id" INTEGER NOT NULL DEFAULT -1,
 	PRIMARY KEY("id")
 );
 CREATE TABLE "operations" (

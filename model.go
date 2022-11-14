@@ -38,11 +38,11 @@ type Transaction struct {
 	ToID        string          `json:"to_id"`
 	To          Account         `json:"to"`
 	Amount      decimal.Decimal `json:"amount"`
-	OperationID string          `json:"operation_id"`
+	OperationID int             `json:"operation_id"`
 }
 
 type Operation struct {
-	ID           string   `json:"id"`
+	ID           int      `json:"id"`
 	DateCreated  DateTime `json:"date_created"`
 	DateModified DateTime `json:"date_modified"`
 	CreatedByID  string   `json:"create_by_id"`
