@@ -1,7 +1,6 @@
 package sqlite
 
 import (
-	"fmt"
 	"time"
 
 	mt "ronche.se/moneytracker"
@@ -9,7 +8,7 @@ import (
 
 func (s *SQLiteStore) GetBalances(aID int) ([]mt.Balance, error) {
 
-	rows, err := s.db.Query(`SELECT  timestamp,value,computed,notes FROM balances WHERE account_id = ?`, aID)
+	rows, err := s.db.Query(`SELECT timestamp,value,operation_id FROM balances WHERE account_id = ? ORDER BY timestamp DESC`, aID)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +18,7 @@ func (s *SQLiteStore) GetBalances(aID int) ([]mt.Balance, error) {
 	b.AccountID = aID
 
 	for rows.Next() {
-		if err = rows.Scan(&b.Timestamp, &b.Value, &b.IsComputed, &b.Notes); err != nil {
+		if err = rows.Scan(&b.Timestamp, &b.Value); err != nil {
 			return nil, err
 		}
 
@@ -52,11 +51,13 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 						0
 					) AS balance
 				FROM transactions
+				INNER JOIN operations op
+				ON operation_id = op.id
 				WHERE (
 						to_id = ?
 						OR from_id = ?
 					)
-					AND timestamp > (
+					AND op.timestamp > (
 						SELECT timestamp
 						FROM balances
 						WHERE account_id = ?
@@ -72,23 +73,26 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 
 	b.AccountID = aID
 	b.Timestamp = mt.DateTime{Time: time.Now()}
-	b.IsComputed = true
 
 	return &b, nil
 }
 
 func (s *SQLiteStore) AddBalance(b mt.Balance) error {
 
-	if b.Value == nil {
-		return fmt.Errorf("Balance.Value cannot be nil")
+	var fromID, toID int
+
+	if b.Value.IsNegative() {
+		fromID = b.AccountID
+	} else {
+		toID = b.AccountID
 	}
 
-	_, err := s.db.Exec(`INSERT INTO balances ("account_id","timestamp","value","computed","notes") VALUES(?,?,?,?,?)`,
+	_, err := s.db.Exec(`INSERT INTO transactions ("timestamp","from_id","to_id","operation_id","amount") SELECT ?,?,?,?,? - amount FROM balances WHERE account_id = ? ORDER BY timestamp DESC LIMIT 1`,
 		b.AccountID,
 		b.Timestamp,
+		fromID,
+		toID,
 		b.Value,
-		false, // this is not computed
-		b.Notes,
 	)
 	if err != nil {
 		return err
@@ -122,11 +126,13 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 						0
 					) AS balance
 				FROM transactions
+				INNER JOIN operations op
+				ON operation_id = op.id
 				WHERE (
 						to_id = ?
 						OR from_id = ?
 					)
-					AND timestamp > (
+					AND t.timestamp > (
 						SELECT timestamp
 						FROM balances
 						WHERE account_id = ?
@@ -138,11 +144,13 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 		WHERE EXISTS (
 		SELECT *
 		FROM transactions
+		INNER JOIN operations op
+				ON operation_id = op.id
 		WHERE (
 				to_id = ?
 				OR from_id = ?
 			)
-			AND timestamp > (
+			AND op.timestamp > (
 				SELECT timestamp
 				FROM balances
 				WHERE account_id = ?

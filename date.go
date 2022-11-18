@@ -32,7 +32,11 @@ func (t *DateTime) Scan(v interface{}) error {
 }
 
 func (t DateTime) Value() (driver.Value, error) {
-	return driver.Value(t.Format(DateTimeFormat)), nil
+	return driver.Value(t.String()), nil
+}
+
+func (t DateTime) String() string {
+	return t.Format(DateTimeFormat)
 }
 
 func (t *DateTime) UnmarshalJSON(json []byte) error {

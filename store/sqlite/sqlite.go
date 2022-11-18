@@ -5,10 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	_ "embed"
 
+	"github.com/shopspring/decimal"
 	_ "modernc.org/sqlite"
+	mt "ronche.se/moneytracker"
+	"ronche.se/moneytracker/store/sqlite/queries"
 )
 
 //go:embed queries/schema.sql
@@ -46,6 +50,11 @@ func (s *SQLiteStore) Open() error {
 		if err != nil {
 			return err
 		}
+
+		err = s.Seed()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -61,17 +70,130 @@ func (s *SQLiteStore) Close() error {
 
 func (s *SQLiteStore) Migrate() error {
 
-	var query string
-
-	query += schema
-	query += seeds
-
-	fmt.Println("Executing:\n " + query)
-	_, err := s.db.Exec(query)
+	fmt.Println("Migrating...")
+	_, err := s.db.Exec(schema)
 	if err != nil {
 		return err
 	}
 
 	return nil
 
+}
+
+func (s *SQLiteStore) Seed() error {
+	fmt.Println("Seeding...")
+
+	var query string
+	query += queries.InsertEntity(mt.Entity{
+		ID:     0,
+		Name:   "'_system'",
+		System: true,
+	})
+	query += queries.InsertAccount(mt.Account{
+		ID:          0,
+		Name:        "'world'",
+		DisplayName: "'World'",
+		EntityID:    1,
+		IsMoney:     true,
+		IsSystem:    true,
+	})
+	query += queries.InsertBalance(mt.Balance{
+		AccountID: 0,
+		Timestamp: mt.DateTime{time.Unix(0, 0)},
+		Value:     &decimal.Zero,
+	})
+	query += queries.InsertEntity(mt.Entity{
+		ID:     1,
+		Name:   "'user1'",
+		System: false,
+	})
+	query += queries.InsertAccount(mt.Account{
+		ID:          1,
+		Name:        "'acc1'",
+		DisplayName: "'Account 1'",
+		EntityID:    1,
+		IsMoney:     true,
+		IsSystem:    false,
+	})
+	value2 := decimal.New(2000, 0)
+	query += queries.InsertBalance(mt.Balance{
+		AccountID: 1,
+		Timestamp: mt.DateTime{time.Now().AddDate(0, 0, -1)},
+		Value:     &value2,
+	})
+	query += queries.InsertAccount(mt.Account{
+		ID:          2,
+		Name:        "'acc2'",
+		DisplayName: "'Account 2'",
+		EntityID:    1,
+		IsMoney:     true,
+		IsSystem:    false,
+	})
+	query += queries.InsertBalance(mt.Balance{
+		AccountID: 2,
+		Timestamp: mt.DateTime{time.Now().AddDate(0, 0, -1)},
+		Value:     &decimal.Zero,
+	})
+	query += queries.InsertAccount(mt.Account{
+		ID:          3,
+		Name:        "'acc3'",
+		DisplayName: "'Account 3'",
+		EntityID:    1,
+		IsMoney:     true,
+		IsSystem:    false,
+	})
+	value1 := decimal.New(1000, 0)
+	query += queries.InsertBalance(mt.Balance{
+		AccountID: 3,
+		Timestamp: mt.DateTime{time.Now().AddDate(0, 0, -1)},
+		Value:     &value1,
+	})
+
+	query += queries.InsertOperation(mt.Operation{
+		Timestamp:   &mt.DateTime{time.Now()},
+		CreatedByID: 1,
+		Description: "'Cena da Spalto 10'",
+		CategoryID:  0,
+	})
+
+	query += queries.InsertTransaction(mt.Transaction{
+		From:      mt.Account{ID: 2},
+		To:        mt.Account{ID: 3},
+		Amount:    decimal.New(99, 0),
+		Operation: mt.Operation{ID: 1},
+	})
+	query += queries.InsertTransaction(mt.Transaction{
+		From:      mt.Account{ID: 0},
+		To:        mt.Account{ID: 0},
+		Amount:    decimal.New(120, 0),
+		Operation: mt.Operation{ID: 1},
+	})
+
+	query += queries.InsertOperation(mt.Operation{
+		Timestamp:   &mt.DateTime{time.Now()},
+		CreatedByID: 1,
+		Description: "'Op2'",
+		CategoryID:  0,
+	})
+	query += queries.InsertTransaction(mt.Transaction{
+		From:      mt.Account{ID: 1},
+		To:        mt.Account{ID: 2},
+		Amount:    decimal.New(345, 0),
+		Operation: mt.Operation{ID: 2},
+	})
+	query += queries.InsertTransaction(mt.Transaction{
+		From:      mt.Account{ID: 1},
+		To:        mt.Account{ID: 0},
+		Amount:    decimal.New(43, 0),
+		Operation: mt.Operation{ID: 2},
+	})
+
+	fmt.Println(query)
+
+	_, err := s.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

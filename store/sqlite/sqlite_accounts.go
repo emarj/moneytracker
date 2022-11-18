@@ -27,7 +27,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
 func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  id,name,display_name FROM accounts WHERE entity_id = ?`, eID)
+	rows, err := s.db.Query(`SELECT  id,name,display_name FROM accounts WHERE entity_id = ? AND is_system == FALSE`, eID)
 	if err != nil {
 		return nil, err
 	}

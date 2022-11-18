@@ -16,10 +16,10 @@ type Store interface {
 	ComputeBalance(aID int) error
 	AddBalance(b Balance) error
 
-	GetTransaction(int) (*Transaction, error)
-	GetTransactions() ([]Transaction, error)
+	GetOperation(int) (*Operation, error)
+	//GetTransactions() ([]Transaction, error)
 	GetTransactionsByAccount(aID int) ([]Transaction, error)
-	GetTransactionsByEntity(eID int) ([]Transaction, error)
-	AddTransaction(t Transaction) (int, error)
-	DeleteTransaction(tID int) error
+	GetOperationsByEntity(eID int) ([]Operation, error)
+	AddOperation(op Operation) (int, error)
+	DeleteOperation(tID int) error
 }

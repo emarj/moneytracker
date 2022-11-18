@@ -24,6 +24,6 @@ func main() {
 
 	srv := moneytracker.NewServer(s)
 
-	log.Fatal(srv.Start("localhost:3245"))
+	log.Fatal(srv.Start("0.0.0.0:3245"))
 
 }

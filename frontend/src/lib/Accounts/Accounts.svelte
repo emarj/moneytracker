@@ -1,5 +1,5 @@
 <script>
-  import { getAccountsByEntity } from "../data";
+  import { getAccountsByEntity } from "../../data";
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
@@ -27,10 +27,13 @@
   {/if}
 </div>
 
-<style>
+<style lang="scss">
   ul {
+    padding: 0;
     list-style: none;
     display: flex;
-    gap: 1em;
+    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
   }
 </style>

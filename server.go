@@ -45,11 +45,11 @@ func NewServer(store Store) *Server {
 	s.router.GET("/api/balances/:aid", s.getBalances)
 	s.router.POST("/api/balance/", s.addBalance)
 	s.router.GET("/api/balance/:aid", s.getBalance)
-	s.router.GET("/api/transactions", s.getTransactions)
-	s.router.GET("/api/transactions/entity/:eid", s.getTransactionsByEntity)
+	//s.router.GET("/api/transactions", s.getTransactions)
+	s.router.GET("/api/operations/entity/:eid", s.getOperationsByEntity)
 	s.router.GET("/api/transactions/account/:aid", s.getTransactionsByAccount)
-	s.router.GET("/api/transaction/:tid", s.getTransaction)
-	s.router.POST("/api/transaction/", s.addTransaction)
+	s.router.GET("/api/operation/:opid", s.getOperation)
+	s.router.POST("/api/operation/", s.addOperation)
 	//s.router.DELETE("/api/transaction/", s.deleteTransaction)
 
 	return s
@@ -155,13 +155,13 @@ func (s *Server) addBalance(c echo.Context) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
-func (s *Server) getTransactions(c echo.Context) error {
+/*func (s *Server) getTransactions(c echo.Context) error {
 	tl, err := s.store.GetTransactions()
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, tl)
-}
+}*/
 
 func (s *Server) getTransactionsByAccount(c echo.Context) error {
 	aID, err := strconv.Atoi(c.Param("aid"))
@@ -176,42 +176,42 @@ func (s *Server) getTransactionsByAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, tl)
 }
 
-func (s *Server) getTransactionsByEntity(c echo.Context) error {
+func (s *Server) getOperationsByEntity(c echo.Context) error {
 	aID, err := strconv.Atoi(c.Param("eid"))
 	if err != nil {
 		return err
 	}
 
-	tl, err := s.store.GetTransactionsByEntity(aID)
+	list, err := s.store.GetOperationsByEntity(aID)
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, tl)
+	return c.JSONPretty(http.StatusOK, list, "\t")
 }
 
-func (s *Server) getTransaction(c echo.Context) error {
+func (s *Server) getOperation(c echo.Context) error {
 
-	tID, err := strconv.Atoi(c.Param("tid"))
+	opID, err := strconv.Atoi(c.Param("opid"))
 	if err != nil {
 		return err
 	}
 
-	t, err := s.store.GetTransaction(tID)
+	op, err := s.store.GetOperation(opID)
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusOK, t)
+	return c.JSON(http.StatusOK, op)
 }
 
-func (s *Server) addTransaction(c echo.Context) error {
-	t := Transaction{}
+func (s *Server) addOperation(c echo.Context) error {
+	op := Operation{}
 
-	err := json.NewDecoder(c.Request().Body).Decode(&t)
+	err := json.NewDecoder(c.Request().Body).Decode(&op)
 	if err != nil {
 		return err
 	}
 
-	id, err := s.store.AddTransaction(t)
+	id, err := s.store.AddOperation(op)
 	if err != nil {
 		return err
 	}

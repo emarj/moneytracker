@@ -1,27 +1,16 @@
 <script>
-    import { getAccountBalance } from "../data";
-    import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
-    import Amount from "./Amount.svelte";
-
-    export let id;
-
+    import { pop } from "svelte-spa-router";
+    import { useQueryClient } from "@sveltestack/svelte-query";
     const queryClient = useQueryClient();
-
-    const balanceQuery = useQuery(["balance", id], () => getAccountBalance(id));
 </script>
 
-<p>
-    Balance: {#if $balanceQuery.isLoading}
-        Loading...
-    {:else if $balanceQuery.error}
-        Error: {$balanceQuery.error.message}
-    {:else}
-        <span> <Amount value={$balanceQuery.data.value} /></span>
-    {/if}
+<nav>
+    <button class="back" on:click={pop}>← Back </button>
+    <img class="logo" src="/moneytracker.png" />
     <button
+        class="refresh"
         on:click={() => {
-            console.log(`Invalidating Account ${id} balance`);
-            queryClient.invalidateQueries(["balance", id]);
+            queryClient.invalidateQueries();
         }}
     >
         <svg
@@ -38,19 +27,37 @@
             />
         </svg>
     </button>
-</p>
+</nav>
 
 <style lang="scss">
-    p {
-        font-size: 1.2rem;
-        span {
-            font-weight: bold;
+    nav {
+        position: fixed;
+        z-index: 999;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 60px;
+        box-shadow: 0px 1px 15px 0px rgba(0, 0, 0, 0.75);
+        background-color: whitesmoke;
+        display: flex;
+        justify-content: space-between;
+
+        & > *:first-child,
+        & > *:last-child {
+            width: 30vw;
         }
-        button {
+
+        & > *:first-child {
+            text-align: left;
+        }
+
+        & > *:last-child {
+            text-align: right;
+        }
+
+        button.back {
+            font-size: 1.1rem;
             background-color: transparent;
-            padding: 0;
-            width: 32px;
-            height: 32px;
         }
     }
 </style>

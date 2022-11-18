@@ -76,13 +76,15 @@ VALUES (
 		FALSE
 	);
 -- Add balance
-INSERT INTO balances (timestamp, account_id, value, computed)
-VALUES ("2022-11-12T16:59:35.498Z", 1, 1000, FALSE);
-INSERT INTO balances (timestamp, account_id, value, computed)
-VALUES ("2022-11-12T16:59:35.498Z", 2, 80, FALSE);
+INSERT INTO balances (timestamp, account_id, value)
+VALUES ("2022-09-12T16:59:35.498Z", 1, 1000);
+INSERT INTO balances (timestamp, account_id, value)
+VALUES ("2022-11-12T16:59:35.498Z", 2, 80);
+--
+--
 -- Add some transactions
 INSERT INTO transactions (timestamp, from_id, to_id, amount)
-VALUES ("2022-11-12T17:05:30.498Z", 1, 2, 300);
+VALUES ("2022-09-12T17:05:30.498Z", 1, 2, 300);
 --
 INSERT INTO transactions (timestamp, from_id, to_id, amount)
 VALUES ("2022-11-12T17:05:32.498Z", 2, 1, 230);
@@ -90,8 +92,8 @@ VALUES ("2022-11-12T17:05:32.498Z", 2, 1, 230);
 INSERT INTO transactions (timestamp, from_id, to_id, amount)
 VALUES ("2022-11-12T17:05:40.498Z", 3, 0, 999);
 -- Add balance
-INSERT INTO balances (account_id, value, computed)
-VALUES (1, 2000, FALSE);
+INSERT INTO balances (account_id, value)
+VALUES (1, 2000);
 --
 INSERT INTO transactions (from_id, to_id, amount)
 VALUES (1, 0, 777);

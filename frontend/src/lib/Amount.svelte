@@ -21,4 +21,4 @@
     $: symbol = symbols.has(currency) ? symbols.get(currency) : currency;
 </script>
 
-{format()}
+<span class="amount amount-{negative ? 'neg' : 'pos'}">{format()}</span>
