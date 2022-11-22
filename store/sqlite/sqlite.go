@@ -94,7 +94,7 @@ func (s *SQLiteStore) Seed() error {
 		Name:        "'world'",
 		DisplayName: "'World'",
 		EntityID:    1,
-		IsMoney:     true,
+		IsWorld:     true,
 		IsSystem:    true,
 	})
 	query += queries.InsertBalance(mt.Balance{
@@ -103,17 +103,14 @@ func (s *SQLiteStore) Seed() error {
 		Value:     &decimal.Zero,
 	})
 	query += queries.InsertEntity(mt.Entity{
-		ID:     1,
-		Name:   "'user1'",
-		System: false,
+		ID:   1,
+		Name: "'user1'",
 	})
 	query += queries.InsertAccount(mt.Account{
 		ID:          1,
 		Name:        "'acc1'",
 		DisplayName: "'Account 1'",
 		EntityID:    1,
-		IsMoney:     true,
-		IsSystem:    false,
 	})
 	value2 := decimal.New(2000, 0)
 	query += queries.InsertBalance(mt.Balance{
@@ -126,8 +123,6 @@ func (s *SQLiteStore) Seed() error {
 		Name:        "'acc2'",
 		DisplayName: "'Account 2'",
 		EntityID:    1,
-		IsMoney:     true,
-		IsSystem:    false,
 	})
 	query += queries.InsertBalance(mt.Balance{
 		AccountID: 2,
@@ -139,8 +134,6 @@ func (s *SQLiteStore) Seed() error {
 		Name:        "'acc3'",
 		DisplayName: "'Account 3'",
 		EntityID:    1,
-		IsMoney:     true,
-		IsSystem:    false,
 	})
 	value1 := decimal.New(1000, 0)
 	query += queries.InsertBalance(mt.Balance{
@@ -194,6 +187,15 @@ func (s *SQLiteStore) Seed() error {
 	if err != nil {
 		return err
 	}
+
+	s.AddCredit(mt.Credit{
+		Debtor:      mt.Entity{ID: 1},
+		Creditor:    mt.Entity{ID: 2},
+		Account:     mt.Account{ID: 3},
+		Amount:      decimal.New(43, 0),
+		Description: "first credit",
+		Operation:   mt.Operation{ID: 1},
+	})
 
 	return nil
 }

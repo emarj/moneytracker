@@ -97,12 +97,12 @@ func InsertEntity(e moneytracker.Entity) string {
 	)
 }
 
-const InsertAccountQuery string = `INSERT INTO accounts (id,entity_id,name,display_name,is_money,is_external,is_system)
+const InsertAccountQuery string = `INSERT INTO accounts (id,entity_id,name,display_name,is_system,is_world,is_credit)
 											   VALUES (?,?,?,?,?,?,?);`
 
 func InsertAccount(a moneytracker.Account) string {
 	return fmt.Sprintf(strings.ReplaceAll(InsertAccountQuery, "?", "%s"),
-		strconv.Itoa(a.ID), strconv.Itoa(a.EntityID), a.Name, a.DisplayName, strconv.FormatBool(a.IsMoney), strconv.FormatBool(a.IsExternal), strconv.FormatBool(a.IsSystem),
+		strconv.Itoa(a.ID), strconv.Itoa(a.EntityID), a.Name, a.DisplayName, strconv.FormatBool(a.IsSystem), strconv.FormatBool(a.IsWorld), strconv.FormatBool(a.IsCredit),
 	)
 }
 
