@@ -1,6 +1,6 @@
 
 
-const baseURL = 'http://10.99.1.25:3245/api'
+const baseURL = 'http://10.99.1.33:3245/api'
 
 export const getAccountsByEntity = (eID: Number) =>
     fetch(`${baseURL}/accounts/${eID}`)

@@ -1,7 +1,7 @@
 CREATE TABLE entities (
 	id INTEGER,
 	name TEXT NOT NULL,
-	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
+	is_system INTEGER NOT NULL,
 	PRIMARY KEY(id)
 );
 CREATE TABLE accounts (
@@ -10,9 +10,9 @@ CREATE TABLE accounts (
 	entity_id INTEGER NOT NULL,
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
-	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
-	is_world INTEGER NOT NULL CHECK (is_world IN (0, 1)),
-	is_credit INTEGER NOT NULL CHECK (is_credit IN (0, 1)),
+	is_money INTEGER NOT NULL,
+	is_external INTEGER NOT NULL,
+	is_system INTEGER NOT NULL,
 	PRIMARY KEY(id)
 );
 CREATE TABLE balances (
@@ -35,15 +35,5 @@ CREATE TABLE operations (
 	created_by_id INTEGER NOT NULL,
 	description TEXT NOT NULL,
 	category_id INTEGER NOT NULL DEFAULT 0,
-	PRIMARY KEY(id)
-);
-CREATE TABLE credits (
-	id INTEGER,
-	debtor_id INTEGER NOT NULL,
-	creditor_id INTEGER NOT NULL,
-	account_id INTEGER NOT NULL,
-	amount INTEGER NOT NULL,
-	description TEXT,
-	operation_id INTEGER,
 	PRIMARY KEY(id)
 );
