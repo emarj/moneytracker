@@ -3,11 +3,10 @@
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
+  import { entityID } from "../../entity";
 
-  const eID = 1;
-
-  const queryResult = useQuery(["accounts", eID], () =>
-    getAccountsByEntity(eID)
+  const queryResult = useQuery(["accounts", $entityID], () =>
+    getAccountsByEntity($entityID)
   );
 </script>
 

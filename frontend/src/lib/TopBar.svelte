@@ -10,6 +10,7 @@
     <button
         class="refresh"
         on:click={() => {
+            console.log(`refreshing, invalidating queries`);
             queryClient.invalidateQueries();
         }}
     >

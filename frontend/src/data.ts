@@ -1,6 +1,10 @@
 
 
-const baseURL = 'http://10.99.1.33:3245/api'
+const baseURL = 'http://10.99.1.25:3245/api'
+
+export const getEntities = () =>
+    fetch(`${baseURL}/entities/`)
+        .then(res => res.json())
 
 export const getAccountsByEntity = (eID: Number) =>
     fetch(`${baseURL}/accounts/${eID}`)
@@ -21,3 +25,5 @@ export const getTransactionsByAccount = (aID: Number) =>
 export const getOperationsByEntity = (eID: Number) =>
     fetch(`${baseURL}/operations/entity/${eID}`)
         .then(res => res.json())
+
+

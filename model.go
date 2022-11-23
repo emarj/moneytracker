@@ -5,20 +5,20 @@ import (
 )
 
 type Entity struct {
-	ID     int    `json:"id"`
-	Name   string `json:"name"`
-	System bool   `json:"is_system"`
-	//External bool //?
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	System   bool   `json:"is_system"`
+	External bool   // For example a friend that owes me
 }
 
 type Account struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
-	EntityID    int    `json:"entity_id"`   // TODO: Allow for shared accounts
-	IsMoney     bool   `json:"is_money"`    // Is it money or assets?
-	IsExternal  bool   `json:"is_external"` // Allow for direct balance manipulation
-	IsSystem    bool   `json:"is_system"`   // Is this a system account
+	EntityID    int    `json:"entity_id"` // TODO: Allow for shared accounts
+	IsSystem    bool   `json:"is_system"` // Was this created by system or by user?
+	IsWorld     bool   `json:"is_world"`
+	IsCredit    bool   `json:"is_credits"`
 }
 
 type Balance struct {
@@ -33,6 +33,16 @@ type Transaction struct {
 	To        Account         `json:"to"`
 	Amount    decimal.Decimal `json:"amount"`
 	Operation Operation       `json:"operation"`
+}
+
+type Credit struct {
+	ID          int             `json:"id"`
+	Debtor      Entity          `json:"debtor"`
+	Creditor    Entity          `json:"creditor"`
+	Account     Account         `json:"account"`
+	Amount      decimal.Decimal `json:"amount"`
+	Description string          `json:"description"`
+	Operation   Operation       `json:"operation"`
 }
 
 type Operation struct {

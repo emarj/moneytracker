@@ -2,9 +2,9 @@
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import AccountTag from "../AccountTag.svelte";
     import Amount from "../Amount.svelte";
+    import { entityID } from "../../entity";
 
     export let transactions = [];
-    export let eID;
 </script>
 
 <div>
@@ -24,7 +24,7 @@
                     >
                     <Amount
                         value={t.amount}
-                        negative={isExpense(t)}
+                        negative={isExpense(t, $entityID)}
                         hide_plus={isInternal(t)}
                     />
                 </li>

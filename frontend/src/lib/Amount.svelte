@@ -3,22 +3,21 @@
     export let negative = false;
     export let hide_plus = true;
 
-    export let currency = "euro";
+    export let currency = "EUR";
 
-    let symbols = new Map([
-        ["euro", "€"],
-        ["dollar", "$"],
-    ]);
+    let fmtString;
 
-    const format = () => {
+    $: {
         let sign = "";
         if (negative) sign = "-";
         else if (!hide_plus) sign = "+";
 
-        return `${sign}${value}${symbol}`;
-    };
-
-    $: symbol = symbols.has(currency) ? symbols.get(currency) : currency;
+        fmtString = `${sign}${value.toLocaleString("it-IT", {
+            style: "currency",
+            currency: "EUR",
+            minimimunFractionDigits: 2,
+        })}`;
+    }
 </script>
 
-<span class="amount amount-{negative ? 'neg' : 'pos'}">{format()}</span>
+<span class="amount amount-{negative ? 'neg' : 'pos'}">{fmtString}</span>

@@ -32,10 +32,10 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 
 	var b mt.Balance
 
-	err := s.db.QueryRow(`SELECT last_balance + balance AS balance
+	err := s.db.QueryRow(`SELECT  last_balance + balance AS balance
 	FROM (
 			(
-				SELECT value AS last_balance
+				SELECT COUNT(),IFNULL(value, 0) AS last_balance
 				FROM balances
 				WHERE account_id = ?
 				ORDER BY timestamp DESC
@@ -57,12 +57,18 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 						to_id = ?
 						OR from_id = ?
 					)
-					AND op.timestamp > (
-						SELECT timestamp
-						FROM balances
-						WHERE account_id = ?
-						ORDER BY timestamp DESC
-						LIMIT 1
+					AND op.timestamp > (SELECT timestamp
+					FROM (
+							SELECT COUNT(),
+								IFNULL(
+									timestamp,
+									STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '-100 year')
+								) AS timestamp
+							FROM balances
+							WHERE account_id = ?
+							ORDER BY timestamp DESC
+							LIMIT 1
+						)
 					)
 			)
 		)`, aID, aID, aID, aID, aID, aID).Scan(

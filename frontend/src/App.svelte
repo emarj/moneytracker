@@ -2,10 +2,11 @@
   import { QueryClient, QueryClientProvider } from "@sveltestack/svelte-query";
   import BottomBar from "./lib/BottomBar.svelte";
   import Home from "./Home.svelte";
-  import Status from "./lib/Status.svelte";
   import Router from "svelte-spa-router";
   import AddOperation from "./AddOperation.svelte";
   import TopBar from "./lib/TopBar.svelte";
+  import EntitySwitcher from "./lib/EntitySwitcher.svelte";
+  import { entityID } from "./entity";
 
   const queryClient = new QueryClient();
 
@@ -18,8 +19,12 @@
 
 <QueryClientProvider client={queryClient}>
   <TopBar />
+
   <main>
-    <Router {routes} />
+    {#key $entityID}
+      <EntitySwitcher />
+      <Router {routes} />
+    {/key}
   </main>
   <BottomBar />
 </QueryClientProvider>

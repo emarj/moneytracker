@@ -1,22 +1,22 @@
 CREATE TABLE entities (
 	id INTEGER,
 	name TEXT NOT NULL,
-	is_system INTEGER NOT NULL,
+	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
 	PRIMARY KEY(id)
 );
 CREATE TABLE accounts (
 	id INTEGER,
-	created TEXT DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	created TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	entity_id INTEGER NOT NULL,
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
-	is_money INTEGER NOT NULL,
-	is_external INTEGER NOT NULL,
-	is_system INTEGER NOT NULL,
+	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
+	is_world INTEGER NOT NULL CHECK (is_world IN (0, 1)),
+	is_credit INTEGER NOT NULL CHECK (is_credit IN (0, 1)),
 	PRIMARY KEY(id)
 );
 CREATE TABLE balances (
-	timestamp TEXT DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	account_id INTEGER NOT NULL,
 	value TEXT NOT NULL,
 	PRIMARY KEY(account_id, timestamp)
@@ -31,7 +31,7 @@ CREATE TABLE transactions (
 );
 CREATE TABLE operations (
 	id INTEGER,
-	timestamp TEXT DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	created_by_id INTEGER NOT NULL,
 	description TEXT NOT NULL,
 	category_id INTEGER NOT NULL DEFAULT 0,

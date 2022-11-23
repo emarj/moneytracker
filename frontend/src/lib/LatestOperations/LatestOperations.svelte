@@ -5,21 +5,21 @@
     import { getOperationsByEntity } from "../../data";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";
-
-    const eID = 1;
+    import { entityID } from "../../entity";
 
     const queryClient = useQueryClient();
-    const operationsQuery = useQuery(["operations", "entity", eID], () =>
-        getOperationsByEntity(eID)
+    const operationsQuery = useQuery(["operations", "entity", $entityID], () =>
+        getOperationsByEntity($entityID)
     );
 
     const computeTotal = (op) => {
         if (op.transactions) {
             return op.transactions.reduce((sum, t) => {
-                if (isExpense(t, eID)) {
-                    return sum - t.amount;
-                } else if (isIncome(t, eID)) {
-                    return sum + t.amount;
+                const amount = new Number(t.amount);
+                if (isExpense(t, $entityID)) {
+                    return sum - amount;
+                } else if (isIncome(t, $entityID)) {
+                    return sum + amount;
                 } else {
                     return sum;
                 }
@@ -42,7 +42,7 @@
         Error: {$operationsQuery.error?.message}
     {:else if $operationsQuery.data}
         <ol>
-            {#each $operationsQuery.data as op}
+            {#each $operationsQuery.data as op (op.id)}
                 {@const total = computeTotal(op)}
 
                 <li class:expense={total < 0} class:income={total > 0}>
@@ -59,10 +59,7 @@
                             />
                         </span>
                     {/if}
-                    <OperationTransactions
-                        {eID}
-                        transactions={op.transactions}
-                    />
+                    <OperationTransactions transactions={op.transactions} />
                 </li>
             {/each}
         </ol>
@@ -85,8 +82,8 @@
             background: rgb(238, 238, 238);
             background: linear-gradient(
                 180deg,
-                var(--top-color) 5%,
-                rgb(238, 238, 238) 3%
+                var(--top-color) 5px,
+                rgb(238, 238, 238) 5px
             );
             box-shadow: 10px 10px 10px rgba(192, 192, 192, 0.4);
             position: relative;
