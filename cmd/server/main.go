@@ -1,7 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"ronche.se/moneytracker"
 	"ronche.se/moneytracker/store/sqlite"
@@ -24,6 +30,24 @@ func main() {
 
 	srv := moneytracker.NewServer(s)
 
-	log.Fatal(srv.Start("0.0.0.0:3245"))
+	go func() {
+		if err := srv.Start(":3245"); err != nil && err != http.ErrServerClosed {
+			log.Fatal("shutting down the server")
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
+	// Use a buffered channel to avoid missing signals as recommended for signal.Notify
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+
+	fmt.Println("\nShutting down...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Stop(ctx); err != nil {
+		log.Fatal(err)
+	}
 
 }

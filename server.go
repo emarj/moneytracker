@@ -1,6 +1,7 @@
 package moneytracker
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"net/http"
@@ -22,6 +23,8 @@ func NewServer(store Store) *Server {
 
 	s := &Server{store: store, router: echo.New()}
 
+	s.router.HideBanner = true
+
 	// Middlewares
 	//s.router.Pre(middleware.AddTrailingSlash())
 	s.router.Use(middleware.Logger())
@@ -37,26 +40,32 @@ func NewServer(store Store) *Server {
 
 	s.router.GET("/*", contentHandler, contentRewrite)
 
+	apiGroup := s.router.Group("api")
+
 	// API Routes
-	s.router.GET("/api/entity/:eid", s.getEntity)
-	s.router.GET("/api/entities/", s.getEntities)
-	s.router.GET("/api/account/:aid", s.getAccount)
-	s.router.GET("/api/accounts/:eid", s.getAccountsByEntity)
-	s.router.GET("/api/balances/:aid", s.getBalances)
-	s.router.POST("/api/balance/", s.addBalance)
-	s.router.GET("/api/balance/:aid", s.getBalance)
-	//s.router.GET("/api/transactions", s.getTransactions)
-	s.router.GET("/api/operations/entity/:eid", s.getOperationsByEntity)
-	s.router.GET("/api/transactions/account/:aid", s.getTransactionsByAccount)
-	s.router.GET("/api/operation/:opid", s.getOperation)
-	s.router.POST("/api/operation/", s.addOperation)
-	//s.router.DELETE("/api/transaction/", s.deleteTransaction)
+	apiGroup.GET("/entity/:eid", s.getEntity)
+	apiGroup.GET("/entities/", s.getEntities)
+	apiGroup.GET("/account/:aid", s.getAccount)
+	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
+	apiGroup.GET("/balances/:aid", s.getBalances)
+	apiGroup.POST("/balance/", s.addBalance)
+	apiGroup.GET("/balance/:aid", s.getBalance)
+	//apiGroup.GET("/transactions", s.getTransactions)
+	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
+	apiGroup.GET("/transactions/account/:aid", s.getTransactionsByAccount)
+	apiGroup.GET("/operation/:opid", s.getOperation)
+	apiGroup.POST("/operation/", s.addOperation)
+	//apiGroup.DELETE("/transaction/", s.deleteTransaction)
 
 	return s
 }
 
 func (s *Server) Start(url string) error {
 	return s.router.Start(url)
+}
+
+func (s *Server) Stop(ctx context.Context) error {
+	return s.router.Shutdown(ctx)
 }
 
 // Handlers
