@@ -44,7 +44,8 @@
         <ol>
             {#each $operationsQuery.data as op}
                 {@const total = computeTotal(op)}
-                <li>
+
+                <li class:expense={total < 0} class:income={total > 0}>
                     <span class="date">{DateFMT(op.timestamp)}</span>
                     <span class="desc">
                         {op.description}:
@@ -75,27 +76,33 @@
         padding: 0;
 
         & > li {
+            --top-color: rgb(185, 185, 185);
+
             width: 100%;
             padding: 1rem 1rem 0.5rem;
             border-radius: 10px;
             margin-bottom: 1em;
-            background-color: rgb(238, 238, 238);
-            border: 3px solid transparent;
-            box-shadow: 0 10px 10px rgba(192, 192, 192, 0.4);
+            background: rgb(238, 238, 238);
+            background: linear-gradient(
+                180deg,
+                var(--top-color) 5%,
+                rgb(238, 238, 238) 3%
+            );
+            box-shadow: 10px 10px 10px rgba(192, 192, 192, 0.4);
             position: relative;
 
             font-size: 1.1rem;
 
-            .date {
+            &.expense {
+                --top-color: red;
+            }
+
+            &.income {
+                --top-color: green;
             }
 
             :global(.amount) {
                 font-weight: bold;
-            }
-
-            ul {
-                padding-left: 2rem;
-                font-size: 1rem;
             }
         }
     }
