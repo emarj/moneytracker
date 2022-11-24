@@ -31,7 +31,7 @@ func main() {
 	srv := moneytracker.NewServer(s)
 
 	go func() {
-		if err := srv.Start(":3245"); err != nil && err != http.ErrServerClosed {
+		if err := srv.Start("localhost:3245"); err != nil && err != http.ErrServerClosed {
 			log.Fatal("shutting down the server")
 		}
 	}()

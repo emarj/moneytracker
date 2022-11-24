@@ -7,7 +7,7 @@ CREATE TABLE entities (
 CREATE TABLE accounts (
 	id INTEGER,
 	created TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
-	entity_id INTEGER NOT NULL,
+	owner_id INTEGER NOT NULL,
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
 	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),

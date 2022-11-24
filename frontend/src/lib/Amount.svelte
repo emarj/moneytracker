@@ -3,8 +3,6 @@
     export let negative = false;
     export let hide_plus = true;
 
-    export let currency = "EUR";
-
     let fmtString;
 
     $: {
@@ -12,10 +10,9 @@
         if (negative) sign = "-";
         else if (!hide_plus) sign = "+";
 
-        fmtString = `${sign}${value.toLocaleString("it-IT", {
+        fmtString = `${sign}${new Number(value).toLocaleString("it-IT", {
             style: "currency",
             currency: "EUR",
-            minimimunFractionDigits: 2,
         })}`;
     }
 </script>

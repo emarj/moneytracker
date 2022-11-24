@@ -6,7 +6,11 @@
 
 <nav>
     <button class="back" on:click={pop}>← Back </button>
-    <img class="logo" src="/moneytracker.png" />
+
+    <a href="/#/">
+        <img class="logo" src="/moneytracker.png" alt="MoneyTracker" />
+    </a>
+
     <button
         class="refresh"
         on:click={() => {
@@ -42,6 +46,16 @@
         background-color: whitesmoke;
         display: flex;
         justify-content: space-between;
+
+        & > * {
+            display: block;
+            height: 100%;
+        }
+
+        & > a > img {
+            display: block;
+            height: 100%;
+        }
 
         & > *:first-child,
         & > *:last-child {

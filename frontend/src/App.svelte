@@ -26,6 +26,7 @@
       <Router {routes} />
     {/key}
   </main>
+
   <BottomBar />
 </QueryClientProvider>
 

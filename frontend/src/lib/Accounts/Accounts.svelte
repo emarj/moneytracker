@@ -32,7 +32,7 @@
     list-style: none;
     display: flex;
     gap: 1rem;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 </style>

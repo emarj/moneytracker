@@ -1,5 +1,5 @@
-export const isInternal = (t) => t.from.entity_id === t.to.entity_id;
+export const isInternal = (t) => t.from.owner.id === t.to.owner.id;
 export const isExpense = (t, eID) =>
-    t.from.entity_id !== t.to.entity_id && t.from.entity_id === eID;
+    t.from.owner.id !== t.to.owner.id && t.from.owner.id === eID;
 export const isIncome = (t, eID) =>
-    t.from.entity_id !== t.to.entity_id && t.to.entity_id === eID;
+    t.from.owner.id !== t.to.owner.id && t.to.owner.id === eID;

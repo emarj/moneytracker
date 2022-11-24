@@ -36,7 +36,7 @@ func (t DateTime) Value() (driver.Value, error) {
 }
 
 func (t DateTime) String() string {
-	return t.Format(DateTimeFormat)
+	return t.UTC().Format(DateTimeFormat)
 }
 
 func (t *DateTime) UnmarshalJSON(json []byte) error {
@@ -53,45 +53,5 @@ func (t *DateTime) UnmarshalJSON(json []byte) error {
 }
 
 func (t DateTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.Format(DateTimeFormat))
-}
-
-type Date struct{ time.Time }
-
-func (t *Date) Scan(v interface{}) error {
-
-	var s string
-	switch z := v.(type) {
-	case []uint8:
-		s = string(z)
-	case string:
-		s = z
-	default:
-		return errors.New("cannot convert time to string")
-	}
-
-	vt, err := time.Parse("2006-01-02", s)
-	if err != nil {
-		return err
-	}
-	t.Time = vt
-	return nil
-}
-
-func (t Date) Value() (driver.Value, error) {
-	return driver.Value(t.Format("2006-01-02")), nil
-}
-
-func (t *Date) UnmarshalJSON(json []byte) error {
-	str := string(json[1 : len(json)-1])
-	vt, err := time.Parse("2006-01-02", str)
-	if err != nil {
-		return err
-	}
-	t.Time = vt
-	return nil
-}
-
-func (t Date) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.Format("2006-01-02"))
+	return json.Marshal(t.UTC().Format(DateTimeFormat))
 }

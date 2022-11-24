@@ -19,7 +19,7 @@
     };
 </script>
 
-<div>
+<div class:fetching={$transactionsQuery.isFetching}>
     {#if $transactionsQuery.isLoading}
         Loading...
     {:else if $transactionsQuery.error}
@@ -44,6 +44,9 @@
 </div>
 
 <style lang="scss">
+    div.fetching {
+        opacity: 0.5;
+    }
     table {
         font-family: monospace;
         font-size: 0.9rem;

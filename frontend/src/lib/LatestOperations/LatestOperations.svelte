@@ -12,6 +12,8 @@
         getOperationsByEntity($entityID)
     );
 
+    let expanded = false;
+
     const computeTotal = (op) => {
         if (op.transactions) {
             return op.transactions.reduce((sum, t) => {
@@ -45,7 +47,13 @@
             {#each $operationsQuery.data as op (op.id)}
                 {@const total = computeTotal(op)}
 
-                <li class:expense={total < 0} class:income={total > 0}>
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <li
+                    on:click={() => (expanded = !expanded)}
+                    class:expense={total < 0}
+                    class:income={total > 0}
+                    class:expanded
+                >
                     <span class="date">{DateFMT(op.timestamp)}</span>
                     <span class="desc">
                         {op.description}:
@@ -59,7 +67,9 @@
                             />
                         </span>
                     {/if}
-                    <OperationTransactions transactions={op.transactions} />
+                    <div class="transactions">
+                        <OperationTransactions transactions={op.transactions} />
+                    </div>
                 </li>
             {/each}
         </ol>
@@ -100,6 +110,14 @@
 
             :global(.amount) {
                 font-weight: bold;
+            }
+
+            .transactions {
+                display: none;
+            }
+
+            &.expanded .transactions {
+                display: block;
             }
         }
     }

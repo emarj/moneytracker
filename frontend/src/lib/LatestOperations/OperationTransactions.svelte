@@ -12,15 +12,9 @@
         <ul>
             {#each transactions as t}
                 <li>
-                    <span class="fromto"
-                        ><AccountTag
-                            name={t.from.display_name}
-                            id={t.from.id}
-                        /> →
-                        <AccountTag
-                            name={t.to.display_name}
-                            id={t.to.id}
-                        /></span
+                    <span class="fromto">
+                        <AccountTag account={t.from} eID={$entityID} /> →
+                        <AccountTag account={t.to} eID={$entityID} /></span
                     >
                     <Amount
                         value={t.amount}

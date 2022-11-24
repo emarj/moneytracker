@@ -11,7 +11,7 @@
 </script>
 
 <div class="card">
-    <h3>{account.display_name}</h3>
+    <h3>{account.display_name}{account.is_credit ? "*" : ""}</h3>
     <button class="more">
         <svg
             xmlns="http://www.w3.org/2000/svg"

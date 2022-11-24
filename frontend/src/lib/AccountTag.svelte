@@ -1,15 +1,19 @@
 <script>
     import AccountBalance from "./Accounts/AccountBalance.svelte";
 
-    export let name;
-    export let id;
+    export let account;
+    export let eID;
 </script>
 
 <span>
-    <span class="name">{name}</span>
+    <span class="name"
+        >{account.owner.id !== eID
+            ? account.owner.name + ":"
+            : ""}{account.name}</span
+    >
     <div>
-        {name}
-        <AccountBalance {id} />
+        {account.display_name}
+        <AccountBalance id={account.id} />
     </div>
 </span>
 

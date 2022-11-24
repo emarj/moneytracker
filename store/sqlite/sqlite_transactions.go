@@ -48,7 +48,8 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 		if err = rows.Scan(
 			&t.ID, &t.From.ID, &t.To.ID, &t.Amount, &t.Operation.ID,
 			&op.ID, &op.Timestamp, &op.CreatedByID, &op.Description, &op.CategoryID,
-			&t.From.DisplayName, &t.To.DisplayName, &t.From.EntityID, &t.To.EntityID,
+			&t.From.Name, &t.From.DisplayName, &t.To.Name, &t.To.DisplayName,
+			&t.From.Owner.ID, &t.From.Owner.Name, &t.To.Owner.ID, &t.To.Owner.Name,
 		); err != nil {
 			return nil, err
 		}
@@ -127,7 +128,7 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (int, error) {
 	}
 
 	for _, t := range op.Transactions {
-		_, err = q.Exec(t.From.ID, t.To.ID, t.Amount, t.Operation.ID)
+		_, err = q.Exec(t.From.ID, t.To.ID, t.Amount, opID)
 		if err != nil {
 			return -1, err
 		}

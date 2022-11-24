@@ -15,10 +15,11 @@ type Account struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
-	EntityID    int    `json:"entity_id"` // TODO: Allow for shared accounts
+	EntityID    int    `json:"owner_id"`
+	Owner       Entity `json:"owner"`     // TODO: Allow for shared accounts
 	IsSystem    bool   `json:"is_system"` // Was this created by system or by user?
 	IsWorld     bool   `json:"is_world"`
-	IsCredit    bool   `json:"is_credits"`
+	IsCredit    bool   `json:"is_credit"`
 }
 
 type Balance struct {

@@ -1,6 +1,6 @@
 
 
-const baseURL = 'http://10.99.1.25:3245/api'
+const baseURL = 'http://localhost:3245/api'
 
 export const getEntities = () =>
     fetch(`${baseURL}/entities/`)

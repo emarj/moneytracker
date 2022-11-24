@@ -30,16 +30,22 @@ func GetTransactionByAccount(aID int) string {
 
 const GetOperationByEntityQuery string = `SELECT  t.*,
 												op.*,
-												fa.display_name AS from_name,
-												ta.display_name AS to_name,
-												fa.entity_id AS from_entity_id,
-												ta.entity_id AS to_entity_id
+												fa.name AS from_name,
+												fa.display_name AS from_display_name,
+												ta.name AS to_name,
+												ta.display_name AS to_display_name,
+												fe.id,
+												fe.name,
+												te.id,
+												te.name
 												FROM transactions t
 													INNER JOIN operations op ON t.operation_id = op.id
 													INNER JOIN accounts AS fa ON t.from_id = fa.id
 													INNER JOIN accounts AS ta ON t.to_id = ta.id
-												WHERE from_entity_id = ?
-													OR to_entity_id = ?
+													INNER JOIN entities AS fe ON fa.owner_id = fe.id
+													INNER JOIN entities AS te ON ta.owner_id = te.id
+												WHERE fa.owner_id = ?
+													OR ta.owner_id = ?
 												ORDER BY op.timestamp DESC,op.id,t.id;`
 
 const GetOperationQuery string = `SELECT  			op.id,
@@ -98,7 +104,7 @@ func InsertEntity(e moneytracker.Entity) string {
 	)
 }
 
-const InsertAccountQuery string = `INSERT INTO accounts (id,entity_id,name,display_name,is_system,is_world,is_credit)
+const InsertAccountQuery string = `INSERT INTO accounts (id,owner_id,name,display_name,is_system,is_world,is_credit)
 											   VALUES (?,?,?,?,?,?,?);`
 
 func InsertAccount(a moneytracker.Account) string {
