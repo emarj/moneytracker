@@ -3,7 +3,11 @@
 const baseURL = 'http://localhost:3245/api'
 
 export const getEntities = () =>
-    fetch(`${baseURL}/entities/`)
+    fetch(`${baseURL}/entities`)
+        .then(res => res.json())
+
+export const getAccounts = () =>
+    fetch(`${baseURL}/accounts`)
         .then(res => res.json())
 
 export const getAccountsByEntity = (eID: Number) =>

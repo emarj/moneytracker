@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
     import { useQuery } from "@sveltestack/svelte-query";
     import { getAccountsByEntity } from "../../data";
     import { entityID } from "../../entity";
 
-    const queryResult = useQuery(["accounts", $entityID], () =>
+    const accountsQuery = useQuery(["accounts", $entityID], () =>
         getAccountsByEntity($entityID)
     );
     export let op;
@@ -14,20 +14,22 @@
 
     {#each op.transactions as t}
         <fieldset>
-            {#if $queryResult.isLoading}
+            {#if $accountsQuery.isLoading}
                 <span>Loading...</span>
-            {:else if $queryResult.error}
-                <span>An error has occurred: {$queryResult.error.message}</span>
+            {:else if $accountsQuery.error}
+                <span
+                    >An error has occurred: {$accountsQuery.error.message}</span
+                >
             {:else}
                 <select>
-                    {#each $queryResult.data as account}
+                    {#each $accountsQuery.data as account}
                         <option value={account.id}
                             >{account.display_name}</option
                         >
                     {/each}
                 </select>
                 <select>
-                    {#each $queryResult.data as account}
+                    {#each $accountsQuery.data as account}
                         <option value={account.id}
                             >{account.display_name}</option
                         >

@@ -6,7 +6,7 @@ import (
 
 func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  id,name FROM accounts`)
+	rows, err := s.db.Query(`SELECT  a.id,a.name,a.display_name,a.is_credit,e.* FROM accounts a INNER JOIN entities e WHERE a.owner_id = e.id`)
 	if err != nil {
 		return nil, err
 	}
@@ -15,7 +15,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 	var a mt.Account
 
 	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name); err != nil {
+		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.IsCredit, &a.Owner.ID, &a.Owner.Name, &a.Owner.System); err != nil {
 			return nil, err
 		}
 

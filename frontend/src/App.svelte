@@ -11,7 +11,6 @@
   const queryClient = new QueryClient();
 
   const routes = {
-    // Exact path
     "/": Home,
     "/add": AddOperation,
   };

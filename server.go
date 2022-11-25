@@ -44,8 +44,9 @@ func NewServer(store Store) *Server {
 
 	// API Routes
 	apiGroup.GET("/entity/:eid", s.getEntity)
-	apiGroup.GET("/entities/", s.getEntities)
+	apiGroup.GET("/entities", s.getEntities)
 	apiGroup.GET("/account/:aid", s.getAccount)
+	apiGroup.GET("/accounts", s.getAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
 	apiGroup.GET("/balances/:aid", s.getBalances)
 	apiGroup.POST("/balance/", s.addBalance)
@@ -103,6 +104,15 @@ func (s *Server) getAccount(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, a)
+}
+
+func (s *Server) getAccounts(c echo.Context) error {
+
+	el, err := s.store.GetAccounts()
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, el)
 }
 
 func (s *Server) getAccountsByEntity(c echo.Context) error {
