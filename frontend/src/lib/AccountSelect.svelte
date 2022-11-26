@@ -1,4 +1,7 @@
 <script lang="ts">
+    import CircularProgress from "@smui/circular-progress";
+    import Select, { Option } from "@smui/select";
+
     import { useQuery } from "@sveltestack/svelte-query";
     import { getAccounts } from "../data";
     import AccountName from "./AccountName.svelte";
@@ -8,10 +11,13 @@
     export let neg = false;
     export let credit = false;
     export let firstSelected = true;
+    export let disabled = false;
 
     export let owner_id = null;
 
     export let value;
+    export let label = "Account";
+    export let helperText = "Select an account";
 
     let accounts = [];
 
@@ -22,19 +28,27 @@
                 (a.owner.id != owner_id && neg)) &&
             ((a.is_credit && credit) || (!a.is_credit && !credit))
     );
-
-    $: if (firstSelected && accounts && accounts.length > 0)
-        value = accounts[0].id;
 </script>
 
-{#if $accountsQuery.isLoading}
-    <span>Loading...</span>
-{:else if $accountsQuery.error}
-    <span>An error has occurred: {$accountsQuery.error.message}</span>
-{:else}
-    <select bind:value>
-        {#each accounts as account}
-            <option value={account.id}><AccountName {account} /></option>
-        {/each}
-    </select>
-{/if}
+<div>
+    {#if $accountsQuery.isLoading}
+        <span
+            ><CircularProgress
+                style="height: 32px; width: 32px;"
+                indeterminate
+            /></span
+        >
+    {:else if $accountsQuery.error}
+        <span>An error has occurred: {$accountsQuery.error.message}</span>
+    {:else}
+        <Select variant="outlined" bind:value {label} {disabled}>
+            {#if !firstSelected}
+                <Option value={null} />
+            {/if}
+            {#each accounts as account (account.id)}
+                <Option value={account.id}><AccountName {account} /></Option>
+            {/each}
+            <svelte:fragment slot="helperText">{helperText}</svelte:fragment>
+        </Select>
+    {/if}
+</div>

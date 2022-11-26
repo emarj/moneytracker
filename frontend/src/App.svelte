@@ -3,16 +3,16 @@
   import BottomBar from "./lib/BottomBar.svelte";
   import Home from "./Home.svelte";
   import Router from "svelte-spa-router";
-  import AddOperation from "./AddOperation.svelte";
+  import New from "./New.svelte";
   import TopBar from "./lib/TopBar.svelte";
   import EntitySwitcher from "./lib/EntitySwitcher.svelte";
-  import { entityID } from "./entity";
+  import { entityID } from "./store";
 
   const queryClient = new QueryClient();
 
   const routes = {
     "/": Home,
-    "/add": AddOperation,
+    "/add": New,
   };
 </script>
 

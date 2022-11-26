@@ -40,7 +40,7 @@
         z-index: 999;
         top: 0;
         left: 0;
-        width: 100vw;
+        width: 100%;
         height: 60px;
         box-shadow: 0px 1px 15px 0px rgba(0, 0, 0, 0.75);
         background-color: whitesmoke;
@@ -59,7 +59,7 @@
 
         & > *:first-child,
         & > *:last-child {
-            width: 30vw;
+            width: 30%;
         }
 
         & > *:first-child {

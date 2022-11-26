@@ -1,5 +1,5 @@
 <script>
-    import { entityID } from "../entity";
+    import { entityID } from "../store";
     import EntitySelect from "./EntitySelect.svelte";
 </script>
 

@@ -1,11 +1,13 @@
-<script>
+<script lang="ts">
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { DateFMT } from "../../util/utils";
     import { getOperationsByEntity } from "../../data";
     import Amount from "../Amount.svelte";
-    import OperationTransactions from "./OperationTransactions.svelte";
-    import { entityID } from "../../entity";
+    import OperationTransactions from "../Operation/OperationTransactions.svelte";
+    import { entityID } from "../../store";
+    import CircularProgress from "@smui/circular-progress";
+    import Operation from "../Operation/Operation.svelte";
 
     const queryClient = useQueryClient();
     const operationsQuery = useQuery(["operations", "entity", $entityID], () =>
@@ -13,21 +15,6 @@
     );
 
     let expanded = false;
-
-    const computeTotal = (op) => {
-        if (op.transactions) {
-            return op.transactions.reduce((sum, t) => {
-                const amount = new Number(t.amount);
-                if (isExpense(t, $entityID)) {
-                    return sum - amount;
-                } else if (isIncome(t, $entityID)) {
-                    return sum + amount;
-                } else {
-                    return sum;
-                }
-            }, 0);
-        }
-    };
 </script>
 
 <div>
@@ -39,39 +26,16 @@
         }}>Refresh</button
     >-->
     {#if $operationsQuery.isLoading}
-        Loading...
+        <CircularProgress style="height: 32px; width: 32px;" indeterminate />
     {:else if $operationsQuery.error}
         Error: {$operationsQuery.error?.message}
     {:else if $operationsQuery.data}
         <ol>
             {#each $operationsQuery.data as op (op.id)}
-                {@const total = computeTotal(op)}
-
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <li
-                    on:click={() => (expanded = !expanded)}
-                    class:expense={total < 0}
-                    class:income={total > 0}
-                    class:expanded
-                >
-                    <span class="date">{DateFMT(op.timestamp)}</span>
-                    <span class="desc">
-                        {op.description}:
-                    </span>
-                    {#if op.transactions && total !== 0}
-                        <span>
-                            <Amount
-                                value={Math.abs(total)}
-                                negative={total < 0}
-                                hide_plus={false}
-                            />
-                        </span>
-                    {/if}
-                    <div class="transactions">
-                        <OperationTransactions transactions={op.transactions} />
-                    </div>
-                </li>
-            {/each}
+                <li on:click={() => (expanded = !expanded)} class:expanded>
+                    <Operation {op} />
+                </li>{/each}
         </ol>
     {/if}
 </div>

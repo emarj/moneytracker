@@ -1,136 +1,166 @@
 <script lang="ts">
+    import Textfield from "@smui/textfield";
+    import Slider from "@smui/slider";
+    import Switch from "@smui/switch";
+    import FormField from "@smui/form-field";
+
+    import Button, { Label } from "@smui/button";
     import AccountSelect from "../AccountSelect.svelte";
     import EntitySelect from "../EntitySelect.svelte";
-    import { entityID } from "../../entity";
-
-    type Expense = {
-        amount: number;
-        description: string;
-        shared: boolean;
-        sharedAmount: number;
-        account: number;
-        credAccount: number;
-        debAccount: number;
-        sharedWith: number;
-    };
-
-    const defaultExpense: Expense = {
-        amount: null,
-        description: "",
-        shared: true,
-        sharedAmount: null,
-        account: 1,
-        credAccount: null,
-        debAccount: null,
-        sharedWith: null,
-    };
+    import { entityID, defaultExpense } from "../../store";
+    import type { Expense } from "../../model";
+    import { ExpenseToOperation } from "../../model";
+    import Operation from "../Operation/Operation.svelte";
 
     const defaultQuota = 50;
 
-    let e: Expense;
-    let quota: number;
-    let alreadyPaid: boolean;
+    export let e: Expense = structuredClone(defaultExpense);
+    let quota: number = defaultQuota;
+    let alreadyPaid: boolean = false;
 
-    const reset = () => {
+    const reset = (event) => {
+        event?.preventDefault();
         e = structuredClone(defaultExpense); //without structuredClone e is just a reference
         quota = defaultQuota;
         alreadyPaid = false;
     };
 
-    reset();
-
     $: e.sharedAmount = e.amount ? (e.amount * quota) / 100 : null;
+
+    let op;
+    let submitted = false;
 </script>
 
 <form>
-    <input type="datetime-local" />
-    <input type="description" placeholder="Description" />
+    <Textfield
+        variant="outlined"
+        bind:value={e.description}
+        label="Datetime"
+        style="width: 100%;"
+        type="datetime-local"
+    />
+    <Textfield
+        variant="outlined"
+        bind:value={e.description}
+        label="Description"
+        style="width: 100%;"
+    />
     <AccountSelect owner_id={$entityID} credit={false} bind:value={e.account} />
-    <input
-        type="number"
-        placeholder="Amount"
-        step="0.01"
+
+    <Textfield
+        variant="outlined"
         bind:value={e.amount}
+        label="Amount"
+        suffix="€"
+        input$pattern={"\\d+(\\.\\d{2})?"}
     />
 
-    <input type="text" placeholder="Category" />
-    <input type="text" placeholder="Tags" />
+    <Textfield
+        variant="outlined"
+        bind:value={e.category}
+        label="Category"
+        style="width: 100%;"
+    />
+    <Textfield
+        variant="outlined"
+        label="Tags"
+        style="width: 100%;"
+        value={"asasa"}
+    />
 
-    <p>Shared?<input type="checkbox" bind:checked={e.shared} /></p>
+    <FormField>
+        <Switch bind:checked={e.shared} icons={false} />
+        <span slot="label">Shared</span>
+    </FormField>
     {#if e.shared}
-        <input
+        <EntitySelect
+            not={$entityID}
+            bind:value={e.sharedWith}
+            helperText="select an entity to share with"
+        />
+        <Textfield
+            variant="outlined"
+            label="Amount"
             type="number"
-            placeholder="Amount"
-            step="0.01"
+            min={0}
             max={e.amount}
             value={e.sharedAmount}
             on:change={(event) => {
                 quota = (event.target.value / e.amount) * 100;
             }}
-            required
         />
-        <input
-            type="range"
-            placeholder="Percentage"
-            min="5"
-            max="100"
-            bind:value={quota}
-        />
-        {quota}
+        <FormField style="width:100%;">
+            <Slider
+                max={100}
+                min={5}
+                step={1}
+                style="width:100%;"
+                discrete
+                bind:value={quota}
+            />
+            <!-- <span slot="label"> Percentage </span> -->
+        </FormField>
 
         <!--<p>Internal? <input type="checkbox" bind:checked={external} /></p>-->
-        <div>
-            <label>
-                Already Paid
-                <input
-                    type="radio"
-                    name="paid"
-                    bind:group={alreadyPaid}
-                    value={true}
-                /></label
-            >
-            <label>
-                Credit
-                <input
-                    type="radio"
-                    name="paid"
-                    bind:group={alreadyPaid}
-                    value={false}
-                />
-            </label>
-        </div>
 
-        <AccountSelect
-            owner_id={$entityID}
-            credit={!alreadyPaid}
-            bind:value={e.credAccount}
-        />
-        <EntitySelect not={$entityID} bind:value={e.sharedWith} />
-        <AccountSelect
-            owner_id={e.sharedWith}
-            credit={!alreadyPaid}
-            bind:value={e.debAccount}
-        />
+        <FormField>
+            <Switch
+                bind:checked={alreadyPaid}
+                color="secondary"
+                icons={false}
+                on:change={() => {
+                    // e.credAccount = null;
+                    //e.debAccount = null;
+                }}
+            />
+            <span slot="label">Already Paid</span>
+        </FormField>
+        {#key alreadyPaid}
+            <AccountSelect
+                owner_id={$entityID}
+                credit={!alreadyPaid}
+                bind:value={e.credAccount}
+                label="Credited Account"
+                helperText="Select where to receive credit"
+            />
+            {#key e.sharedWith}
+                <AccountSelect
+                    owner_id={e.sharedWith}
+                    credit={!alreadyPaid}
+                    bind:value={e.debAccount}
+                    disabled={e.sharedWith === null ||
+                        e.sharedWith === undefined}
+                    label="Debited Account"
+                    helperText="Select where to get credit from"
+                />
+            {/key}
+        {/key}
     {/if}
-    <button type="reset" on:click|preventDefault={reset}>Reset</button>
-    <button
-        on:click|preventDefault={() => {
-            console.log(e);
-        }}>Send</button
-    >
+    <div>
+        <Button color="secondary" on:click={reset} variant="raised">
+            <Label>Reset</Label>
+        </Button>
+        <Button
+            color="primary"
+            on:click={() => {
+                op = ExpenseToOperation(e);
+                submitted = true;
+            }}
+            variant="outlined"
+        >
+            <Label>Add</Label>
+        </Button>
+    </div>
 </form>
 
-<style>
-    form > input {
-        display: block;
-        width: 100%;
-        margin: 1rem;
-        height: 2rem;
-        border-radius: 6px;
-        border: 1px solid black;
-    }
+{#if submitted}
+    <!--<Operation {op} />-->
+    {JSON.stringify(op)}
+{/if}
 
-    input:invalid {
-        border-color: orange;
+<style>
+    form > :global(*) {
+        /*  display: block; */
+        margin: 1rem 0.3rem;
     }
 </style>

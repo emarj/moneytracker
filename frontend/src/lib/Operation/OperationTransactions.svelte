@@ -2,7 +2,7 @@
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import AccountTag from "../AccountTag.svelte";
     import Amount from "../Amount.svelte";
-    import { entityID } from "../../entity";
+    import { entityID } from "../../store";
 
     export let transactions = [];
 </script>

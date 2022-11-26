@@ -1,4 +1,5 @@
 <script>
+    import CircularProgress from "@smui/circular-progress";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getTransactionsByAccount } from "../../data";
     import { DateFMT } from "../../util/utils";
@@ -21,7 +22,7 @@
 
 <div class:fetching={$transactionsQuery.isFetching}>
     {#if $transactionsQuery.isLoading}
-        Loading...
+        <CircularProgress style="height: 32px; width: 32px;" indeterminate />
     {:else if $transactionsQuery.error}
         Error: {$transactionsQuery.error.message}
     {:else}

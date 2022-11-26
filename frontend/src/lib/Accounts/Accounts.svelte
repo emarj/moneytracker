@@ -1,9 +1,11 @@
-<script>
+<script lang="ts">
+  import CircularProgress from "@smui/circular-progress";
+
   import { getAccountsByEntity } from "../../data";
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
-  import { entityID } from "../../entity";
+  import { entityID } from "../../store";
 
   const queryResult = useQuery(["accounts", $entityID], () =>
     getAccountsByEntity($entityID)
@@ -14,7 +16,12 @@
   <h2>My Accounts</h2>
 
   {#if $queryResult.isLoading}
-    <span>Loading...</span>
+    <span
+      ><CircularProgress
+        style="height: 32px; width: 32px;"
+        indeterminate
+      /></span
+    >
   {:else if $queryResult.error}
     <span>An error has occurred: {$queryResult.error.message}</span>
   {:else}
