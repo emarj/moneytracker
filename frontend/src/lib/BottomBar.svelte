@@ -1,10 +1,22 @@
 <script lang="ts">
+    import Kitchen from "@smui/snackbar/kitchen";
     import BottomAppBar, { Section } from "@smui-extra/bottom-app-bar";
     import IconButton from "@smui/icon-button";
     import Fab, { Icon } from "@smui/fab";
     import { push } from "svelte-spa-router";
+    import { messageStore } from "../store";
+
+    let kitchen;
+
+    $: {
+        if ($messageStore) {
+            kitchen?.push({ label: $messageStore?.text, dismissButton: true });
+            $messageStore = null;
+        }
+    }
 </script>
 
+<Kitchen bind:this={kitchen} dismiss$class="material-icons" />
 <nav>
     <BottomAppBar variant="static" color="secondary">
         <Section>

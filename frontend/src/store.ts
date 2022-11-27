@@ -29,3 +29,6 @@ export const defaultExpense: Expense = {
 
 export const newExpense: Writable<Expense> = writable(defaultExpense);
 
+
+export const messageStore = writable(null);
+

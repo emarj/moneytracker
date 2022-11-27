@@ -1,4 +1,5 @@
 <script>
+    import AccountName from "./AccountName.svelte";
     import AccountBalance from "./Accounts/AccountBalance.svelte";
 
     export let account;
@@ -6,15 +7,7 @@
 </script>
 
 <span>
-    <span class="name"
-        >{account.owner.id !== eID
-            ? account.owner.name + ":"
-            : ""}{account.name}</span
-    >
-    <div>
-        {account.display_name}
-        <AccountBalance id={account.id} />
-    </div>
+    <span class="name"><AccountName {account} /></span>
 </span>
 
 <style lang="scss">

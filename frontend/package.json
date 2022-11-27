@@ -18,6 +18,7 @@
     "@smui/icon-button": "7.0.0-beta.0",
     "@smui/select": "7.0.0-beta.0",
     "@smui/slider": "7.0.0-beta.0",
+    "@smui/snackbar": "7.0.0-beta.0",
     "@smui/switch": "7.0.0-beta.0",
     "@smui/tab": "7.0.0-beta.0",
     "@smui/tab-bar": "7.0.0-beta.0",

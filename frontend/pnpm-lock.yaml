@@ -9,6 +9,7 @@ specifiers:
   '@smui/icon-button': 7.0.0-beta.0
   '@smui/select': 7.0.0-beta.0
   '@smui/slider': 7.0.0-beta.0
+  '@smui/snackbar': 7.0.0-beta.0
   '@smui/switch': 7.0.0-beta.0
   '@smui/tab': 7.0.0-beta.0
   '@smui/tab-bar': 7.0.0-beta.0
@@ -41,6 +42,7 @@ devDependencies:
   '@smui/icon-button': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/select': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/slider': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/snackbar': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/switch': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/tab': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/tab-bar': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
@@ -544,7 +546,6 @@ packages:
       '@material/theme': 14.0.0
       '@material/typography': 14.0.0
       tslib: 2.4.1
-    dev: false
 
   /@material/switch/14.0.0:
     resolution: {integrity: sha512-vHVKzbvHVKGSrkMB1lZAl8z3eJ8sPRnSR+DWn+IhqHcTsDdDyly2NNj4i2vTSrEA39CztGqkx0OnKM4vkpiZHw==}
@@ -1241,7 +1242,6 @@ packages:
     transitivePeerDependencies:
       - svelte
       - typescript
-    dev: false
 
   /@smui/switch/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-+B/YbGg9451n6QElLUnf1lp+tpjawqC43g6Yl7zhbslvxp5tAC02kA3ii+9SxK7+M4LKKygI2vzLQlX5gkUHpQ==}

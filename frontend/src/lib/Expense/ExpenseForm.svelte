@@ -4,6 +4,8 @@
     import Switch from "@smui/switch";
     import FormField from "@smui/form-field";
 
+    import { messageStore } from "../../store";
+
     import Button, { Label } from "@smui/button";
     import AccountSelect from "../AccountSelect.svelte";
     import EntitySelect from "../EntitySelect.svelte";
@@ -14,8 +16,14 @@
     import { addOperation } from "../../api";
     import { useMutation } from "@sveltestack/svelte-query";
     import { DateFMT } from "../../util/utils";
+    import { push } from "svelte-spa-router";
 
-    const mutation = useMutation((op) => addOperation(op));
+    const mutation = useMutation((op) => addOperation(op), {
+        onSuccess: (data: number) => {
+            $messageStore = { text: `Operation added successfully!` };
+            push("/");
+        },
+    });
 
     const defaultQuota = 50;
 
@@ -145,27 +153,20 @@
         {/key}
     {/if}
     <div>
-        {#if $mutation.isLoading}
-            <p>Adding operation...</p>
-        {:else if $mutation.isError}
-            <div>An error occurred: {$mutation.error.message}</div>
-        {:else if $mutation.isSuccess}
-            <div>Operation added successfully!</div>
-        {:else}
-            <Button color="secondary" on:click={reset} variant="raised">
-                <Label>Reset</Label>
-            </Button>
-            <Button
-                color="primary"
-                on:click={(event) => {
-                    event.preventDefault();
-                    $mutation.mutate(op);
-                }}
-                variant="outlined"
-            >
-                <Label>Add</Label>
-            </Button>
-        {/if}
+        <Button color="secondary" on:click={reset} variant="raised">
+            <Label>Reset</Label>
+        </Button>
+        <Button
+            color="primary"
+            on:click={(event) => {
+                event.preventDefault();
+                $mutation.mutate(op);
+            }}
+            variant="outlined"
+            disabled={$mutation.isLoading}
+        >
+            <Label>Add</Label>
+        </Button>
     </div>
 </form>
 
