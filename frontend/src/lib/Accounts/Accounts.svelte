@@ -1,7 +1,7 @@
 <script lang="ts">
   import CircularProgress from "@smui/circular-progress";
 
-  import { getAccountsByEntity } from "../../data";
+  import { getAccountsByEntity } from "../../api";
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";

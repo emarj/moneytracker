@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/shopspring/decimal"
 )
 
 //go:embed frontend/dist/*
@@ -20,6 +21,8 @@ type Server struct {
 }
 
 func NewServer(store Store) *Server {
+
+	decimal.MarshalJSONWithoutQuotes = true
 
 	s := &Server{store: store, router: echo.New()}
 
@@ -49,13 +52,13 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/accounts", s.getAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
 	apiGroup.GET("/balances/:aid", s.getBalances)
-	apiGroup.POST("/balance/", s.addBalance)
+	apiGroup.POST("/balance", s.addBalance)
 	apiGroup.GET("/balance/:aid", s.getBalance)
 	//apiGroup.GET("/transactions", s.getTransactions)
 	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/transactions/account/:aid", s.getTransactionsByAccount)
 	apiGroup.GET("/operation/:opid", s.getOperation)
-	apiGroup.POST("/operation/", s.addOperation)
+	apiGroup.POST("/operation", s.addOperation)
 	//apiGroup.DELETE("/transaction/", s.deleteTransaction)
 
 	return s

@@ -1,5 +1,5 @@
 <script>
-    import { getAccountBalance } from "../../data";
+    import { getAccountBalance } from "../../api";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import Amount from "../Amount.svelte";
 

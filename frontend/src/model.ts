@@ -13,6 +13,7 @@ export type Account = {
 }
 
 export type Transaction = {
+    id?: number;
     amount?: number;
     from?: Account;
     to?: Account;
@@ -20,6 +21,7 @@ export type Transaction = {
 };
 
 export type Operation = {
+    id?: number;
     description: string;
     timestamp?: string;
     category?: string;
@@ -29,6 +31,7 @@ export type Operation = {
 
 
 export type Expense = {
+    timestamp: string;
     amount: number;
     description: string;
     shared: boolean;
@@ -43,6 +46,7 @@ export type Expense = {
 
 export const ExpenseToOperation = function (e: Expense): Operation {
     let op = {
+        timestamp: e.timestamp,
         description: e.description,
         transactions: [
             {

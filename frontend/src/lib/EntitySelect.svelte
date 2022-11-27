@@ -1,7 +1,7 @@
 <script>
     import Select, { Option } from "@smui/select";
     import { useQuery } from "@sveltestack/svelte-query";
-    import { getEntities } from "../data";
+    import { getEntities } from "../api";
     import CircularProgress from "@smui/circular-progress";
 
     export let label = "Entity";

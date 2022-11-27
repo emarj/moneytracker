@@ -15,11 +15,12 @@ export const newOp: Writable<Operation> = writable(defaultOperation);
 
 
 export const defaultExpense: Expense = {
-    amount: null,
+    timestamp: "2006-01-02T15:04:05.999Z",
     description: "",
-    shared: true,
-    sharedAmount: null,
+    amount: null,
     account: 1,
+    shared: false,
+    sharedAmount: null,
     credAccount: null,
     debAccount: null,
     sharedWith: null,

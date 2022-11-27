@@ -2,7 +2,7 @@
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { DateFMT } from "../../util/utils";
-    import { getOperationsByEntity } from "../../data";
+    import { getOperationsByEntity } from "../../api";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "../Operation/OperationTransactions.svelte";
     import { entityID } from "../../store";

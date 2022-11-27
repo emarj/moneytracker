@@ -11,6 +11,11 @@
     import type { Expense } from "../../model";
     import { ExpenseToOperation } from "../../model";
     import Operation from "../Operation/Operation.svelte";
+    import { addOperation } from "../../api";
+    import { useMutation } from "@sveltestack/svelte-query";
+    import { DateFMT } from "../../util/utils";
+
+    const mutation = useMutation((op) => addOperation(op));
 
     const defaultQuota = 50;
 
@@ -29,15 +34,18 @@
 
     let op;
     let submitted = false;
+
+    e.timestamp = new Date().toISOString();
+
+    $: op = ExpenseToOperation(e);
 </script>
 
 <form>
     <Textfield
         variant="outlined"
-        bind:value={e.description}
+        bind:value={e.timestamp}
         label="Datetime"
         style="width: 100%;"
-        type="datetime-local"
     />
     <Textfield
         variant="outlined"
@@ -137,26 +145,29 @@
         {/key}
     {/if}
     <div>
-        <Button color="secondary" on:click={reset} variant="raised">
-            <Label>Reset</Label>
-        </Button>
-        <Button
-            color="primary"
-            on:click={() => {
-                op = ExpenseToOperation(e);
-                submitted = true;
-            }}
-            variant="outlined"
-        >
-            <Label>Add</Label>
-        </Button>
+        {#if $mutation.isLoading}
+            <p>Adding operation...</p>
+        {:else if $mutation.isError}
+            <div>An error occurred: {$mutation.error.message}</div>
+        {:else if $mutation.isSuccess}
+            <div>Operation added successfully!</div>
+        {:else}
+            <Button color="secondary" on:click={reset} variant="raised">
+                <Label>Reset</Label>
+            </Button>
+            <Button
+                color="primary"
+                on:click={(event) => {
+                    event.preventDefault();
+                    $mutation.mutate(op);
+                }}
+                variant="outlined"
+            >
+                <Label>Add</Label>
+            </Button>
+        {/if}
     </div>
 </form>
-
-{#if submitted}
-    <!--<Operation {op} />-->
-    {JSON.stringify(op)}
-{/if}
 
 <style>
     form > :global(*) {

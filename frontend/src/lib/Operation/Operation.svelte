@@ -8,14 +8,13 @@
 
     export let op: Operation;
 
-    const computeTotal = (op: Operation) => {
+    const computeTotal = (op: Operation): number => {
         if (op.transactions) {
             return op.transactions.reduce((sum: number, t) => {
-                const amount: number = t.amount;
                 if (isExpense(t, $entityID)) {
-                    return sum - amount;
+                    return sum - t.amount;
                 } else if (isIncome(t, $entityID)) {
-                    return sum + amount;
+                    return sum + t.amount;
                 } else {
                     return sum;
                 }
@@ -23,7 +22,7 @@
         }
     };
 
-    let total;
+    let total: number;
     $: total = computeTotal(op);
 </script>
 

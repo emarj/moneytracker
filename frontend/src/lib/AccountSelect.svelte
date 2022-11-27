@@ -3,7 +3,7 @@
     import Select, { Option } from "@smui/select";
 
     import { useQuery } from "@sveltestack/svelte-query";
-    import { getAccounts } from "../data";
+    import { getAccounts } from "../api";
     import AccountName from "./AccountName.svelte";
 
     const accountsQuery = useQuery(["accounts"], () => getAccounts());

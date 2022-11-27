@@ -1,7 +1,7 @@
 <script>
     import CircularProgress from "@smui/circular-progress";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
-    import { getTransactionsByAccount } from "../../data";
+    import { getTransactionsByAccount } from "../../api";
     import { DateFMT } from "../../util/utils";
     import Amount from "../Amount.svelte";
 

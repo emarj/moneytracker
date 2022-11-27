@@ -1,6 +1,6 @@
 <script lang="ts">
     import { useQuery } from "@sveltestack/svelte-query";
-    import { getAccountsByEntity } from "../../data";
+    import { getAccountsByEntity } from "../../api";
     import { entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
 
