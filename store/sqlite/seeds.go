@@ -4,112 +4,123 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/labstack/gommon/log"
 	"github.com/shopspring/decimal"
+	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
-	"ronche.se/moneytracker/store/sqlite/queries"
 )
 
 func (s *SQLiteStore) Seed() error {
 	fmt.Println("Seeding...")
+	var err error
 
-	var query string
-	query += queries.InsertEntity(mt.Entity{
-		ID:     0,
-		Name:   "'_system'",
-		System: true,
-	})
-	query += queries.InsertAccount(mt.Account{
-		ID:          0,
-		Name:        "'world'",
-		DisplayName: "'World'",
-		EntityID:    0, //this is needed for now in order to correctly compute expenses/income in fronted
-		IsWorld:     true,
-		IsSystem:    true,
-	})
+	entSystem := mt.Entity{
+		ID:       null.IntFrom(0),
+		Name:     "_system",
+		System:   true,
+		External: false,
+	}
 
-	query += queries.InsertEntity(mt.Entity{
-		ID:   1,
-		Name: "'user1'",
-	})
-	query += queries.InsertEntity(mt.Entity{
-		ID:   2,
-		Name: "'user2'",
-	})
-
-	query += queries.InsertAccount(mt.Account{
-		ID:          1,
-		Name:        "'acc1'",
-		DisplayName: "'Account 1'",
-		EntityID:    1,
-	})
-	value2 := decimal.New(2000, 0)
-	query += queries.InsertBalance(mt.Balance{
-		AccountID: 1,
-		Timestamp: mt.DateTime{time.Now().AddDate(0, 0, -1)},
-		Value:     &value2,
-	})
-	query += queries.InsertAccount(mt.Account{
-		ID:          2,
-		Name:        "'acc2'",
-		DisplayName: "'Account 2'",
-		EntityID:    1,
-	})
-	query += queries.InsertAccount(mt.Account{
-		ID:          3,
-		Name:        "'acc3'",
-		DisplayName: "'Account 3'",
-		EntityID:    1,
-	})
-	value1 := decimal.New(1000, 0)
-	query += queries.InsertBalance(mt.Balance{
-		AccountID: 3,
-		Timestamp: mt.DateTime{time.Now().AddDate(0, 0, -1)},
-		Value:     &value1,
-	})
-
-	query += queries.InsertAccount(mt.Account{
-		ID:          1001,
-		Name:        "'credits_user2'",
-		DisplayName: "'Credits User 2'",
-		EntityID:    1,
-		IsCredit:    true,
-	})
-
-	query += queries.InsertAccount(mt.Account{
-		ID:          1002,
-		Name:        "'credits_user1'",
-		DisplayName: "'Credits User 1'",
-		EntityID:    2,
-		IsCredit:    true,
-	})
-
-	query += queries.InsertAccount(mt.Account{
-		ID:          4,
-		Name:        "'acc4'",
-		DisplayName: "'Account 4'",
-		EntityID:    2,
-	})
-
-	fmt.Println(query)
-
-	_, err := s.db.Exec(query)
+	_, err = s.AddEntity(entSystem)
 	if err != nil {
 		return err
+	}
+
+	entUser1 := mt.Entity{
+		ID:       null.IntFrom(1),
+		Name:     "arianna",
+		System:   false,
+		External: false,
+	}
+
+	_, err = s.AddEntity(entUser1)
+	if err != nil {
+		return err
+	}
+
+	entUser2 := mt.Entity{
+		ID:       null.IntFrom(2),
+		Name:     "marco",
+		System:   false,
+		External: false,
+	}
+
+	_, err = s.AddEntity(entUser2)
+	if err != nil {
+		return err
+	}
+
+	var accounts map[string]mt.Account = map[string]mt.Account{
+		"world": {
+			ID:          null.IntFrom(0),
+			Name:        "world",
+			DisplayName: "World",
+			Owner:       entSystem, //this is needed for now in order to correctly compute expenses/income in fronted
+			IsWorld:     true,
+			IsSystem:    true,
+		},
+		"user1:cash": {
+			Name:        "contanti",
+			DisplayName: "Contanti",
+			Owner:       entUser1,
+		},
+		"user1:cc1": {
+			Name:        "conto_corrente",
+			DisplayName: "Conto Corrente",
+			Owner:       entUser1,
+		},
+		"user1:cc2": {
+			Name:        "conto_corrente_posta",
+			DisplayName: "Conto Banco Posta",
+			Owner:       entUser1,
+		},
+		"user2:cc": {
+			Name:        "conto_corrente",
+			DisplayName: "Conto Corrente",
+			Owner:       entUser2,
+		},
+		"user2:cash": {
+			Name:        "contanti",
+			DisplayName: "Contanti",
+			Owner:       entUser2,
+		},
+		"user1:credits": {
+			Name:        "credits",
+			DisplayName: "Crediti",
+			Owner:       entUser1,
+		},
+		"user2:credits": {
+			Name:        "credits",
+			DisplayName: "Crediti",
+			Owner:       entUser2,
+		},
+	}
+
+	for k, a := range accounts {
+		id, err := s.AddAccount(a)
+		if err != nil {
+			return err
+		}
+		if a.ID.Valid && !id.Equal(a.ID) {
+			log.Warnf("seeding: insert account %s: expecting id %d, got %d", a.Name, a.ID.Int64, id.Int64)
+		}
+		a.ID = id
+		accounts[k] = a
 	}
 
 	_, err = s.AddOperation(mt.Operation{
 		CreatedByID: 1,
 		Timestamp:   &mt.DateTime{time.Now()},
-		Description: "Cena Fuori",
+		Description: "Cena Fuori in 2",
 		Transactions: []mt.Transaction{
 			{
-				From:   mt.Account{ID: 2},
-				To:     mt.Account{ID: 0},
+				From:   accounts["user1:cc1"],
+				To:     accounts["world"],
 				Amount: decimal.New(80, 0),
 			},
 			{
-				From:   mt.Account{ID: 1002},
-				To:     mt.Account{ID: 1001},
+				From:   accounts["user2:credits"],
+				To:     accounts["user1:credits"],
 				Amount: decimal.New(40, 0),
 			},
 		},
@@ -122,17 +133,12 @@ func (s *SQLiteStore) Seed() error {
 	_, err = s.AddOperation(mt.Operation{
 		CreatedByID: 1,
 		Timestamp:   &mt.DateTime{time.Now()},
-		Description: "Operation 2",
+		Description: "Giroconto",
 		Transactions: []mt.Transaction{
 			{
-				From:   mt.Account{ID: 1},
-				To:     mt.Account{ID: 2},
+				From:   accounts["user1:cc1"],
+				To:     accounts["user1:cc2"],
 				Amount: decimal.New(345, 0),
-			},
-			{
-				From:   mt.Account{ID: 1},
-				To:     mt.Account{ID: 0},
-				Amount: decimal.New(43, 0),
 			},
 		},
 		CategoryID: 0,
@@ -147,13 +153,13 @@ func (s *SQLiteStore) Seed() error {
 		Description: "Prestito 100 Euro A -> M",
 		Transactions: []mt.Transaction{
 			{
-				From:   mt.Account{ID: 1},
-				To:     mt.Account{ID: 4},
+				From:   accounts["user1:cash"],
+				To:     accounts["user2:cash"],
 				Amount: decimal.New(100, 0),
 			},
 			{
-				From:   mt.Account{ID: 1002},
-				To:     mt.Account{ID: 1001},
+				From:   accounts["user2:credits"],
+				To:     accounts["user1:credits"],
 				Amount: decimal.New(100, 0),
 			},
 		},

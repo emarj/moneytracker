@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
+	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 	"ronche.se/moneytracker/store/sqlite/queries"
 )
@@ -38,7 +39,7 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 		return nil, err
 	}
 
-	operations := orderedmap.New[int, mt.Operation]()
+	operations := orderedmap.New[int64, mt.Operation]()
 
 	op := mt.Operation{}
 
@@ -54,13 +55,14 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 			return nil, err
 		}
 
-		op2, ok := operations.Get(op.ID)
+		//op.ID can't be null
+		op2, ok := operations.Get(op.ID.Int64)
 		if !ok {
 			op2 = op
 		}
 
 		op2.Transactions = append(op2.Transactions, t)
-		operations.Set(op.ID, op2)
+		operations.Set(op.ID.Int64, op2)
 	}
 
 	list := make([]mt.Operation, operations.Len())
@@ -98,15 +100,16 @@ func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 	return &op, nil
 }
 
-func (s *SQLiteStore) AddOperation(op mt.Operation) (int, error) {
+func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
 
+	id := null.Int{}
 	if op.Transactions == nil || len(op.Transactions) == 0 {
-		return -1, fmt.Errorf("an operation must have at least one transaction")
+		return id, fmt.Errorf("an operation must have at least one transaction")
 	}
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 	defer func() {
 		tx.Rollback()
@@ -114,33 +117,34 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (int, error) {
 
 	res, err := tx.Exec(queries.InsertOperationQuery, op.Timestamp, op.CreatedByID, op.Description)
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
-	opID, err := res.LastInsertId()
+	id.Int64, err = res.LastInsertId()
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
 	q, err := tx.Prepare(queries.InsertTransactionQuery)
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
 	for _, t := range op.Transactions {
-		_, err = q.Exec(t.From.ID, t.To.ID, t.Amount, opID)
+		_, err = q.Exec(t.From.ID, t.To.ID, t.Amount, id.Int64)
 		if err != nil {
-			return -1, err
+			return id, err
 		}
 
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
-	return int(opID), nil
+	id.Valid = true
+	return id, nil
 
 }
 

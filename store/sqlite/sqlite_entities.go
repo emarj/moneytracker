@@ -1,6 +1,9 @@
 package sqlite
 
-import mt "ronche.se/moneytracker"
+import (
+	"gopkg.in/guregu/null.v4"
+	mt "ronche.se/moneytracker"
+)
 
 func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 
@@ -13,7 +16,7 @@ func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 	var e mt.Entity
 
 	for rows.Next() {
-		if err = rows.Scan(&e.ID, &e.Name, &e.System); err != nil {
+		if err = rows.Scan(&e.ID, &e.Name, &e.System, &e.External); err != nil {
 			return nil, err
 		}
 
@@ -29,26 +32,28 @@ func (s *SQLiteStore) GetEntity(eID int) (*mt.Entity, error) {
 
 	var e mt.Entity
 
-	if err := row.Scan(&e.ID, &e.Name, &e.System); err != nil {
+	if err := row.Scan(&e.ID, &e.Name, &e.System, &e.External); err != nil {
 		return nil, err
 	}
 
 	return &e, nil
 }
 
-func (s *SQLiteStore) AddEntity(e mt.Entity) (int, error) {
+func (s *SQLiteStore) AddEntity(e mt.Entity) (null.Int, error) {
 
-	res, err := s.db.Exec("INSERT INTO entities (name,system) VALUES(?,?)", e.Name, e.System)
+	id := null.Int{}
+	res, err := s.db.Exec("INSERT INTO entities (id,name,is_system,is_external) VALUES(?,?,?,?)", e.ID, e.Name, e.System, e.External)
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
-	id, err := res.LastInsertId()
+	id.Int64, err = res.LastInsertId()
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
-	return int(id), nil
+	id.Valid = true
+	return id, nil
 
 }
 

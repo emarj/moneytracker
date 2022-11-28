@@ -43,10 +43,8 @@ func (t *DateTime) UnmarshalJSON(json []byte) error {
 	str := string(json[1 : len(json)-1])
 	vt, err := time.Parse(DateTimeFormat, str)
 	if err != nil {
-		vt, err = time.Parse("2006-01-02", str)
-		if err != nil {
-			return err
-		}
+
+		return err
 	}
 	t.Time = vt
 	return nil

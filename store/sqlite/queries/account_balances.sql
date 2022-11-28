@@ -1,4 +1,6 @@
 SELECT *
+from entities;
+SELECT *
 from accounts;
 SELECT *
 from balances;

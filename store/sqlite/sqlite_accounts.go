@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 )
 
@@ -61,19 +62,23 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 	return &a, nil
 }
 
-func (s *SQLiteStore) AddAccount(a mt.Account) (int, error) {
+func (s *SQLiteStore) AddAccount(a mt.Account) (null.Int, error) {
 
-	res, err := s.db.Exec(`INSERT INTO accounts (name) VALUES(?)`, a.Name)
+	id := null.Int{}
+	res, err := s.db.Exec(`INSERT INTO accounts (id,name,display_name,owner_id,is_system,is_world,is_credit) VALUES(?,?,?,?,?,?,?)`,
+		a.ID, a.Name, a.DisplayName, a.Owner.ID, a.IsWorld, a.IsSystem, a.IsCredit)
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
-	id, err := res.LastInsertId()
+	id.Int64, err = res.LastInsertId()
 	if err != nil {
-		return -1, err
+		return id, err
 	}
 
-	return int(id), nil
+	id.Valid = true
+
+	return id, nil
 
 }
 

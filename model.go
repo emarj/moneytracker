@@ -2,24 +2,24 @@ package moneytracker
 
 import (
 	"github.com/shopspring/decimal"
+	"gopkg.in/guregu/null.v4"
 )
 
 type Entity struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	System   bool   `json:"is_system"`
-	External bool   // For example a friend that owes me
+	ID       null.Int `json:"id"`
+	Name     string   `json:"name"`
+	System   bool     `json:"is_system"`
+	External bool     `json:"is_external"` // For example a friend that owes me
 }
 
 type Account struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	EntityID    int    `json:"owner_id"`
-	Owner       Entity `json:"owner"`     // TODO: Allow for shared accounts
-	IsSystem    bool   `json:"is_system"` // Was this created by system or by user?
-	IsWorld     bool   `json:"is_world"`
-	IsCredit    bool   `json:"is_credit"`
+	ID          null.Int `json:"id"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	Owner       Entity   `json:"owner"`     // TODO: Allow for shared accounts
+	IsSystem    bool     `json:"is_system"` // Was this created by system or by user?
+	IsWorld     bool     `json:"is_world"`
+	IsCredit    bool     `json:"is_credit"`
 }
 
 type Balance struct {
@@ -29,25 +29,15 @@ type Balance struct {
 }
 
 type Transaction struct {
-	ID        int             `json:"id"`
+	ID        null.Int        `json:"id"`
 	From      Account         `json:"from"`
 	To        Account         `json:"to"`
 	Amount    decimal.Decimal `json:"amount"`
 	Operation Operation       `json:"operation"`
 }
 
-type Credit struct {
-	ID          int             `json:"id"`
-	Debtor      Entity          `json:"debtor"`
-	Creditor    Entity          `json:"creditor"`
-	Account     Account         `json:"account"`
-	Amount      decimal.Decimal `json:"amount"`
-	Description string          `json:"description"`
-	Operation   Operation       `json:"operation"`
-}
-
 type Operation struct {
-	ID int `json:"id"`
+	ID null.Int `json:"id"`
 	//DateCreated  DateTime `json:"date_created"`
 	//DateModified DateTime `json:"date_modified"`
 	CreatedByID int `json:"created_by_id"`

@@ -1,19 +1,21 @@
 CREATE TABLE entities (
 	id INTEGER,
 	name TEXT NOT NULL,
-	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
+	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
+	is_external INTEGER NOT NULL DEFAULT FALSE CHECK (is_external IN (0, 1)),
 	PRIMARY KEY(id)
 );
 CREATE TABLE accounts (
 	id INTEGER,
 	created TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
-	owner_id INTEGER NOT NULL,
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
+	owner_id INTEGER NOT NULL,
 	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
 	is_world INTEGER NOT NULL CHECK (is_world IN (0, 1)),
 	is_credit INTEGER NOT NULL CHECK (is_credit IN (0, 1)),
 	PRIMARY KEY(id)
+	FOREIGN KEY(owner_id) REFERENCES entities(id)
 );
 CREATE TABLE balances (
 	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
