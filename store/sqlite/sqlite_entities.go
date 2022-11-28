@@ -3,24 +3,25 @@ package sqlite
 import (
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
+
+	jt "ronche.se/moneytracker/.gen/table"
+
+	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
 func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 
-	rows, err := s.db.Query("SELECT * FROM entities")
-	if err != nil {
-		return nil, err
-	}
+	stmt := jet.SELECT(
+		jt.Entity.ID,
+		jt.Entity.Name,
+		jt.Entity.IsSystem,
+		jt.Entity.IsExternal,
+	).FROM(jt.Entity)
 
 	entities := []mt.Entity{}
-	var e mt.Entity
-
-	for rows.Next() {
-		if err = rows.Scan(&e.ID, &e.Name, &e.System, &e.External); err != nil {
-			return nil, err
-		}
-
-		entities = append(entities, e)
+	err := stmt.Query(s.db, &entities)
+	if err != nil {
+		return nil, err
 	}
 
 	return entities, nil
@@ -28,21 +29,33 @@ func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 
 func (s *SQLiteStore) GetEntity(eID int) (*mt.Entity, error) {
 
-	row := s.db.QueryRow("SELECT * FROM entities WHERE id = ?", eID)
+	stmt := jet.SELECT(
+		jt.Entity.ID,
+		jt.Entity.Name,
+		jt.Entity.IsSystem,
+		jt.Entity.IsExternal,
+	).FROM(jt.Entity).WHERE(
+		jt.Entity.ID.EQ(jet.Int(int64(eID))),
+	)
 
-	var e mt.Entity
-
-	if err := row.Scan(&e.ID, &e.Name, &e.System, &e.External); err != nil {
+	dest := &mt.Entity{}
+	err := stmt.Query(s.db, dest)
+	if err != nil {
 		return nil, err
 	}
-
-	return &e, nil
+	return dest, nil
 }
 
 func (s *SQLiteStore) AddEntity(e mt.Entity) (null.Int, error) {
 
 	id := null.Int{}
-	res, err := s.db.Exec("INSERT INTO entities (id,name,is_system,is_external) VALUES(?,?,?,?)", e.ID, e.Name, e.System, e.External)
+	stmt := jt.Entity.INSERT(
+		jt.Entity.ID,
+		jt.Entity.Name,
+		jt.Entity.IsSystem,
+		jt.Entity.IsExternal,
+	).MODEL(e)
+	res, err := stmt.Exec(s.db)
 	if err != nil {
 		return id, err
 	}

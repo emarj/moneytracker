@@ -3,24 +3,23 @@ package sqlite
 import (
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
+
+	jt "ronche.se/moneytracker/.gen/table"
+
+	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
 func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  a.id,a.name,a.display_name,a.is_credit,e.* FROM accounts a INNER JOIN entities e WHERE a.owner_id = e.id`)
-	if err != nil {
-		return nil, err
-	}
+	stmt := jet.SELECT(jt.Account.AllColumns,
+		jt.Entity.AllColumns,
+	).FROM(jt.Account.INNER_JOIN(jt.Entity, jt.Entity.ID.EQ(jt.Account.ID)))
 
 	accounts := []mt.Account{}
-	var a mt.Account
 
-	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.IsCredit, &a.Owner.ID, &a.Owner.Name, &a.Owner.System); err != nil {
-			return nil, err
-		}
-
-		accounts = append(accounts, a)
+	err := stmt.Query(s.db, &accounts)
+	if err != nil {
+		return nil, err
 	}
 
 	return accounts, nil
@@ -28,7 +27,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
 func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  id,name,display_name,is_credit FROM accounts WHERE owner_id = ? AND is_system == FALSE`, eID)
+	rows, err := s.db.Query(`SELECT  id,name,display_name,is_credit FROM account WHERE owner_id = ? AND is_system == FALSE`, eID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +50,7 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 
 	var a mt.Account
 
-	err := s.db.QueryRow(`SELECT id,name FROM accounts WHERE id = ?`, aID).Scan(
+	err := s.db.QueryRow(`SELECT id,name FROM account WHERE id = ?`, aID).Scan(
 		&a.ID,
 		&a.Name,
 	)
@@ -65,7 +64,7 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 func (s *SQLiteStore) AddAccount(a mt.Account) (null.Int, error) {
 
 	id := null.Int{}
-	res, err := s.db.Exec(`INSERT INTO accounts (id,name,display_name,owner_id,is_system,is_world,is_credit) VALUES(?,?,?,?,?,?,?)`,
+	res, err := s.db.Exec(`INSERT INTO account (id,name,display_name,owner_id,is_system,is_world,is_credit) VALUES(?,?,?,?,?,?,?)`,
 		a.ID, a.Name, a.DisplayName, a.Owner.ID, a.IsWorld, a.IsSystem, a.IsCredit)
 	if err != nil {
 		return id, err
@@ -88,19 +87,19 @@ func (s *SQLiteStore) DeleteAccount(id int) error {
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`DELETE FROM accounts WHERE id=?`, id)
+	_, err = tx.Exec(`DELETE FROM account WHERE id=?`, id)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	_, err = tx.Exec(`DELETE FROM balances WHERE account_id=?`, id)
+	_, err = tx.Exec(`DELETE FROM balance WHERE account_id=?`, id)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	_, err = tx.Exec(`DELETE FROM transactions WHERE account_id=?`, id)
+	_, err = tx.Exec(`DELETE FROM "transaction" WHERE account_id=?`, id)
 	if err != nil {
 		tx.Rollback()
 		return err

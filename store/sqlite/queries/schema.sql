@@ -1,11 +1,11 @@
-CREATE TABLE entities (
+CREATE TABLE entity (
 	id INTEGER,
 	name TEXT NOT NULL,
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
 	is_external INTEGER NOT NULL DEFAULT FALSE CHECK (is_external IN (0, 1)),
 	PRIMARY KEY(id)
 );
-CREATE TABLE accounts (
+CREATE TABLE account (
 	id INTEGER,
 	created TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	name TEXT NOT NULL,
@@ -14,16 +14,16 @@ CREATE TABLE accounts (
 	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
 	is_world INTEGER NOT NULL CHECK (is_world IN (0, 1)),
 	is_credit INTEGER NOT NULL CHECK (is_credit IN (0, 1)),
-	PRIMARY KEY(id)
+	PRIMARY KEY(id),
 	FOREIGN KEY(owner_id) REFERENCES entities(id)
 );
-CREATE TABLE balances (
+CREATE TABLE balance (
 	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	account_id INTEGER NOT NULL,
 	value TEXT NOT NULL,
 	PRIMARY KEY(account_id, timestamp)
 );
-CREATE TABLE transactions (
+CREATE TABLE "transaction" (
 	id INTEGER,
 	from_id INTEGER NOT NULL,
 	to_id INTEGER NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE transactions (
 	operation_id INTEGER,
 	PRIMARY KEY(id)
 );
-CREATE TABLE operations (
+CREATE TABLE operation (
 	id INTEGER,
 	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	created_by_id INTEGER NOT NULL,

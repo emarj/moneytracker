@@ -1,14 +1,14 @@
 SELECT *
-FROM entities;
+FROM entity;
 --
 SELECT *
-FROM accounts;
+FROM account;
 --
 SELECT *
-FROM transactions;
+FROM "transaction";
 --
 SELECT *
-FROM operations;
+FROM operation;
 --
 SELECT  t.*,
 op.*,
@@ -16,9 +16,9 @@ fa.display_name AS from_name,
 ta.display_name AS to_name,
 fa.owner_id AS from_owner_id,
 ta.owner_id AS to_owner_id
-FROM transactions t
-    INNER JOIN operations op ON t.operation_id = op.id
-    INNER JOIN accounts AS fa ON t.from_id = fa.id
+FROM "transaction" t
+    INNER JOIN operation op ON t.operation_id = op.id
+    INNER JOIN account AS fa ON t.from_id = fa.id
     INNER JOIN accounts AS ta ON t.to_id = ta.id
 WHERE from_owner_id = 1
     OR to_owner_id = 1
@@ -69,3 +69,11 @@ WHERE from_owner_id = 1
     --
     INSERT INTO accounts (name,display_name,owner_id,is_system,is_credit,is_world) VALUES("prova","ssd",9,TRUE,FALSE,FALSE)
      RETURNING *;
+
+--
+SELECT *
+FROM operation
+     INNER JOIN `transaction` ON (`transaction`.id = operation.id)
+WHERE operation.id = 1;
+--
+SELECT * FROM `transaction` WHERE operation_id = 1;

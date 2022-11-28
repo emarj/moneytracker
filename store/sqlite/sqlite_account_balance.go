@@ -8,7 +8,7 @@ import (
 
 func (s *SQLiteStore) GetBalances(aID int) ([]mt.Balance, error) {
 
-	rows, err := s.db.Query(`SELECT timestamp,value,operation_id FROM balances WHERE account_id = ? ORDER BY timestamp DESC`, aID)
+	rows, err := s.db.Query(`SELECT timestamp,value,operation_id FROM balance WHERE account_id = ? ORDER BY timestamp DESC`, aID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 	FROM (
 			(
 				SELECT COUNT(),IFNULL(value, 0) AS last_balance
-				FROM balances
+				FROM balance
 				WHERE account_id = ?
 				ORDER BY timestamp DESC
 				LIMIT 1
@@ -50,8 +50,8 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 						),
 						0
 					) AS balance
-				FROM transactions
-				INNER JOIN operations op
+				FROM "transaction"
+				INNER JOIN operation op
 				ON operation_id = op.id
 				WHERE (
 						to_id = ?
@@ -64,7 +64,7 @@ func (s *SQLiteStore) GetBalance(aID int) (*mt.Balance, error) {
 									timestamp,
 									STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '-100 year')
 								) AS timestamp
-							FROM balances
+							FROM balance
 							WHERE account_id = ?
 							ORDER BY timestamp DESC
 							LIMIT 1
@@ -93,7 +93,7 @@ func (s *SQLiteStore) AddBalance(b mt.Balance) error {
 		toID = b.AccountID
 	}
 
-	_, err := s.db.Exec(`INSERT INTO transactions ("timestamp","from_id","to_id","operation_id","amount") SELECT ?,?,?,?,? - amount FROM balances WHERE account_id = ? ORDER BY timestamp DESC LIMIT 1`,
+	_, err := s.db.Exec(`INSERT INTO "transaction" ("timestamp","from_id","to_id","operation_id","amount") SELECT ?,?,?,?,? - amount FROM balances WHERE account_id = ? ORDER BY timestamp DESC LIMIT 1`,
 		b.AccountID,
 		b.Timestamp,
 		fromID,
@@ -110,14 +110,14 @@ func (s *SQLiteStore) AddBalance(b mt.Balance) error {
 
 func (s *SQLiteStore) ComputeBalance(aID int) error {
 
-	_, err := s.db.Exec(`INSERT INTO balances (account_id, value, computed)
+	_, err := s.db.Exec(`INSERT INTO balance (account_id, value, computed)
 	SELECT ?,
 		last_balance + balance AS balance,
 		TRUE
 	FROM (
 			(
 				SELECT value AS last_balance
-				FROM balances
+				FROM balance
 				WHERE account_id = ?
 				ORDER BY timestamp DESC
 				LIMIT 1
@@ -131,8 +131,8 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 						),
 						0
 					) AS balance
-				FROM transactions
-				INNER JOIN operations op
+				FROM "transaction"
+				INNER JOIN operation op
 				ON operation_id = op.id
 				WHERE (
 						to_id = ?
@@ -140,7 +140,7 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 					)
 					AND t.timestamp > (
 						SELECT timestamp
-						FROM balances
+						FROM balance
 						WHERE account_id = ?
 						ORDER BY timestamp DESC
 						LIMIT 1
@@ -149,8 +149,8 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 		)
 		WHERE EXISTS (
 		SELECT *
-		FROM transactions
-		INNER JOIN operations op
+		FROM "transaction"
+		INNER JOIN operation op
 				ON operation_id = op.id
 		WHERE (
 				to_id = ?
@@ -158,7 +158,7 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 			)
 			AND op.timestamp > (
 				SELECT timestamp
-				FROM balances
+				FROM balance
 				WHERE account_id = ?
 				ORDER BY timestamp DESC
 				LIMIT 1
@@ -176,7 +176,7 @@ func (s *SQLiteStore) ComputeBalance(aID int) error {
 
 func (s *SQLiteStore) DeleteBalancesAfter(aID int, date mt.DateTime) error {
 	_, err := s.db.Exec(`
-			DELETE FROM balances
+			DELETE FROM balance
 			WHERE account_id = ?
 			AND timestamp >= ?
 			AND computed = TRUE

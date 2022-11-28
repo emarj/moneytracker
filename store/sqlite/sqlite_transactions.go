@@ -3,101 +3,103 @@ package sqlite
 import (
 	"fmt"
 
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 	"ronche.se/moneytracker/store/sqlite/queries"
+
+	j "ronche.se/moneytracker/.gen/table"
+
+	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
 func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error) {
 
-	rows, err := s.db.Query(queries.GetTransactionsByAccountQuery, aID, aID)
+	From := j.Account.AS("From")
+	To := j.Account.AS("To")
+
+	stmt := jet.SELECT(j.Transaction.AllColumns,
+		j.Operation.AllColumns,
+		From.AllColumns,
+		To.AllColumns,
+	).FROM(
+		j.Transaction.INNER_JOIN(
+			j.Operation,
+			j.Operation.ID.EQ(j.Transaction.OperationID),
+		).INNER_JOIN(From, From.ID.EQ(j.Transaction.FromID)).INNER_JOIN(To, To.ID.EQ(j.Transaction.ToID)),
+	).WHERE(
+		j.Transaction.FromID.EQ(jet.Int(int64(aID))).OR(j.Transaction.ToID.EQ(jet.Int(int64(aID)))),
+	)
+
+	transactions := []mt.Transaction{}
+
+	err := stmt.Query(s.db, &transactions)
 	if err != nil {
 		return nil, err
 	}
-
-	transactions := []mt.Transaction{}
-	var t mt.Transaction
-
-	for rows.Next() {
-		t.Operation = mt.Operation{}
-
-		if err = rows.Scan(&t.ID, &t.From.ID, &t.To.ID, &t.Amount, &t.Operation.ID, &t.Operation.ID, &t.Operation.Timestamp, &t.Operation.CreatedByID, &t.Operation.Description); err != nil {
-			return nil, err
-		}
-
-		transactions = append(transactions, t)
-	}
-
 	return transactions, nil
 }
 
 func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 
-	rows, err := s.db.Query(queries.GetOperationByEntityQuery, eID, eID)
+	From := j.Account.AS("from")
+	To := j.Account.AS("to")
+
+	FromEntity := j.Entity.AS("from.entity")
+	ToEntity := j.Account.AS("to.entity")
+
+	stmt := jet.SELECT(
+		j.Operation.AllColumns,
+		j.Transaction.AllColumns,
+		From.AllColumns,
+		To.AllColumns,
+		FromEntity.AllColumns,
+		ToEntity.AllColumns,
+	).FROM(
+		j.Transaction.INNER_JOIN(
+			j.Operation,
+			j.Operation.ID.EQ(j.Transaction.OperationID),
+		).INNER_JOIN(
+			From,
+			From.ID.EQ(j.Transaction.FromID),
+		).INNER_JOIN(
+			To,
+			To.ID.EQ(j.Transaction.ToID),
+		).INNER_JOIN(
+			FromEntity,
+			FromEntity.ID.EQ(From.OwnerID),
+		).INNER_JOIN(
+			ToEntity,
+			ToEntity.ID.EQ(To.OwnerID),
+		),
+	).WHERE(
+		FromEntity.ID.EQ(jet.Int(int64(eID))).OR(ToEntity.ID.EQ(jet.Int(int64(eID)))),
+	)
+
+	fmt.Println(stmt.DebugSql())
+
+	operations := []mt.Operation{}
+
+	err := stmt.Query(s.db, &operations)
 	if err != nil {
 		return nil, err
 	}
-
-	operations := orderedmap.New[int64, mt.Operation]()
-
-	op := mt.Operation{}
-
-	for rows.Next() {
-		t := mt.Transaction{}
-
-		if err = rows.Scan(
-			&t.ID, &t.From.ID, &t.To.ID, &t.Amount, &t.Operation.ID,
-			&op.ID, &op.Timestamp, &op.CreatedByID, &op.Description, &op.CategoryID,
-			&t.From.Name, &t.From.DisplayName, &t.To.Name, &t.To.DisplayName,
-			&t.From.Owner.ID, &t.From.Owner.Name, &t.To.Owner.ID, &t.To.Owner.Name,
-		); err != nil {
-			return nil, err
-		}
-
-		//op.ID can't be null
-		op2, ok := operations.Get(op.ID.Int64)
-		if !ok {
-			op2 = op
-		}
-
-		op2.Transactions = append(op2.Transactions, t)
-		operations.Set(op.ID.Int64, op2)
-	}
-
-	list := make([]mt.Operation, operations.Len())
-
-	i := 0
-	for pair := operations.Oldest(); pair != nil; pair = pair.Next() {
-		list[i] = pair.Value
-		i++
-	}
-
-	return list, nil
+	return operations, nil
 }
 
 func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 
-	rows, err := s.db.Query(queries.GetOperationQuery, opID)
+	stmt := jet.SELECT(
+		j.Operation.AllColumns,
+		j.Transaction.AllColumns,
+	).FROM(j.Operation.INNER_JOIN(j.Transaction, j.Transaction.OperationID.EQ(j.Operation.ID))).WHERE(j.Operation.ID.EQ(jet.Int(int64(opID))))
+
+	op := &mt.Operation{}
+	err := stmt.Query(s.db, op)
 	if err != nil {
 		return nil, err
 	}
-	var op mt.Operation
-	op.Transactions = []mt.Transaction{}
 
-	for rows.Next() {
-		t := mt.Transaction{}
-		if err = rows.Scan(
-			&op.ID, &op.Timestamp, &op.CreatedByID, &op.Description,
-			&t.ID, &t.From.ID, &t.To.ID, &t.Amount,
-		); err != nil {
-			return nil, err
-		}
-
-		op.Transactions = append(op.Transactions, t)
-	}
-
-	return &op, nil
+	return op, nil
 }
 
 func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
@@ -149,7 +151,7 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
 }
 
 func (s *SQLiteStore) DeleteOperation(opID int) error {
-	_, err := s.db.Exec("DELETE FROM operations WHERE id=?", opID)
+	_, err := s.db.Exec("DELETE FROM operation WHERE id=?", opID)
 	if err != nil {
 		return err
 	}
