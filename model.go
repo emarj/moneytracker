@@ -16,10 +16,11 @@ type Account struct {
 	ID          null.Int `json:"id" sql:"primary_key"`
 	Name        string   `json:"name"`
 	DisplayName string   `json:"display_name"`
-	Owner       Entity   `json:"owner"`     // TODO: Allow for shared accounts
-	IsSystem    bool     `json:"is_system"` // Was this created by system or by user?
-	IsWorld     bool     `json:"is_world"`
-	IsCredit    bool     `json:"is_credit"`
+	// TODO: Allow for shared accounts
+	Owner    Entity `json:"owner" alias:"from_owner"`
+	IsSystem bool   `json:"is_system"` // Was this created by system or by user?
+	IsWorld  bool   `json:"is_world"`
+	IsCredit bool   `json:"is_credit"`
 }
 
 type Balance struct {
@@ -30,8 +31,8 @@ type Balance struct {
 
 type Transaction struct {
 	ID        null.Int        `json:"id" sql:"primary_key"`
-	From      Account         `json:"from" alias:"From"`
-	To        Account         `json:"to" alias:"To"`
+	From      Account         `json:"from" alias:"from"`
+	To        Account         `json:"to" alias:"to"`
 	Amount    decimal.Decimal `json:"amount"`
 	Operation Operation       `json:"operation"`
 }

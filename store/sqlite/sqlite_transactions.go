@@ -44,8 +44,8 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 	From := j.Account.AS("from")
 	To := j.Account.AS("to")
 
-	FromEntity := j.Entity.AS("from.entity")
-	ToEntity := j.Account.AS("to.entity")
+	FromEntity := j.Entity.AS("from_owner")
+	ToEntity := j.Entity.AS("to_owner")
 
 	stmt := jet.SELECT(
 		j.Operation.AllColumns,
@@ -75,7 +75,7 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 		FromEntity.ID.EQ(jet.Int(int64(eID))).OR(ToEntity.ID.EQ(jet.Int(int64(eID)))),
 	)
 
-	fmt.Println(stmt.DebugSql())
+	//fmt.Println(stmt.DebugSql())
 
 	operations := []mt.Operation{}
 
