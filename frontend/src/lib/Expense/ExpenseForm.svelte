@@ -17,6 +17,7 @@
     import { useMutation } from "@sveltestack/svelte-query";
     import { DateFMT } from "../../util/utils";
     import { push } from "svelte-spa-router";
+    import TagInput from "../TagInput.svelte";
 
     const mutation = useMutation((op) => addOperation(op), {
         onSuccess: (data: number) => {
@@ -82,6 +83,13 @@
         label="Tags"
         style="width: 100%;"
         value={"asasa"}
+    />
+    <TagInput
+        existing={[
+            { id: 1, name: "tag1" },
+            { id: 3, name: "tag3" },
+        ]}
+        bind:tags={e.tags}
     />
 
     <FormField>
@@ -169,6 +177,10 @@
         </Button>
     </div>
 </form>
+
+<pre>
+    {JSON.stringify(e, null, 4)}
+</pre>
 
 <style>
     form > :global(*) {

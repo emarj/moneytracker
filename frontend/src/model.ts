@@ -28,7 +28,10 @@ export type Operation = {
     transactions: Transaction[];
 };
 
-
+export type Tag = {
+    id?: number;
+    name: string;
+};
 
 export type Expense = {
     timestamp: string;
@@ -41,7 +44,10 @@ export type Expense = {
     debAccount: number;
     sharedWith: number;
     category: string;
+    tags: Tag[];
 };
+
+
 
 
 export const ExpenseToOperation = function (e: Expense): Operation {
