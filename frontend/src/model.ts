@@ -33,18 +33,90 @@ export type Tag = {
     name: string;
 };
 
-export type Expense = {
-    timestamp: string;
-    amount: number;
-    description: string;
-    shared: boolean;
-    sharedAmount: number;
+export class Expense {
+    timestamp: string = new Date().toISOString();
+    private _amount: number = 0;
+    description: string = "";
     account: number;
+    shares: Share[] = [];
+    category: string = "";
+    tags: Tag[] = [];
+
+    set isShared(shared: boolean) {
+        this.shares = (shared) ? [new Share(this._amount)] : [];
+    }
+
+    get isShared(): boolean {
+        return (this.shares.length > 0)
+    }
+
+    set amount(amount: number) {
+        this._amount = amount;
+        if (this.isShared) {
+            for (const s of this.shares) {
+                s.total = this.amount
+            }
+        }
+    }
+
+    get amount(): number { return this._amount }
+
+};
+
+export class Share {
+    private _amount: number = 0;
+    private _quota: number = 50;
+    private _total: number = 0;
+    with: number;
     credAccount: number;
     debAccount: number;
-    sharedWith: number;
-    category: string;
-    tags: Tag[];
+    isCredit: boolean = true;
+
+    constructor(total?: number) {
+        if (total) {
+            this.total = total;
+            this.computeAmount();
+        }
+    }
+
+    set quota(quota: number) {
+        this._quota = quota;
+        this.computeAmount();
+    }
+
+    get quota(): number { return this._quota }
+
+    set total(total: number) {
+        this._total = total;
+        this.computeAmount();
+    }
+
+    get total(): number { return this._total }
+
+    set amount(amount: number) {
+        this._amount = amount;
+        this.computeQuota();
+    }
+
+    get amount(): number { return this._amount }
+
+    private computeAmount() {
+
+        this._amount = (this._total * this._quota) / 100;
+    }
+
+    private computeQuota() {
+        if (this._amount !== 0) {
+            this._quota = (this._amount / this._total) * 100;
+        }
+    }
+};
+
+
+export const emptyOperation: Operation = {
+    description: "",
+    category: "",
+    transactions: [],
 };
 
 
@@ -64,13 +136,14 @@ export const ExpenseToOperation = function (e: Expense): Operation {
         ],
     };
 
-    if (e.shared) {
-        op.transactions.push({
-            amount: e.sharedAmount,
-            to: { id: e.credAccount },
-            from: { id: e.debAccount },
-        })
+    if (e.isShared) {
+        for (const s of e.shares) {
+            op.transactions.push({
+                amount: s.amount,
+                to: { id: s.credAccount },
+                from: { id: s.debAccount },
+            })
+        }
     }
-
     return op;
 }

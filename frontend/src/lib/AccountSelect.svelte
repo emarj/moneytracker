@@ -48,7 +48,7 @@
             {#each accounts as account (account.id)}
                 <Option value={account.id}><AccountName {account} /></Option>
             {/each}
-            <svelte:fragment slot="helperText">{helperText}</svelte:fragment>
+            <!-- <svelte:fragment slot="helperText">{helperText}</svelte:fragment> -->
         </Select>
     {/if}
 </div>

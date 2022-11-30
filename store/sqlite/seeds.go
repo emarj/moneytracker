@@ -88,11 +88,13 @@ func (s *SQLiteStore) Seed() error {
 			Name:        "credits",
 			DisplayName: "Crediti",
 			Owner:       entUser1,
+			IsCredit:    true,
 		},
 		"user2:credits": {
 			Name:        "credits",
 			DisplayName: "Crediti",
 			Owner:       entUser2,
+			IsCredit:    true,
 		},
 	}
 

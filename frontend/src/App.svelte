@@ -7,12 +7,14 @@
   import TopBar from "./lib/TopBar.svelte";
   import EntitySwitcher from "./lib/EntitySwitcher.svelte";
   import { entityID } from "./store";
+  import Blank from "./Blank.svelte";
 
   const queryClient = new QueryClient();
 
   const routes = {
     "/": Home,
     "/add": New,
+    "/blank": Blank,
   };
 </script>
 

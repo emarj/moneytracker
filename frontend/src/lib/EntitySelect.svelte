@@ -26,7 +26,7 @@
             {#each entities as entity (entity.id)}
                 <Option value={entity.id}>{entity.name}</Option>
             {/each}
-            <svelte:fragment slot="helperText">{helperText}</svelte:fragment>
+            <!--  <svelte:fragment slot="helperText">{helperText}</svelte:fragment> -->
         </Select>
     {/if}
 </div>

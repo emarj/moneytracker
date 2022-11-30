@@ -16,7 +16,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 	var a mt.Account
 
 	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.IsCredit, &a.Owner.ID, &a.Owner.Name, &a.Owner.System); err != nil {
+		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.IsCredit, &a.Owner.ID, &a.Owner.Name, &a.Owner.System, &a.Owner.External); err != nil {
 			return nil, err
 		}
 
