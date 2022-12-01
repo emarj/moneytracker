@@ -5,7 +5,7 @@
     import { querystring } from "svelte-spa-router";
     import { entityID, newOp, newExpense } from "./store";
     import ExpenseForm from "./lib/Expense/ExpenseForm.svelte";
-    import { ExpenseToOperation } from "./model";
+    //import { ExpenseToOperation } from "./model";
 
     /*let params = new URLSearchParams($querystring);
 
@@ -13,7 +13,7 @@
 
     let active = "Expense";
 
-    $: $newOp = ExpenseToOperation($newExpense);
+    $: $newOp = $newExpense.toOperation();
 </script>
 
 <div>

@@ -23,7 +23,7 @@ export type Transaction = {
 export type Operation = {
     id?: number;
     description: string;
-    timestamp?: string;
+    timestamp?: Date;
     category?: string;
     transactions: Transaction[];
 };
@@ -34,7 +34,7 @@ export type Tag = {
 };
 
 export class Expense {
-    timestamp: string = new Date().toISOString();
+    timestamp: Date = new Date();
     private _amount: number = 0;
     description: string = "";
     account: number;
@@ -60,6 +60,32 @@ export class Expense {
     }
 
     get amount(): number { return this._amount }
+
+    toOperation(): Operation {
+        let op = {
+            timestamp: this.timestamp,
+            description: this.description,
+            transactions: [
+                {
+                    amount: this.amount,
+                    from: { id: this.account },
+                    to: { id: 0 },
+                },
+
+            ],
+        };
+
+        if (this.isShared) {
+            for (const s of this.shares) {
+                op.transactions.push({
+                    amount: s.amount,
+                    to: { id: s.credAccount },
+                    from: { id: s.debAccount },
+                })
+            }
+        }
+        return op;
+    }
 
 };
 
@@ -121,29 +147,3 @@ export const emptyOperation: Operation = {
 
 
 
-
-export const ExpenseToOperation = function (e: Expense): Operation {
-    let op = {
-        timestamp: e.timestamp,
-        description: e.description,
-        transactions: [
-            {
-                amount: e.amount,
-                from: { id: e.account },
-                to: { id: 0 },
-            },
-
-        ],
-    };
-
-    if (e.isShared) {
-        for (const s of e.shares) {
-            op.transactions.push({
-                amount: s.amount,
-                to: { id: s.credAccount },
-                from: { id: s.debAccount },
-            })
-        }
-    }
-    return op;
-}

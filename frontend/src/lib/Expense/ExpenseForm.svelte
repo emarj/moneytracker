@@ -14,11 +14,11 @@
     import Operation from "../Operation/Operation.svelte";
     import { addOperation } from "../../api";
     import { useMutation } from "@sveltestack/svelte-query";
-    import { DateFMT } from "../../util/utils";
     import { push } from "svelte-spa-router";
     import TagInput from "../TagInput.svelte";
     import ShareForm from "./ShareForm.svelte";
     import New from "../../New.svelte";
+    import DatePicker from "../DatePicker.svelte";
 
     const mutation = useMutation((op) => addOperation(op), {
         onSuccess: (data: number) => {
@@ -41,15 +41,12 @@
     init();
 
     let op;
+
+    $: op = e.toOperation();
 </script>
 
 <form>
-    <Textfield
-        variant="outlined"
-        bind:value={e.timestamp}
-        label="Datetime"
-        style="width: 100%;"
-    />
+    <DatePicker bind:timestamp={e.timestamp} />
     <Textfield
         variant="outlined"
         bind:value={e.description}
