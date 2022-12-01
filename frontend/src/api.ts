@@ -14,6 +14,9 @@ const fetcher = async (url: string, init?) => {
 export const getEntities = () =>
     fetcher(`${baseURL}/entities`)
 
+export const getCategories = () =>
+    fetcher(`${baseURL}/categories`)
+
 export const getAccounts = () =>
     fetcher(`${baseURL}/accounts`)
 

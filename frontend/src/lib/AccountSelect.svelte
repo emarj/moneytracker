@@ -17,7 +17,6 @@
 
     export let value;
     export let label = "Account";
-    export let helperText = "Select an account";
 
     let accounts = [];
 

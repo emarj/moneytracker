@@ -24,7 +24,7 @@ export type Operation = {
     id?: number;
     description: string;
     timestamp?: Date;
-    category?: string;
+    category?: number;
     transactions: Transaction[];
 };
 
@@ -39,7 +39,7 @@ export class Expense {
     description: string = "";
     account: number;
     shares: Share[] = [];
-    category: string = "";
+    category: number;
     tags: Tag[] = [];
 
     set isShared(shared: boolean) {
@@ -65,6 +65,7 @@ export class Expense {
         let op = {
             timestamp: this.timestamp,
             description: this.description,
+            category: this.category,
             transactions: [
                 {
                     amount: this.amount,

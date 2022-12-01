@@ -1,32 +1,37 @@
 <script lang="ts">
-    import { useQuery } from "@sveltestack/svelte-query";
-    import { getAccountsByEntity } from "../../api";
     import { entityID } from "../../store";
-    import CircularProgress from "@smui/circular-progress";
+    import { emptyOperation, type Operation } from "../../model";
+    import Textfield from "@smui/textfield";
+    import DatePicker from "../DatePicker.svelte";
+    import AccountSelect from "../AccountSelect.svelte";
+    import CategorySelect from "../CategorySelect.svelte";
+    import Button from "@smui/button/src/Button.svelte";
 
-    const accountsQuery = useQuery(["accounts", $entityID], () =>
-        getAccountsByEntity($entityID)
-    );
-    export let op;
+    export let op: Operation = structuredClone(emptyOperation);
 </script>
 
-<input type="text" placeholder="Description" value={op.description} />
+<DatePicker bind:timestamp={op.timestamp} />
+<Textfield
+    variant="outlined"
+    bind:value={op.description}
+    label="Description"
+    style="width: 100%;"
+/>
+<CategorySelect bind:value={op.category} />
 
+<Button on:click={() => (op.transactions = [...op.transactions, { amount: 0 }])}
+    >Add Transaction</Button
+>
 <ul>
     {#each op.transactions as t}
-        <li>{t.from.id} -> {t.to.id} : {t.amount}</li>
+        <li>
+            From: <AccountSelect bind:value={t.from} /> To: <AccountSelect
+                bind:value={t.to}
+            />
+            <Textfield bind:value={t.amount} />
+        </li>
     {/each}
 </ul>
 
-<button
-    on:click|preventDefault={() => (op.transactions = [...op.transactions, {}])}
-    >Add Transactions</button
->
-
-<style>
-    form {
-        padding: 1rem;
-        border-radius: 10px;
-        border: 1px solid orange;
-    }
-</style>
+<h3>Preview</h3>
+<pre>{JSON.stringify(op, null, 4)}</pre>

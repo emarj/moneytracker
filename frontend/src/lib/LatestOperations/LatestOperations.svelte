@@ -1,10 +1,7 @@
 <script lang="ts">
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
-    import { DateFMT } from "../../util/utils";
     import { getOperationsByEntity } from "../../api";
-    import Amount from "../Amount.svelte";
-    import OperationTransactions from "../Operation/OperationTransactions.svelte";
     import { entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
     import Operation from "../Operation/Operation.svelte";

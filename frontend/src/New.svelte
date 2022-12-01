@@ -2,18 +2,24 @@
     import Tab, { Label } from "@smui/tab";
     import TabBar from "@smui/tab-bar";
     import OperationForm from "./lib/Operation/OperationForm.svelte";
-    import { querystring } from "svelte-spa-router";
-    import { entityID, newOp, newExpense } from "./store";
+    import { push, querystring } from "svelte-spa-router";
     import ExpenseForm from "./lib/Expense/ExpenseForm.svelte";
-    //import { ExpenseToOperation } from "./model";
 
-    /*let params = new URLSearchParams($querystring);
+    let params = new URLSearchParams($querystring);
 
-    const from: number = params.get("from");*/
+    const type: string = params.get("type");
+    let active;
 
-    let active = "Expense";
+    switch (type) {
+        case "operation":
+            active = "Operation";
+            break;
+        default:
+            active = "Expense";
+            break;
+    }
 
-    $: $newOp = $newExpense.toOperation();
+    $: push(`/add/?type=${active.toLowerCase()}`);
 </script>
 
 <div>
@@ -25,9 +31,9 @@
     </TabBar>
     {#if active == "Expense"}
         <h2>New Expense</h2>
-        <ExpenseForm bind:e={$newExpense} />
+        <ExpenseForm />
     {:else}
         <h2>New Operation</h2>
-        <OperationForm bind:op={$newOp} />
+        <OperationForm />
     {/if}
 </div>

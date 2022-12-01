@@ -19,6 +19,7 @@
     import ShareForm from "./ShareForm.svelte";
     import New from "../../New.svelte";
     import DatePicker from "../DatePicker.svelte";
+    import CategorySelect from "../CategorySelect.svelte";
 
     const mutation = useMutation((op) => addOperation(op), {
         onSuccess: (data: number) => {
@@ -27,7 +28,7 @@
         },
     });
 
-    export let e: Expense;
+    export let e: Expense = new Expense();
 
     const init = () => {
         e = new Expense();
@@ -38,14 +39,12 @@
         init();
     };
 
-    init();
-
     let op;
 
     $: op = e.toOperation();
 </script>
 
-<form>
+<div>
     <DatePicker bind:timestamp={e.timestamp} />
     <Textfield
         variant="outlined"
@@ -63,19 +62,14 @@
         input$pattern={"\\d+(\\.\\d{2})?"}
     />
 
-    <Textfield
-        variant="outlined"
-        bind:value={e.category}
-        label="Category"
-        style="width: 100%;"
-    />
-    <TagInput
+    <CategorySelect bind:value={e.category} />
+    <!-- <TagInput
         existing={[
             { id: 1, name: "tag1" },
             { id: 3, name: "tag3" },
         ]}
         bind:tags={e.tags}
-    />
+    /> -->
 
     <FormField>
         <Switch bind:checked={e.isShared} icons={false} />
@@ -102,20 +96,24 @@
             <Label>Add</Label>
         </Button>
     </div>
-</form>
 
-<h3>Preview</h3>
-<pre>
-    {JSON.stringify(e, null, 4)}
-</pre>
+    <h3>Preview</h3>
+    <pre>Expense:
+{JSON.stringify(e, null, 4)}
+    </pre>
+    <pre>Operation:
+{JSON.stringify(op, null, 4)}
+    </pre>
+</div>
 
 <style>
-    form > :global(*) {
+    div > :global(*) {
         /*  display: block; */
         margin: 1rem 0.3rem;
     }
 
     .buttons > :global(*) {
+        margin: 0;
         width: 48%;
     }
 </style>
