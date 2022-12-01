@@ -24,4 +24,6 @@ type Store interface {
 	GetOperationsByEntity(eID int) ([]Operation, error)
 	AddOperation(op Operation) (null.Int, error)
 	DeleteOperation(tID int) error
+
+	GetCategories() ([]Category, error)
 }

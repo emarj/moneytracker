@@ -39,3 +39,8 @@ CREATE TABLE operations (
 	category_id INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(id)
 );
+CREATE TABLE category (
+	id INTEGER,
+	name TEXT NOT NULL,
+	PRIMARY KEY(id)
+);

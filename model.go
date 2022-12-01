@@ -49,6 +49,11 @@ type Operation struct {
 	//Details      string        `json:"details"`
 }
 
+type Category struct {
+	ID   null.Int `json:"id"`
+	Name string   `json:"name"`
+}
+
 const (
 	CategoryExpense = iota
 	CategoryTransfer

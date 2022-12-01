@@ -60,6 +60,7 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/operation/:opid", s.getOperation)
 	apiGroup.POST("/operation", s.addOperation)
 	//apiGroup.DELETE("/transaction/", s.deleteTransaction)
+	apiGroup.GET("/categories", s.getCategories)
 
 	return s
 }
@@ -239,4 +240,12 @@ func (s *Server) addOperation(c echo.Context) error {
 	}
 	//do not return t since it might be incomplete
 	return c.JSON(http.StatusOK, id)
+}
+
+func (s *Server) getCategories(c echo.Context) error {
+	cl, err := s.store.GetCategories()
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, cl)
 }

@@ -40,6 +40,7 @@ const GetOperationQuery string = `SELECT  			op.id,
 													op.timestamp,
 													op.created_by_id,
 													op.description,
+													op.category_id,
 													t.id,
 													t.from_id,
 													t.to_id,
@@ -59,8 +60,9 @@ const InsertTransactionQuery string = `INSERT INTO  transactions (
 const InsertOperationQuery string = `INSERT INTO  operations (
 	timestamp,
 	created_by_id,
-	description)
-VALUES (?,?,?);`
+	description,
+	category_id)
+VALUES (?,?,?,?);`
 
 const InsertEntityQuery string = `INSERT INTO  entities (id, name, is_system) VALUES (?,?,?);`
 

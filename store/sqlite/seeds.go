@@ -110,6 +110,24 @@ func (s *SQLiteStore) Seed() error {
 		accounts[k] = a
 	}
 
+	var categories map[string]mt.Category = map[string]mt.Category{
+		"uncategorized": {ID: null.IntFrom(0), Name: "Uncategorized"},
+		"cat1":          {Name: "Categoria 1"},
+		"cat2":          {Name: "Categoria 2"},
+	}
+
+	for k, c := range categories {
+		id, err := s.AddCategory(c)
+		if err != nil {
+			return err
+		}
+		if c.ID.Valid && !id.Equal(c.ID) {
+			log.Warnf("seeding: insert categories %s: expecting id %d, got %d", c.Name, c.ID.Int64, id.Int64)
+		}
+		c.ID = id
+		categories[k] = c
+	}
+
 	_, err = s.AddOperation(mt.Operation{
 		CreatedByID: 1,
 		Timestamp:   &mt.DateTime{time.Now()},
@@ -143,7 +161,7 @@ func (s *SQLiteStore) Seed() error {
 				Amount: decimal.New(345, 0),
 			},
 		},
-		CategoryID: 0,
+		CategoryID: 2,
 	})
 	if err != nil {
 		return err
@@ -165,7 +183,7 @@ func (s *SQLiteStore) Seed() error {
 				Amount: decimal.New(100, 0),
 			},
 		},
-		CategoryID: 0,
+		CategoryID: 1,
 	})
 	if err != nil {
 		return err

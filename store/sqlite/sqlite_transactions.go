@@ -88,7 +88,7 @@ func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 	for rows.Next() {
 		t := mt.Transaction{}
 		if err = rows.Scan(
-			&op.ID, &op.Timestamp, &op.CreatedByID, &op.Description,
+			&op.ID, &op.Timestamp, &op.CreatedByID, &op.Description, &op.CategoryID,
 			&t.ID, &t.From.ID, &t.To.ID, &t.Amount,
 		); err != nil {
 			return nil, err
@@ -115,7 +115,7 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
 		tx.Rollback()
 	}()
 
-	res, err := tx.Exec(queries.InsertOperationQuery, op.Timestamp, op.CreatedByID, op.Description)
+	res, err := tx.Exec(queries.InsertOperationQuery, op.Timestamp, op.CreatedByID, op.Description, op.CategoryID)
 	if err != nil {
 		return id, err
 	}
