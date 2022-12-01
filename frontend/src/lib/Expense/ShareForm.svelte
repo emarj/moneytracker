@@ -48,7 +48,6 @@
         credit={share.isCredit}
         bind:value={share.credAccount}
         label="Credited Account"
-        helperText="Select where to receive credit"
     />
     {#key share.with}
         <AccountSelect
@@ -57,7 +56,6 @@
             bind:value={share.debAccount}
             disabled={share.with == null}
             label="Debited Account"
-            helperText="Select where to get credit from"
         />
     {/key}
 {/key}

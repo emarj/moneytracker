@@ -37,3 +37,6 @@ export const getOperationsByEntity = (eID: Number) =>
 
 export const addOperation = (op) =>
     fetcher(`${baseURL}/operation`, { method: "POST", body: JSON.stringify(op) })
+
+export const deleteOperation = (opID: number) =>
+    fetcher(`${baseURL}/operation/${opID}`, { method: "DELETE" })

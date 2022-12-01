@@ -58,8 +58,9 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/transactions/account/:aid", s.getTransactionsByAccount)
 	apiGroup.GET("/operation/:opid", s.getOperation)
+	apiGroup.DELETE("/operation/:opid", s.deleteOperation)
 	apiGroup.POST("/operation", s.addOperation)
-	//apiGroup.DELETE("/transaction/", s.deleteTransaction)
+
 	apiGroup.GET("/categories", s.getCategories)
 
 	return s
@@ -248,4 +249,18 @@ func (s *Server) getCategories(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, cl)
+}
+
+func (s *Server) deleteOperation(c echo.Context) error {
+
+	opID, err := strconv.Atoi(c.Param("opid"))
+	if err != nil {
+		return err
+	}
+
+	err = s.store.DeleteOperation(opID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, nil)
 }

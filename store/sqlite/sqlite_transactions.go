@@ -149,12 +149,34 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
 }
 
 func (s *SQLiteStore) DeleteOperation(opID int) error {
-	_, err := s.db.Exec("DELETE FROM operations WHERE id=?", opID)
+
+	// We could delete transactions with a trigger in the database
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		tx.Rollback()
+	}()
+
+	res, err := tx.Exec("DELETE FROM operations WHERE id=?", opID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("error: no operation with id: %d", opID)
+	}
+
+	_, err = tx.Exec("DELETE FROM transactions WHERE operation_id=?", opID)
 	if err != nil {
 		return err
 	}
 
-	// We should delete transactions with a trigger in the database
-
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 	return nil
 }

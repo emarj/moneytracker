@@ -112,8 +112,15 @@ func (s *SQLiteStore) Seed() error {
 
 	var categories map[string]mt.Category = map[string]mt.Category{
 		"uncategorized": {ID: null.IntFrom(0), Name: "Uncategorized"},
-		"cat1":          {Name: "Categoria 1"},
-		"cat2":          {Name: "Categoria 2"},
+		"cat1":          {Name: "Spesa"},
+		"cat2":          {Name: "Bollette"},
+		"cat3":          {Name: "Salute"},
+		"cat4":          {Name: "Ristorante/Bar"},
+		"cat5":          {Name: "Sport"},
+		"cat6":          {Name: "Trasporti"},
+		"cat7":          {Name: "Tasse"},
+		"cat8":          {Name: "Regali"},
+		"cat9":          {Name: "Viaggi"},
 	}
 
 	for k, c := range categories {

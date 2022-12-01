@@ -27,7 +27,7 @@
         Error: {$transactionsQuery.error.message}
     {:else}
         <table>
-            {#each $transactionsQuery.data as t}
+            {#each $transactionsQuery.data as t (t.id)}
                 <tr>
                     <td>{DateFMT(t.operation.timestamp).substring(0, 5)}</td>
                     <td><strong>{t.operation.description}</strong></td>
