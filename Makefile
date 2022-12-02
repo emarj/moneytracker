@@ -1,27 +1,30 @@
 # Go parameters
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
 BINARY_NAME=./bin/moneytracker
 	
 all: build run
 build: build-frontend build-backend
-build-backend:
-		$(GOBUILD) -o $(BINARY_NAME) -v cmd/server/main.go
+build-docker: build-frontend build-backend-linux build-docker-image
+build-backend-docker: build-backend-linux build-docker-image
 build-frontend:
 		(cd frontend && pnpm run build)
+build-backend:
+		go build -o $(BINARY_NAME) -v cmd/server/main.go
+build-backend-linux:
+		GOOS=linux go build -o $(BINARY_NAME)_linux -v cmd/server/main.go
+build-docker-image:
+		docker build -t emarj/moneytracker:v2 .
+#		# docker save -o bin/moneytracker_docker.tar moneytracker
 test:
-		$(GOTEST) -v ./...
+		go test -v ./...
 clean:
-		$(GOCLEAN)
+		go clean
 		rm -f $(BINARY_NAME)
 dev:
 		go run ./cmd/server/main.go
+push:
+		docker push emarj/moneytracker
 run:
-		./$(BINARY_NAME) -dbpath="../moneytracker_sharing.sqlite" -address="localhost"
-
-runprod: 
-		./$(BINARY_NAME) -dbpath="../../moneytracker.sqlite" -prefix="/money"
+		docker run -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:v2
+prod: 
+		docker run -d -p 3245:3245 -v /home/marco/moneytracker/data:/data emarj/moneytracker:v2
 
