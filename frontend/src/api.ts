@@ -11,6 +11,15 @@ const fetcher = async (url: string, init?) => {
     return response.json()
 }
 
+export const echo = () =>
+    fetcher(`${baseURL}/echo`)
+
+export const login = (l) =>
+    fetcher(`${baseURL}/login`, { method: "POST", body: JSON.stringify(l) })
+
+export const logout = () =>
+    fetcher(`${baseURL}/logout`, { method: "POST" })
+
 export const getEntities = () =>
     fetcher(`${baseURL}/entities`)
 

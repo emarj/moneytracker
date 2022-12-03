@@ -1,5 +1,9 @@
 <script>
-  import { QueryClient, QueryClientProvider } from "@sveltestack/svelte-query";
+  import {
+    QueryClient,
+    QueryClientProvider,
+    useQuery,
+  } from "@sveltestack/svelte-query";
   import BottomBar from "./lib/BottomBar.svelte";
   import Home from "./Home.svelte";
   import Router from "svelte-spa-router";
@@ -8,8 +12,18 @@
   import EntitySwitcher from "./lib/EntitySwitcher.svelte";
   import { entityID } from "./store";
   import Blank from "./Blank.svelte";
+  import Login from "./Login.svelte";
+  import { echo } from "./api";
+  import Logout from "./Logout.svelte";
 
-  const queryClient = new QueryClient();
+  const loginStore = useQuery(["login"], () => echo(), {
+    onSuccess: () => {
+      console.log("login succeded");
+    },
+    onError: (err) => {
+      console.log("echo error", err);
+    },
+  });
 
   const routes = {
     "/": Home,
@@ -18,18 +32,21 @@
   };
 </script>
 
-<QueryClientProvider client={queryClient}>
+{#if $loginStore.isSuccess}
   <TopBar />
 
   <main>
     {#key $entityID}
+      <Logout />
       <EntitySwitcher />
       <Router {routes} />
     {/key}
   </main>
 
   <BottomBar />
-</QueryClientProvider>
+{:else}
+  <Login />
+{/if}
 
 <style>
   main {

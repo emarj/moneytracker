@@ -5,6 +5,13 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
+type User struct {
+	ID          null.Int `json:"id"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	Admin       bool     `json:"admin"`
+}
+
 type Entity struct {
 	ID       null.Int `json:"id"`
 	Name     string   `json:"name"`

@@ -20,7 +20,7 @@ clean:
 		go clean
 		rm -f $(BINARY_NAME)
 dev:
-		go run ./cmd/server/main.go
+		MT_FRONTEND_URL=https://localhost:5173/ go run ./cmd/server/main.go
 push:
 		docker push emarj/moneytracker
 run:

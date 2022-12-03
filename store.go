@@ -26,4 +26,6 @@ type Store interface {
 	DeleteOperation(tID int) error
 
 	GetCategories() ([]Category, error)
+
+	Login(user string, passwordHash []byte) (bool, error)
 }
