@@ -87,13 +87,13 @@ func NewServer(store Store) *Server {
 		},
 		SigningKey:  secret_key,
 		Claims:      &jwtCustomClaims{},
-		TokenLookup: "cookie:auth",
-		ContextKey:  "auth",
+		TokenLookup: "cookie:token",
+		ContextKey:  "token",
 	}
 	apiGroup.Use(middleware.JWTWithConfig(config))
 
 	// API Routes
-	apiGroup.GET("/echo", s.Echo)
+	apiGroup.GET("/greet", s.Greet)
 	apiGroup.POST("/login", s.Login)
 	apiGroup.POST("/logout", s.Logout)
 	apiGroup.GET("/entity/:eid", s.getEntity)
@@ -128,8 +128,8 @@ func (s *Server) Stop(ctx context.Context) error {
 
 func newAuthCookie() *http.Cookie {
 	return &http.Cookie{
-		Name:     "auth",
-		Secure:   false, // This should be set to true as soon as we implement HTTPS
+		Name:     "token",
+		Secure:   true, // This should be set to true as soon as we implement HTTPS
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
@@ -188,7 +188,7 @@ func (s *Server) Login(c echo.Context) error {
 	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, echo.Map{
-		"message": "logged in",
+		"expires": expiration.Unix(),
 	})
 }
 
@@ -204,9 +204,9 @@ func (s *Server) Logout(c echo.Context) error {
 	})
 }
 
-func (s *Server) Echo(c echo.Context) error {
+func (s *Server) Greet(c echo.Context) error {
 
-	authRaw := c.Get("auth")
+	authRaw := c.Get("token")
 	if authRaw == nil {
 		return echo.ErrInternalServerError
 	}

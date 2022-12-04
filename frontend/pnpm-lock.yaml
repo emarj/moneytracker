@@ -20,6 +20,7 @@ specifiers:
   sass: ^1.56.1
   svelte: ^3.53.1
   svelte-check: ^2.9.2
+  svelte-local-storage-store: ^0.3.1
   svelte-material-ui: 7.0.0-beta.0
   svelte-preprocess: ^4.10.7
   svelte-spa-router: ^3.3.0
@@ -30,6 +31,7 @@ specifiers:
 
 dependencies:
   '@sveltestack/svelte-query': 1.6.0
+  svelte-local-storage-store: 0.3.1_svelte@3.53.1
   svelte-material-ui: 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   svelte-spa-router: 3.3.0
 
@@ -2146,6 +2148,15 @@ packages:
     dependencies:
       svelte: 3.53.1
     dev: true
+
+  /svelte-local-storage-store/0.3.1_svelte@3.53.1:
+    resolution: {integrity: sha512-pG+jjBY8oZWQ1XRnVkLIuPPbPqBWVtj0IINQBjkZSpJ+OqMs285efd+oiGdk4vBDnqomw81SForn+KH1j3HguA==}
+    engines: {node: '>=0.14'}
+    peerDependencies:
+      svelte: ^3.48.0
+    dependencies:
+      svelte: 3.53.1
+    dev: false
 
   /svelte-material-ui/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-BX5UeSu9HGrv0XJ958IYy0uQLpgTzdQ4Ia7ufVyhC8opbWkriFxDgSivNa1un7UpkszI5tq4NB5Dt3ra+DPy5w==}

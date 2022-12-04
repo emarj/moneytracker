@@ -1,18 +1,15 @@
 <script>
     import Button from "@smui/button";
     import Textfield from "@smui/textfield";
-    import { QueryClient, useMutation } from "@sveltestack/svelte-query";
+    import { useMutation } from "@sveltestack/svelte-query";
     import { login } from "./api";
+    import { authStore } from "./store";
 
     let l = { user: "", password: "" };
 
-    const queryClient = new QueryClient();
-
     const mutation = useMutation((l) => login(l), {
         onSuccess: (data) => {
-            //$messageStore = { text: `Operation added successfully!` };
-            //push("/");
-            setTimeout(() => queryClient.invalidateQueries(["login"]), 2000);
+            authStore.set(data);
         },
     });
 </script>

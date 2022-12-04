@@ -1,11 +1,22 @@
 <script>
     import { pop } from "svelte-spa-router";
     import { useQueryClient } from "@sveltestack/svelte-query";
+    import { historyStore } from "../store";
     const queryClient = useQueryClient();
+
+    export let showBackButton = true;
 </script>
 
 <nav>
-    <button class="back" on:click={pop}>← Back </button>
+    <button
+        class="back"
+        on:click={() => {
+            historyStore.pop();
+            pop(); //this will trigger routeLoaded but since we set aboutToPop to true we will ignore it
+        }}
+        disabled={!showBackButton}
+        >← Back
+    </button>
 
     <a href="/#/">
         <img class="logo" src="/moneytracker.png" alt="MoneyTracker" />
