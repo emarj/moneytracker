@@ -5,10 +5,11 @@
     import { entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
     import Operation from "../Operation/Operation.svelte";
+    import { link } from "svelte-spa-router";
 
-    const queryClient = useQueryClient();
-    const operationsQuery = useQuery(["operations", "entity", $entityID], () =>
-        getOperationsByEntity($entityID)
+    const operationsQuery = useQuery(
+        ["operations", "entity", $entityID, "latest"],
+        () => getOperationsByEntity($entityID)
     );
 
     let expanded = false;
@@ -35,6 +36,7 @@
                 </li>{/each}
         </ol>
     {/if}
+    <a href="/operations" use:link>More</a>
 </div>
 
 <style lang="scss">

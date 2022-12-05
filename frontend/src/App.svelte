@@ -1,18 +1,20 @@
 <script>
   import BottomBar from "./lib/BottomBar.svelte";
-  import Home from "./Home.svelte";
+  import Home from "./pages/Home.svelte";
   import Router from "svelte-spa-router";
-  import New from "./New.svelte";
+  import New from "./pages/New.svelte";
   import TopBar from "./lib/TopBar.svelte";
   import EntitySwitcher from "./lib/EntitySwitcher.svelte";
   import { entityID, authStore, historyStore, isFirstPage } from "./store";
-  import Blank from "./Blank.svelte";
+  import Blank from "./pages/Blank.svelte";
   import Login from "./Login.svelte";
   import Logout from "./Logout.svelte";
+  import AllOperations from "./AllOperations.svelte";
 
   const routes = {
     "/": Home,
     "/add": New,
+    "/operations": AllOperations,
     "/blank": Blank,
   };
 

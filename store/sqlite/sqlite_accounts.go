@@ -7,7 +7,7 @@ import (
 
 func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  a.id,a.name,a.display_name,a.is_credit,e.* FROM accounts a INNER JOIN entities e WHERE a.owner_id = e.id`)
+	rows, err := s.db.Query(`SELECT  a.id,a.name,a.display_name,a.type,e.* FROM accounts a INNER JOIN entities e WHERE a.owner_id = e.id`)
 	if err != nil {
 		return nil, err
 	}
@@ -16,7 +16,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 	var a mt.Account
 
 	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.IsCredit, &a.Owner.ID, &a.Owner.Name, &a.Owner.System, &a.Owner.External); err != nil {
+		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.Type, &a.Owner.ID, &a.Owner.Name, &a.Owner.System, &a.Owner.External); err != nil {
 			return nil, err
 		}
 
@@ -28,7 +28,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
 func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  id,name,display_name,is_credit FROM accounts WHERE owner_id = ? AND is_system == FALSE`, eID)
+	rows, err := s.db.Query(`SELECT  id,name,display_name,type FROM accounts WHERE owner_id = ? AND is_system == FALSE`, eID)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
 	var a mt.Account
 
 	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.IsCredit); err != nil {
+		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.Type); err != nil {
 			return nil, err
 		}
 
@@ -65,8 +65,8 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 func (s *SQLiteStore) AddAccount(a mt.Account) (null.Int, error) {
 
 	id := null.Int{}
-	res, err := s.db.Exec(`INSERT INTO accounts (id,name,display_name,owner_id,is_system,is_world,is_credit) VALUES(?,?,?,?,?,?,?)`,
-		a.ID, a.Name, a.DisplayName, a.Owner.ID, a.IsWorld, a.IsSystem, a.IsCredit)
+	res, err := s.db.Exec(`INSERT INTO accounts (id,name,display_name,owner_id,is_system,is_world,type) VALUES(?,?,?,?,?,?,?)`,
+		a.ID, a.Name, a.DisplayName, a.Owner.ID, a.IsWorld, a.IsSystem, a.Type)
 	if err != nil {
 		return id, err
 	}
@@ -95,12 +95,6 @@ func (s *SQLiteStore) DeleteAccount(id int) error {
 	}
 
 	_, err = tx.Exec(`DELETE FROM balances WHERE account_id=?`, id)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	_, err = tx.Exec(`DELETE FROM transactions WHERE account_id=?`, id)
 	if err != nil {
 		tx.Rollback()
 		return err

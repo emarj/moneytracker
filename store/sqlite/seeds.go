@@ -88,13 +88,13 @@ func (s *SQLiteStore) Seed() error {
 			Name:        "credits",
 			DisplayName: "Crediti",
 			Owner:       entUser1,
-			IsCredit:    true,
+			Type:        mt.AccountCredit,
 		},
 		"user2:credits": {
 			Name:        "credits",
 			DisplayName: "Crediti",
 			Owner:       entUser2,
-			IsCredit:    true,
+			Type:        mt.AccountCredit,
 		},
 	}
 
@@ -115,7 +115,7 @@ func (s *SQLiteStore) Seed() error {
 		"cat1":          {Name: "Spesa"},
 		"cat2":          {Name: "Bollette"},
 		"cat3":          {Name: "Salute"},
-		"cat4":          {Name: "Ristorante/Bar"},
+		"cat4":          {Name: "Ristoranti/Bar"},
 		"cat5":          {Name: "Sport"},
 		"cat6":          {Name: "Trasporti"},
 		"cat7":          {Name: "Tasse"},
@@ -137,7 +137,7 @@ func (s *SQLiteStore) Seed() error {
 
 	_, err = s.AddOperation(mt.Operation{
 		CreatedByID: 1,
-		Timestamp:   &mt.DateTime{time.Now()},
+		Timestamp:   mt.DateTime{time.Now()},
 		Description: "Cena Fuori in 2",
 		Transactions: []mt.Transaction{
 			{
@@ -159,7 +159,7 @@ func (s *SQLiteStore) Seed() error {
 
 	_, err = s.AddOperation(mt.Operation{
 		CreatedByID: 1,
-		Timestamp:   &mt.DateTime{time.Now()},
+		Timestamp:   mt.DateTime{time.Now()},
 		Description: "Giroconto",
 		Transactions: []mt.Transaction{
 			{
@@ -176,7 +176,7 @@ func (s *SQLiteStore) Seed() error {
 
 	_, err = s.AddOperation(mt.Operation{
 		CreatedByID: 1,
-		Timestamp:   &mt.DateTime{time.Now()},
+		Timestamp:   mt.DateTime{time.Now()},
 		Description: "Prestito 100 Euro A -> M",
 		Transactions: []mt.Transaction{
 			{

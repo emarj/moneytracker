@@ -1,17 +1,83 @@
 package sqlite
 
 import (
+	"database/sql"
 	"fmt"
 
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
-	"ronche.se/moneytracker/store/sqlite/queries"
 )
 
-func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error) {
+const GetTransactionsByAccountQuery string = `SELECT  t.id,
+													t.from_id,
+													t.to_id,
+													t.amount,
+													t.operation_id,
+													op.id,
+													op.timestamp,
+													op.created_by_id,
+													op.description
+											FROM transactions t
+											INNER JOIN operations op
+											ON t.operation_id = op.id
+											WHERE from_id = :aID
+											OR to_id = :aID
+											ORDER BY op.timestamp DESC
+											LIMIT ?;`
 
-	rows, err := s.db.Query(queries.GetTransactionsByAccountQuery, aID, aID)
+const GetOperationByEntityQuery string = `SELECT  t.*,
+												op.*,
+												fa.name AS from_name,
+												fa.display_name AS from_display_name,
+												ta.name AS to_name,
+												ta.display_name AS to_display_name,
+												fe.id,
+												fe.name,
+												te.id,
+												te.name
+												FROM transactions t
+													INNER JOIN operations op ON t.operation_id = op.id
+													INNER JOIN accounts AS fa ON t.from_id = fa.id
+													INNER JOIN accounts AS ta ON t.to_id = ta.id
+													INNER JOIN entities AS fe ON fa.owner_id = fe.id
+													INNER JOIN entities AS te ON ta.owner_id = te.id
+												WHERE fa.owner_id = :eID
+													OR ta.owner_id = :eID
+												ORDER BY op.timestamp DESC,op.id,t.id
+												LIMIT ?;`
+
+const GetOperationQuery string = `SELECT  			op.id,
+													op.timestamp,
+													op.created_by_id,
+													op.description,
+													op.category_id,
+													t.id,
+													t.from_id,
+													t.to_id,
+													t.amount
+											FROM operations op
+											INNER JOIN transactions t
+											ON t.operation_id = op.id
+											WHERE op.id = :oID;`
+
+const InsertTransactionQuery string = `INSERT INTO  transactions (
+													from_id,
+													to_id,
+													amount,
+													operation_id)
+											VALUES (?,?,?,?);`
+
+const InsertOperationQuery string = `INSERT INTO  operations (
+													timestamp,
+													created_by_id,
+													description,
+													category_id)
+												VALUES (?,?,?,?);`
+
+func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transaction, error) {
+
+	rows, err := s.db.Query(GetTransactionsByAccountQuery, sql.Named("aID", aID), limit)
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +98,9 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int) ([]mt.Transaction, error
 	return transactions, nil
 }
 
-func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
+func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation, error) {
 
-	rows, err := s.db.Query(queries.GetOperationByEntityQuery, eID, eID)
+	rows, err := s.db.Query(GetOperationByEntityQuery, sql.Named("eID", eID), limit)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +144,7 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int) ([]mt.Operation, error) {
 
 func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 
-	rows, err := s.db.Query(queries.GetOperationQuery, opID)
+	rows, err := s.db.Query(GetOperationQuery, sql.Named("opID", opID))
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +181,7 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
 		tx.Rollback()
 	}()
 
-	res, err := tx.Exec(queries.InsertOperationQuery, op.Timestamp, op.CreatedByID, op.Description, op.CategoryID)
+	res, err := tx.Exec(InsertOperationQuery, op.Timestamp, op.CreatedByID, op.Description, op.CategoryID)
 	if err != nil {
 		return id, err
 	}
@@ -125,7 +191,7 @@ func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
 		return id, err
 	}
 
-	q, err := tx.Prepare(queries.InsertTransactionQuery)
+	q, err := tx.Prepare(InsertTransactionQuery)
 	if err != nil {
 		return id, err
 	}

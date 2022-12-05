@@ -1,5 +1,6 @@
 <script lang="ts">
   import CircularProgress from "@smui/circular-progress";
+  import MdAddCircleOutline from "svelte-icons/md/MdAddCircleOutline.svelte";
 
   import { getAccountsByEntity } from "../../api";
 
@@ -12,8 +13,11 @@
   );
 </script>
 
-<div>
+<div class="container">
   <h2>My Accounts</h2>
+
+  <button class="add-account" title="New Account"><MdAddCircleOutline /></button
+  >
 
   {#if $queryResult.isLoading}
     <span
@@ -34,12 +38,24 @@
 </div>
 
 <style lang="scss">
-  ul {
-    padding: 0;
-    list-style: none;
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
+  .container {
+    position: relative;
+
+    button.add-account {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
   }
 </style>

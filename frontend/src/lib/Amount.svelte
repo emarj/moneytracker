@@ -1,4 +1,6 @@
 <script>
+    import { showBalances } from "../store";
+
     export let value;
     export let negative = false;
     export let hide_plus = true;
@@ -17,4 +19,13 @@
     }
 </script>
 
-<span class="amount amount-{negative ? 'neg' : 'pos'}">{fmtString}</span>
+<span
+    class="amount amount-{negative ? 'neg' : 'pos'}"
+    class:hidden={!$showBalances}>{fmtString}</span
+>
+
+<style>
+    .amount.hidden {
+        filter: blur(0.5rem);
+    }
+</style>

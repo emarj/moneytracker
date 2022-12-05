@@ -13,7 +13,7 @@ CREATE TABLE accounts (
 	owner_id INTEGER NOT NULL,
 	is_system INTEGER NOT NULL CHECK (is_system IN (0, 1)),
 	is_world INTEGER NOT NULL CHECK (is_world IN (0, 1)),
-	is_credit INTEGER NOT NULL CHECK (is_credit IN (0, 1)),
+	type INTEGER DEFAULT 0,
 	PRIMARY KEY(id)
 	FOREIGN KEY(owner_id) REFERENCES entities(id)
 );

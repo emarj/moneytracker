@@ -1,10 +1,9 @@
 <script>
     import { pop } from "svelte-spa-router";
     import { useQueryClient } from "@sveltestack/svelte-query";
-    import { historyStore } from "../store";
+    import { historyStore, isFirstPage, showBalances } from "../store";
+    import Switch from "@smui/switch";
     const queryClient = useQueryClient();
-
-    export let showBackButton = true;
 </script>
 
 <nav>
@@ -14,13 +13,15 @@
             historyStore.pop();
             pop(); //this will trigger routeLoaded but since we set aboutToPop to true we will ignore it
         }}
-        disabled={!showBackButton}
+        disabled={$isFirstPage}
         >← Back
     </button>
 
     <a href="/#/">
         <img class="logo" src="/moneytracker.png" alt="MoneyTracker" />
     </a>
+
+    <Switch bind:checked={$showBalances} />
 
     <button
         class="refresh"

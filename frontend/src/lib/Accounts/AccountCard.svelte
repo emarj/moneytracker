@@ -8,11 +8,17 @@
 
     let balance;
     let transactions;
+    let selected = false;
 </script>
 
-<div class="card">
-    <h3>{account.display_name}{account.is_credit ? "*" : ""}</h3>
-    <button class="more">
+<div class="card" class:selected>
+    <h3>{account.display_name}{account.type == 1 ? "*" : ""}</h3>
+    <button
+        class="more"
+        on:click={() => {
+            selected = !selected;
+        }}
+    >
         <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -46,7 +52,9 @@
         </svg>
     </button>
     <AccountBalance id={account.id} bind:this={balance} />
-    <AccountMovements id={account.id} bind:this={transactions} />
+    <div class="movements">
+        <AccountMovements id={account.id} bind:this={transactions} />
+    </div>
     <button
         class="add"
         on:click={() => {
@@ -81,6 +89,7 @@
         height: auto;
         width: 300px;
         border-radius: 15px;
+        transition: all 0.5s ease-in;
 
         h3 {
             text-align: center;
@@ -108,8 +117,22 @@
         }
 
         button.add {
-            margin-right: 0Io;
+            display: none;
             margin-left: auto;
+        }
+
+        .movements {
+            opacity: 0;
+            transition: all 1s linear;
+        }
+
+        &.selected {
+            transform: scale(1.2);
+            z-index: 100;
+
+            .movements {
+                opacity: 1;
+            }
         }
     }
 </style>

@@ -14,14 +14,14 @@ type Store interface {
 	DeleteAccount(aID int) error
 
 	GetBalance(aID int) (*Balance, error)
-	GetBalances(aID int) ([]Balance, error)
+	GetHistory(aID int) ([]Balance, error)
 	ComputeBalance(aID int) error
-	AddBalance(b Balance) error
+	AdjustBalance(b Balance) error
 
 	GetOperation(int) (*Operation, error)
 	//GetTransactions() ([]Transaction, error)
-	GetTransactionsByAccount(aID int) ([]Transaction, error)
-	GetOperationsByEntity(eID int) ([]Operation, error)
+	GetTransactionsByAccount(aID int, limit int) ([]Transaction, error)
+	GetOperationsByEntity(eID int, limit int) ([]Operation, error)
 	AddOperation(op Operation) (null.Int, error)
 	DeleteOperation(tID int) error
 

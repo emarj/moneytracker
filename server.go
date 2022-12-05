@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/guregu/null.v4"
 )
 
 //go:embed frontend/dist/*
@@ -46,8 +48,8 @@ func NewServer(store Store) *Server {
 	s.router.HideBanner = true
 
 	// Middlewares
-	//s.router.Pre(middleware.AddTrailingSlash())
-	s.router.Use(middleware.Logger())
+	//s.router.Pre(middleware.AddTrailingSlash()) Be ware this is a mess
+	//s.router.Use(middleware.Logger())
 	s.router.Use(middleware.Recover())
 
 	s.router.Use(middleware.CORS())
@@ -91,19 +93,25 @@ func NewServer(store Store) *Server {
 		ContextKey:  "token",
 	}
 	apiGroup.Use(middleware.JWTWithConfig(config))
+	apiGroup.Use(middleware.Logger())
 
 	// API Routes
 	apiGroup.GET("/greet", s.Greet)
 	apiGroup.POST("/login", s.Login)
 	apiGroup.POST("/logout", s.Logout)
+
 	apiGroup.GET("/entity/:eid", s.getEntity)
 	apiGroup.GET("/entities", s.getEntities)
+
 	apiGroup.GET("/account/:aid", s.getAccount)
 	apiGroup.GET("/accounts", s.getAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
+	apiGroup.POST("/account", s.addAccount)
+
 	apiGroup.GET("/balances/:aid", s.getBalances)
-	apiGroup.POST("/balance", s.addBalance)
+	apiGroup.POST("/balance", s.adjustBalance)
 	apiGroup.GET("/balance/:aid", s.getBalance)
+
 	//apiGroup.GET("/transactions", s.getTransactions)
 	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/transactions/account/:aid", s.getTransactionsByAccount)
@@ -160,13 +168,15 @@ func (s *Server) Login(c echo.Context) error {
 		return echo.ErrUnauthorized
 	}
 
+	user := User{ID: null.IntFrom(99), Name: login.User, Admin: true} // This should be returned by the store.Login function
+
 	// Valid login
 
 	expiration := time.Now().Add(time.Hour * 72)
 
 	// Set custom claims
 	claims := &jwtCustomClaims{
-		User{Name: login.User, Admin: true},
+		user,
 		jwt.StandardClaims{
 			ExpiresAt: expiration.Unix(),
 		},
@@ -204,27 +214,36 @@ func (s *Server) Logout(c echo.Context) error {
 	})
 }
 
-func (s *Server) Greet(c echo.Context) error {
-
+func extractClaims(c echo.Context) (*jwtCustomClaims, error) {
 	authRaw := c.Get("token")
 	if authRaw == nil {
-		return echo.ErrInternalServerError
+		return nil, echo.ErrInternalServerError
 	}
 	auth, ok := authRaw.(*jwt.Token)
 	if !ok {
-		return echo.ErrInternalServerError
+		return nil, echo.ErrInternalServerError
 	}
 	claims, ok := auth.Claims.(*jwtCustomClaims)
 	if !ok {
-		return echo.ErrInternalServerError
+		return nil, echo.ErrInternalServerError
 	}
-
-	return c.JSON(http.StatusOK, echo.Map{
-		"message": "Hi " + claims.Name,
-	})
+	return claims, nil
 }
 
-// Handlers
+func (s *Server) Greet(c echo.Context) error {
+
+	claims, err := extractClaims(c)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, claims.User)
+}
+
+// ************* Handlers *****************
+
+// Entities
+
 func (s *Server) getEntity(c echo.Context) error {
 
 	eID, err := strconv.Atoi(c.Param("eid"))
@@ -246,6 +265,8 @@ func (s *Server) getEntities(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, el)
 }
+
+// Accounts
 
 func (s *Server) getAccount(c echo.Context) error {
 
@@ -287,7 +308,7 @@ func (s *Server) getBalances(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	bl, err := s.store.GetBalances(aID)
+	bl, err := s.store.GetHistory(aID)
 	if err != nil {
 		return err
 	}
@@ -308,7 +329,7 @@ func (s *Server) getBalance(c echo.Context) error {
 	return c.JSON(http.StatusOK, b)
 }
 
-func (s *Server) addBalance(c echo.Context) error {
+func (s *Server) adjustBalance(c echo.Context) error {
 	b := Balance{}
 
 	err := json.NewDecoder(c.Request().Body).Decode(&b)
@@ -316,18 +337,58 @@ func (s *Server) addBalance(c echo.Context) error {
 		return err
 	}
 
-	if b.Value != nil {
-		err = s.store.ComputeBalance(b.AccountID)
-	} else {
-		err = s.store.AddBalance(b)
-	}
+	fmt.Printf("-----------------\n%v\n---------", b)
 
+	/* claims, err := extractClaims(c)
+	if err != nil {
+		return err
+	} */
+
+	err = s.store.AdjustBalance(b)
 	if err != nil {
 		return err
 	}
 
 	return c.JSON(http.StatusOK, nil)
 }
+
+func (s *Server) addAccount(c echo.Context) error {
+
+	a := Account{}
+
+	err := json.NewDecoder(c.Request().Body).Decode(&a)
+	if err != nil {
+		return err
+	}
+
+	/* claims, err := extractClaims(c)
+	if err != nil {
+		return err
+	} */
+
+	id, err := s.store.AddAccount(a)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, id)
+}
+
+func (s *Server) deleteAccount(c echo.Context) error {
+	aID, err := strconv.Atoi(c.Param("aid"))
+	if err != nil {
+		return err
+	}
+
+	err = s.store.DeleteAccount(aID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}
+
+// Transactions and Operations
 
 /*func (s *Server) getTransactions(c echo.Context) error {
 	tl, err := s.store.GetTransactions()
@@ -343,7 +404,16 @@ func (s *Server) getTransactionsByAccount(c echo.Context) error {
 		return err
 	}
 
-	tl, err := s.store.GetTransactionsByAccount(aID)
+	limit := 5
+	limitStr := c.QueryParam("limit")
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			return err
+		}
+	}
+
+	tl, err := s.store.GetTransactionsByAccount(aID, limit)
 	if err != nil {
 		return err
 	}
@@ -356,7 +426,16 @@ func (s *Server) getOperationsByEntity(c echo.Context) error {
 		return err
 	}
 
-	list, err := s.store.GetOperationsByEntity(aID)
+	limit := 5
+	limitStr := c.QueryParam("limit")
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			return err
+		}
+	}
+
+	list, err := s.store.GetOperationsByEntity(aID, limit)
 	if err != nil {
 		return err
 	}
@@ -384,6 +463,13 @@ func (s *Server) addOperation(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	claims, err := extractClaims(c)
+	if err != nil {
+		return err
+	}
+
+	op.CreatedByID = int(claims.User.ID.Int64)
 
 	id, err := s.store.AddOperation(op)
 	if err != nil {

@@ -17,7 +17,6 @@
     import { push } from "svelte-spa-router";
     import TagInput from "../TagInput.svelte";
     import ShareForm from "./ShareForm.svelte";
-    import New from "../../New.svelte";
     import DatePicker from "../DatePicker.svelte";
     import CategorySelect from "../CategorySelect.svelte";
 
