@@ -4,37 +4,41 @@
   import Router from "svelte-spa-router";
   import New from "./pages/New.svelte";
   import TopBar from "./lib/TopBar.svelte";
-  import EntitySwitcher from "./lib/EntitySwitcher.svelte";
-  import { entityID, authStore, historyStore, isFirstPage } from "./store";
-  import Blank from "./pages/Blank.svelte";
+  import { entityID, authStore, historyStore } from "./store";
   import Login from "./Login.svelte";
-  import Logout from "./Logout.svelte";
-  import AllOperations from "./AllOperations.svelte";
+  import AllOperations from "./pages/AllOperations.svelte";
+  import AccountForm from "./lib/Accounts/AccountForm.svelte";
+  import MainMenu from "./lib/MainMenu.svelte";
+  import Account from "./pages/Account.svelte";
 
   const routes = {
     "/": Home,
     "/add": New,
     "/operations": AllOperations,
-    "/blank": Blank,
+    "/account/:id": Account,
+    "/newaccount": AccountForm,
   };
 
   function routeLoaded(event) {
     historyStore.push(event.detail.route);
+    window.scrollTo(0, 0);
   }
+
+  let menuOpen = false;
 </script>
 
 {#if $authStore}
-  <TopBar showBackButton={!$isFirstPage} />
+  <MainMenu open={menuOpen}>
+    <TopBar bind:menuOpen />
 
-  <main>
-    {#key $entityID}
-      <Logout />
-      <EntitySwitcher />
-      <Router {routes} on:routeLoaded={routeLoaded} />
-    {/key}
-  </main>
+    <main>
+      {#key $entityID}
+        <Router {routes} on:routeLoaded={routeLoaded} />
+      {/key}
+    </main>
 
-  <BottomBar />
+    <BottomBar />
+  </MainMenu>
 {:else}
   <Login />
 {/if}

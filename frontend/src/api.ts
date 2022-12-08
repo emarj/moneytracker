@@ -26,13 +26,20 @@ export const getCategories = () =>
 export const getAccounts = () =>
     fetcher(`${baseURL}/accounts`)
 
-export const getAccountsByEntity = (eID: Number) =>
+export const getAccount = (aID: number) =>
+    fetcher(`${baseURL}/account/${aID}`)
+
+export const deleteAccount = (aID: number) =>
+    fetcher(`${baseURL}/account/${aID}`, { method: "DELETE" })
+
+export const getAccountsByEntity = (eID: number) =>
     fetcher(`${baseURL}/accounts/${eID}`)
 
-export const getAccountBalances = (aID: Number) =>
-    fetcher(`${baseURL}/balances/${aID}`)
+export const addAccount = (a) =>
+    fetcher(`${baseURL}/account`, { method: "POST", body: JSON.stringify(a) })
 
-export const getAccountBalance = (aID: Number) =>
+
+export const getAccountBalance = (aID: number) =>
     fetcher(`${baseURL}/balance/${aID}`)
 
 export const adjustBalance = (bal) =>

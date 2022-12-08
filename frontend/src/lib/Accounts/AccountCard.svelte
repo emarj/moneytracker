@@ -8,15 +8,14 @@
 
     let balance;
     let transactions;
-    let selected = false;
 </script>
 
-<div class="card" class:selected>
+<div class="card">
     <h3>{account.display_name}{account.type == 1 ? "*" : ""}</h3>
     <button
         class="more"
         on:click={() => {
-            selected = !selected;
+            push(`/account/${account.id}`);
         }}
     >
         <svg
@@ -59,7 +58,6 @@
         class="add"
         on:click={() => {
             push(`/add?from=${account.name}`);
-            window.scrollTo(0, 0);
         }}
         ><svg
             xmlns="http://www.w3.org/2000/svg"
@@ -80,10 +78,10 @@
     div.card {
         position: relative;
         padding: 1em;
-        background: rgb(34, 193, 195);
+        background: rgba(253, 187, 45, 1);
         background: linear-gradient(
             24deg,
-            rgba(34, 193, 195, 1) 0%,
+            rgb(196, 56, 196) 0%,
             rgba(253, 187, 45, 1) 100%
         );
         height: auto;
@@ -119,20 +117,6 @@
         button.add {
             display: none;
             margin-left: auto;
-        }
-
-        .movements {
-            opacity: 0;
-            transition: all 1s linear;
-        }
-
-        &.selected {
-            transform: scale(1.2);
-            z-index: 100;
-
-            .movements {
-                opacity: 1;
-            }
         }
     }
 </style>

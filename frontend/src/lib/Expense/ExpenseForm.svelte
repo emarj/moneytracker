@@ -51,7 +51,7 @@
         label="Description"
         style="width: 100%;"
     />
-    <AccountSelect owner_id={$entityID} credit={false} bind:value={e.account} />
+    <AccountSelect owner_id={$entityID} type={0} bind:value={e.account} />
 
     <Textfield
         variant="outlined"

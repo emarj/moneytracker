@@ -45,14 +45,14 @@
 {#key share.isCredit}
     <AccountSelect
         owner_id={$entityID}
-        credit={share.isCredit}
+        type={share.isCredit ? 1 : 0}
         bind:value={share.credAccount}
         label="Credited Account"
     />
     {#key share.with}
         <AccountSelect
             owner_id={share.with}
-            credit={share.isCredit}
+            type={share.isCredit ? 1 : 0}
             bind:value={share.debAccount}
             disabled={share.with == null}
             label="Debited Account"

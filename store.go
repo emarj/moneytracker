@@ -11,7 +11,7 @@ type Store interface {
 	GetAccountsByEntity(eID int) ([]Account, error)
 	GetAccount(aID int) (*Account, error)
 	AddAccount(a Account) (null.Int, error)
-	DeleteAccount(aID int) error
+	DeleteAccount(aID int, onlyIfEmpty bool) error
 
 	GetBalance(aID int) (*Balance, error)
 	GetHistory(aID int) ([]Balance, error)

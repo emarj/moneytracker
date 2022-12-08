@@ -4,9 +4,12 @@ specifiers:
   '@smui-extra/bottom-app-bar': 7.0.0-beta.0
   '@smui/button': 7.0.0-beta.0
   '@smui/circular-progress': 7.0.0-beta.0
+  '@smui/dialog': 7.0.0-beta.0
+  '@smui/drawer': 7.0.0-beta.0
   '@smui/fab': 7.0.0-beta.0
   '@smui/form-field': 7.0.0-beta.0
   '@smui/icon-button': 7.0.0-beta.0
+  '@smui/list': 7.0.0-beta.0
   '@smui/select': 7.0.0-beta.0
   '@smui/slider': 7.0.0-beta.0
   '@smui/snackbar': 7.0.0-beta.0
@@ -41,9 +44,12 @@ devDependencies:
   '@smui-extra/bottom-app-bar': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/button': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/circular-progress': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/dialog': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/drawer': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/fab': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/form-field': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/icon-button': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/list': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/select': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/slider': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/snackbar': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
@@ -248,7 +254,6 @@ packages:
       '@material/touch-target': 14.0.0
       '@material/typography': 14.0.0
       tslib: 2.4.1
-    dev: false
 
   /@material/dom/14.0.0:
     resolution: {integrity: sha512-8t88XyacclTj8qsIw9q0vEj4PI2KVncLoIsIMzwuMx49P2FZg6TsLjor262MI3Qs00UWAifuLMrhnOnfyrbe7Q==}
@@ -271,7 +276,6 @@ packages:
       '@material/theme': 14.0.0
       '@material/typography': 14.0.0
       tslib: 2.4.1
-    dev: false
 
   /@material/elevation/14.0.0:
     resolution: {integrity: sha512-Di3tkxTpXwvf1GJUmaC8rd+zVh5dB2SWMBGagL4+kT8UmjSISif/OPRGuGnXs3QhF6nmEjkdC0ijdZLcYQkepw==}
@@ -999,7 +1003,6 @@ packages:
     transitivePeerDependencies:
       - svelte
       - typescript
-    dev: false
 
   /@smui/drawer/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-vW8bo7h0ouqmuS9Rl2Np5yA6ZIdXVlR/MXzU/Nuqi5yNkWi0mdjE+SkvRNU8KsLUx7ytjwaw5cf6tPR18GO+Jg==}
@@ -1011,7 +1014,6 @@ packages:
     transitivePeerDependencies:
       - svelte
       - typescript
-    dev: false
 
   /@smui/fab/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-meFRZzyLqB7YxdNFSeKKtI/Z2AQdnXB23y4lzhaJRhiempvzFkETOOFbw8IcFmTAi5WvSzFrM3dm4f6qrn/8mw==}

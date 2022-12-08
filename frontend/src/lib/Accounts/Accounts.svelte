@@ -7,6 +7,7 @@
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
   import { entityID } from "../../store";
+  import { push } from "svelte-spa-router";
 
   const queryResult = useQuery(["accounts", $entityID], () =>
     getAccountsByEntity($entityID)
@@ -16,7 +17,10 @@
 <div class="container">
   <h2>My Accounts</h2>
 
-  <button class="add-account" title="New Account"><MdAddCircleOutline /></button
+  <button
+    class="add-account"
+    title="New Account"
+    on:click={() => push("/newaccount")}><MdAddCircleOutline /></button
   >
 
   {#if $queryResult.isLoading}

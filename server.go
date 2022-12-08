@@ -104,6 +104,7 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/entities", s.getEntities)
 
 	apiGroup.GET("/account/:aid", s.getAccount)
+	apiGroup.DELETE("/account/:aid", s.deleteAccount)
 	apiGroup.GET("/accounts", s.getAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
 	apiGroup.POST("/account", s.addAccount)
@@ -198,6 +199,7 @@ func (s *Server) Login(c echo.Context) error {
 	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, echo.Map{
+		"user":    user,
 		"expires": expiration.Unix(),
 	})
 }
@@ -380,7 +382,7 @@ func (s *Server) deleteAccount(c echo.Context) error {
 		return err
 	}
 
-	err = s.store.DeleteAccount(aID)
+	err = s.store.DeleteAccount(aID, true)
 	if err != nil {
 		return err
 	}

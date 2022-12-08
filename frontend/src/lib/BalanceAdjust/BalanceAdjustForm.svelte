@@ -33,9 +33,12 @@
         style="width: 100%;"
     />
     <AccountSelect owner_id={$entityID} bind:value={balance.account_id} />
-    {#if balance.account_id}
-        <AccountBalance id={balance.account_id} />
-    {/if}
+    {#key balance.account_id}
+        {#if balance.account_id}
+            <AccountBalance id={balance.account_id} />
+        {/if}
+    {/key}
+
     <Textfield
         variant="outlined"
         bind:value={balance.value}

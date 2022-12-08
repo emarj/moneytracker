@@ -9,7 +9,7 @@
     const accountsQuery = useQuery(["accounts"], () => getAccounts());
 
     export let neg = false;
-    export let credit = false;
+    export let type = null;
     export let firstSelected = true;
     export let disabled = false;
 
@@ -22,10 +22,10 @@
 
     $: accounts = $accountsQuery?.data?.filter(
         (a) =>
-            owner_id &&
-            ((a.owner.id == owner_id && !neg) ||
+            owner_id === null ||
+            (((a.owner.id == owner_id && !neg) ||
                 (a.owner.id != owner_id && neg)) &&
-            ((a.is_credit && credit) || (!a.is_credit && !credit))
+                (type === null || a.type == type))
     );
 </script>
 

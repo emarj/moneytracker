@@ -69,3 +69,8 @@ WHERE from_owner_id = 1
     --
     INSERT INTO accounts (name,display_name,owner_id,is_system,is_credit,is_world) VALUES("prova","ssd",9,TRUE,FALSE,FALSE)
      RETURNING *;
+     ----
+     SELECT  count()
+					FROM transactions t
+						WHERE from_id = 56
+						OR to_id = 99;

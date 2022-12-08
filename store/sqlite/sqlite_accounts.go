@@ -1,6 +1,9 @@
 package sqlite
 
 import (
+	"database/sql"
+	"fmt"
+
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 )
@@ -51,9 +54,11 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 
 	var a mt.Account
 
-	err := s.db.QueryRow(`SELECT id,name FROM accounts WHERE id = ?`, aID).Scan(
+	err := s.db.QueryRow(`SELECT id,name,display_name,type FROM accounts WHERE id = ?`, aID).Scan(
 		&a.ID,
 		&a.Name,
+		&a.DisplayName,
+		&a.Type,
 	)
 	if err != nil {
 		return nil, err
@@ -82,27 +87,45 @@ func (s *SQLiteStore) AddAccount(a mt.Account) (null.Int, error) {
 
 }
 
-func (s *SQLiteStore) DeleteAccount(id int) error {
+func (s *SQLiteStore) DeleteAccount(aID int, onlyIfEmpty bool) error {
 
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`DELETE FROM accounts WHERE id=?`, id)
-	if err != nil {
+	defer func() {
 		tx.Rollback()
+	}()
+
+	if onlyIfEmpty {
+		row := tx.QueryRow(`SELECT  count()
+						FROM transactions t
+						WHERE from_id = :aID
+						OR to_id = :aID`, sql.Named("aID", aID))
+		var n int
+		err = row.Scan(&n)
+		if err != nil {
+			return err
+		}
+
+		if n > 0 {
+			return fmt.Errorf("impossible to delete account id=%d since there are %d transaction associated to it", aID, n)
+		}
+
+	}
+
+	_, err = tx.Exec(`DELETE FROM accounts WHERE id=?`, aID)
+	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(`DELETE FROM balances WHERE account_id=?`, id)
+	_, err = tx.Exec(`DELETE FROM balances WHERE account_id=?`, aID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 

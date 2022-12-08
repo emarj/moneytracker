@@ -139,12 +139,17 @@ export class Share {
     }
 };
 
+export const emptyTransaction: Transaction = {
+    amount: 0, to: {}, from: {}
+};
 
 export const emptyOperation: Operation = {
     description: "",
     category: "",
-    transactions: [],
+    transactions: [emptyTransaction],
 };
+
+
 
 
 

@@ -7,7 +7,9 @@
 </script>
 
 <span>
-    <span class="name"><AccountName {account} /></span>
+    <span class="name" class:world={account.id === 0}
+        ><AccountName {account} /></span
+    >
 </span>
 
 <style lang="scss">
@@ -15,9 +17,13 @@
         position: relative;
 
         span.name {
-            background-color: aquamarine;
             border-radius: 0.5rem;
             padding: 0.1rem 0.3rem;
+            background-color: rgb(10, 141, 202);
+
+            &.world {
+                background-color: #ddd;
+            }
         }
 
         div {
@@ -25,7 +31,7 @@
             position: absolute;
             top: 2rem;
             left: 2rem;
-            z-index: 999;
+            z-index: 4;
             width: max-content;
             padding: 0.8rem;
             background-color: bisque;

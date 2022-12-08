@@ -49,6 +49,17 @@ func (s *SQLiteStore) Seed() error {
 	if err != nil {
 		return err
 	}
+	entUser3 := mt.Entity{
+		ID:       null.IntFrom(3),
+		Name:     "am",
+		System:   false,
+		External: false,
+	}
+
+	_, err = s.AddEntity(entUser3)
+	if err != nil {
+		return err
+	}
 
 	var accounts map[string]mt.Account = map[string]mt.Account{
 		"world": {
@@ -95,6 +106,11 @@ func (s *SQLiteStore) Seed() error {
 			DisplayName: "Crediti",
 			Owner:       entUser2,
 			Type:        mt.AccountCredit,
+		},
+		"user3:comune": {
+			Name:        "cassa_comune",
+			DisplayName: "Cassa Comune",
+			Owner:       entUser3,
 		},
 	}
 
