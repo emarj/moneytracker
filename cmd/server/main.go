@@ -16,16 +16,16 @@ import (
 )
 
 func main() {
-	var hostArg = flag.Bool("host", false, "")
+	var local = flag.Bool("local", false, "")
 	var port = flag.Int("port", 3245, "")
 	var dir = flag.String("dir", "./data", "")
 	var dbName = flag.String("db", "moneytracker.sqlite", "")
 	//var logName = flag.String("log", "moneytracker.log", "")
 	flag.Parse()
 
-	hostname := "localhost"
-	if *hostArg {
-		hostname = ""
+	hostname := ""
+	if *local {
+		hostname = "localhost"
 	}
 	url := fmt.Sprintf("%s:%d", hostname, *port)
 

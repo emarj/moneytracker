@@ -10,21 +10,27 @@ build-frontend:
 build-backend:
 		go build -o $(BINARY_NAME) -v cmd/server/main.go
 build-backend-linux:
-		GOOS=linux go build -o $(BINARY_NAME)_linux -v cmd/server/main.go
+		GOOS=linux GOARCH=amd64 go build -o $(BINARY_NAME)_linux_amd64 -v cmd/server/main.go
+#		GOOS=linux go build -o $(BINARY_NAME)_linux -v cmd/server/main.go
 build-docker-image:
 		docker build -t emarj/moneytracker:v2 .
-#		# docker save -o bin/moneytracker_docker.tar moneytracker
+#		docker save -o bin/moneytracker_docker.tar moneytracker
+build-docker-image2:
+		docker build -t emarj/moneytracker:v2 -f Dockerfile.compile .
+#		docker save -o bin/moneytracker_docker.tar moneytracker
 test:
 		go test -v ./...
 clean:
 		go clean
 		rm -f $(BINARY_NAME)
 dev:
-		MT_FRONTEND_URL=https://localhost:5173/ go run ./cmd/server/main.go
+		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local
+dev-no-proxy:
+		go run ./cmd/server/main.go
 push:
-		docker push emarj/moneytracker
+		docker push emarj/moneytracker:v2
 run:
-		docker run -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:v2
+		docker run --rm -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:v2
 prod: 
-		docker run -d -p 3245:3245 -v /home/marco/moneytracker/data:/data emarj/moneytracker:v2
+		docker run -d -p 3245:3245 -v /home/marco/data:/data emarj/moneytracker:v2
 

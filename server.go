@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -58,6 +59,7 @@ func NewServer(store Store) *Server {
 
 	proxyURL := os.Getenv("MT_FRONTEND_URL")
 	if proxyURL != "" {
+		log.Printf("frontend: proxy mode %s", proxyURL)
 		frontendURL, err := url.Parse(proxyURL)
 		if err != nil {
 			s.router.Logger.Fatal(err)
@@ -71,6 +73,7 @@ func NewServer(store Store) *Server {
 			Balancer: middleware.NewRoundRobinBalancer([]*middleware.ProxyTarget{{URL: frontendURL}}),
 		}))
 	} else {
+		log.Println("frontend: embedded mode")
 		var contentHandler = echo.WrapHandler(http.FileServer(http.FS(content)))
 		// The embedded files will all be in the '/frontend/dist/' folder so need to rewrite the request (could also do this with fs.Sub)
 		var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/frontend/dist/$1"})

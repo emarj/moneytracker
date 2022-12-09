@@ -1,7 +1,7 @@
 import type { Operation } from "./model"
 
 
-const baseURL = 'http://localhost:3245/api'
+const baseURL = '/api'
 
 const fetcher = async (url: string, init?) => {
     const response = await fetch(url, init)
