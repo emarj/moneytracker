@@ -42,7 +42,12 @@
                         bind:value={t.from.id}
                     /><AccountSelect label="To" bind:value={t.to.id} />
                 </div>
-                <Textfield label="Amount" bind:value={t.amount} />
+                <Textfield
+                    label="Amount"
+                    bind:value={t.amount}
+                    suffix="€"
+                    input$pattern={"\\d+(\\.\\d{2})?"}
+                />
             </li>
         {/each}
     </ul>

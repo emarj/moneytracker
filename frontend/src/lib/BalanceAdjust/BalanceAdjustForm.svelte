@@ -43,7 +43,8 @@
         variant="outlined"
         bind:value={balance.value}
         placeholder="New balance"
-        type="number"
+        suffix="€"
+        input$pattern={"\\d+(\\.\\d{2})?"}
     />
 
     <Button

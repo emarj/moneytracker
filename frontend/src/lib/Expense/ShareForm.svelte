@@ -22,7 +22,8 @@
     type="number"
     min={0}
     max={share.total}
-    step={0.01}
+    suffix="€"
+    input$pattern={"\\d+(\\.\\d{2})?"}
     bind:value={share.amount}
 />
 <FormField style="width:100%;">
