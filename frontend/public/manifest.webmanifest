@@ -1,0 +1,6 @@
+{
+    "short_name": "MoneyTracker",
+    "name": "MoneyTracker",
+    "start_url": "/",
+    "display": "standalone"
+}
