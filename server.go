@@ -85,7 +85,7 @@ func NewServer(store Store) *Server {
 
 	config := middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
-			return c.Path() == "/api/login"
+			return c.Path() == "/api/login" || c.Path() == "/api/logout"
 		},
 		ErrorHandler: func(err error) error {
 			return err
