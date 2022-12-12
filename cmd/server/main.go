@@ -15,12 +15,18 @@ import (
 	"ronche.se/moneytracker/store/sqlite"
 )
 
+var Commit string
+var Branch string
+var Date string
+
 func main() {
+
+	fmt.Printf("MoneyTracker %s-%s (build %s)\n\n", Branch, Commit, Date)
+
 	var local = flag.Bool("local", false, "")
 	var port = flag.Int("port", 3245, "")
 	var dir = flag.String("dir", "./data", "")
 	var dbName = flag.String("db", "moneytracker.sqlite", "")
-	//var logName = flag.String("log", "moneytracker.log", "")
 	flag.Parse()
 
 	hostname := ""
@@ -46,7 +52,7 @@ func main() {
 
 	go func() {
 		if err := srv.Start(url); err != nil && err != http.ErrServerClosed {
-			log.Fatal("shutting down the server")
+			log.Fatalf("server shut down with error: %s", err)
 		}
 	}()
 
