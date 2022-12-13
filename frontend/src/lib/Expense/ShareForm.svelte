@@ -8,24 +8,37 @@
     import { entityID } from "../../store";
     import { Share } from "../../model";
 
-    export let share: Share = new Share(400);
+    export let share: Share = new Share(0);
+
+    let external = false;
+
+    $: if (external) share.with = 0; //Share with system
 </script>
 
-<EntitySelect
-    not={$entityID}
-    bind:value={share.with}
-    helperText={"select an entity to share with"}
-/>
-<Textfield
-    variant="outlined"
-    label="Amount"
-    type="number"
-    min={0}
-    max={share.total}
-    suffix="€"
-    input$pattern={"\\d+(\\.\\d{2})?"}
-    bind:value={share.amount}
-/>
+<FormField>
+    <Switch bind:checked={external} icons={false} />
+    <span slot="label">External</span>
+</FormField>
+
+{#if !external}
+    <EntitySelect
+        not={$entityID}
+        bind:value={share.with}
+        helperText={"select an entity to share with"}
+    />
+{/if}
+<div>
+    <Textfield
+        variant="outlined"
+        label="Amount"
+        type="number"
+        min={0}
+        max={share.total}
+        suffix="€"
+        input$pattern={"\\d+(\\.\\d{2})?"}
+        bind:value={share.amount}
+    />
+</div>
 <FormField style="width:100%;">
     <Slider
         max={100}
@@ -36,8 +49,6 @@
         bind:value={share.quota}
     />
 </FormField>
-
-<!--<p>Internal? <input type="checkbox" bind:checked={external} /></p>-->
 
 <FormField>
     <Switch bind:checked={share.isCredit} color="secondary" icons={false} />

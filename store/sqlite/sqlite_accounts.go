@@ -10,7 +10,7 @@ import (
 
 func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  a.id,a.name,a.display_name,a.type,e.* FROM accounts a INNER JOIN entities e WHERE a.owner_id = e.id`)
+	rows, err := s.db.Query(`SELECT  a.id,a.name,a.display_name,a.type,a.is_world,e.* FROM accounts a INNER JOIN entities e WHERE a.owner_id = e.id`)
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 	var a mt.Account
 
 	for rows.Next() {
-		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.Type, &a.Owner.ID, &a.Owner.Name, &a.Owner.System, &a.Owner.External); err != nil {
+		if err = rows.Scan(&a.ID, &a.Name, &a.DisplayName, &a.Type, &a.IsWorld, &a.Owner.ID, &a.Owner.Name, &a.Owner.System, &a.Owner.External); err != nil {
 			return nil, err
 		}
 
@@ -31,7 +31,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 
 func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
 
-	rows, err := s.db.Query(`SELECT  id,name,display_name,type FROM accounts WHERE owner_id = ? AND is_system == FALSE`, eID)
+	rows, err := s.db.Query(`SELECT id,name,display_name,type FROM accounts WHERE owner_id = ? AND is_system == FALSE`, eID)
 	if err != nil {
 		return nil, err
 	}
