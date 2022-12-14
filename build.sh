@@ -1,7 +1,7 @@
 #!/bin/sh
 DATE=$(date)
 BRANCH=$(git branch --show-current)
-COMMIT=$(git describe --tags --abbrev=8 --dirty --always --long)
+COMMIT=$(git describe --tags --dirty --always --long)
 
 LDFLAGS=
 LDFLAGS="$LDFLAGS -X 'main.Commit=$COMMIT'"
