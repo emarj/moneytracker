@@ -25,7 +25,7 @@ dev:
 dev-no-proxy:
 		go run ./cmd/server/main.go
 push:
-		docker push emarj/moneytracker:v2
+		docker push -a emarj/moneytracker
 run:
 		docker run --rm -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:latest
 prod: 
