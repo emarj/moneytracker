@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(git describe --tags --abbrev=8 --dirty --always --long)
+VERSION=$(git describe --tags --dirty --always)
 REPO="emarj/moneytracker:"
 TAG="$REPO$VERSION"
 LATEST="${REPO}latest"

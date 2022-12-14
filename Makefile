@@ -12,7 +12,7 @@ build-backend:
 build-backend-linux:
 		GOOS=linux GOARCH=amd64 ./build.sh build $(BINARY_NAME)
 build-docker-image:
-		./docker_build.sh
+		./build_docker.sh
 build-docker-image-compile:
 		docker build -t emarj/moneytracker:v2 -f Dockerfile.compile .
 test:
