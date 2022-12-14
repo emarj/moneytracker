@@ -12,7 +12,7 @@
 
     let entities = [];
     $: entities = $entitiesQuery?.data?.filter(
-        (e) => !not || (not && e.id != not)
+        (e) => !e.is_system && (!not || (not && e.id != not))
     );
 
     export let style = "material";
