@@ -1,6 +1,4 @@
 *.sqlite
-.vscode
-Bin
 .DS_Store
-vendor
-db
+bin/
+data/
