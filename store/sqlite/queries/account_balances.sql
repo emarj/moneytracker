@@ -1,20 +1,20 @@
 SELECT *
-from entities;
+from entity;
 SELECT *
-from accounts;
+from account;
 SELECT *
-from balances;
+from balance;
 SELECT *
-from transactions;
+from 'transaction';
 SELECT *
-from operations;
+from operation;
 -- Get Current Balance
 SELECT last_balance + balance AS balance
 FROM (
 		(
 			SELECT COUNT(),
 				IFNULL(value, 0) AS last_balance
-			FROM balances
+			FROM balance
 			WHERE account_id = 1001
 			ORDER BY timestamp DESC
 			LIMIT 1
@@ -28,8 +28,8 @@ FROM (
 					),
 					0
 				) AS balance
-			FROM transactions
-				INNER JOIN operations op ON operation_id = op.id
+			FROM 'transaction'
+				INNER JOIN operation op ON operation_id = op.id
 			WHERE (
 					to_id = 1001
 					OR from_id = 1001
@@ -42,7 +42,7 @@ FROM (
 									timestamp,
 									STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '-100 year')
 								) AS timestamp
-							FROM balances
+							FROM balance
 							WHERE account_id = 1001
 							ORDER BY timestamp DESC
 							LIMIT 1
@@ -52,17 +52,17 @@ FROM (
 	);
 --
 SELECT *
-from transactions;
+from 'transaction';
 SELECT *
-from balances;
+from balance;
 -- Update Balance
-INSERT INTO balances (account_id, value)
+INSERT INTO balance (account_id, value)
 SELECT 1,
 	last_balance + balance AS balance
 FROM (
 		(
 			SELECT value AS last_balance
-			FROM balances
+			FROM balance
 			WHERE account_id = 1
 			ORDER BY timestamp DESC
 			LIMIT 1
@@ -76,14 +76,14 @@ FROM (
 					),
 					0
 				) AS balance
-			FROM transactions
+			FROM 'transaction'
 			WHERE (
 					to_id = 1
 					OR from_id = 1
 				)
 				AND timestamp > (
 					SELECT timestamp
-					FROM balances
+					FROM balance
 					WHERE account_id = 1
 					ORDER BY timestamp DESC
 					LIMIT 1
@@ -92,14 +92,14 @@ FROM (
 	)
 WHERE EXISTS (
 		SELECT *
-		FROM transactions
+		FROM 'transaction'
 		WHERE (
 				to_id = 1
 				OR from_id = 1
 			)
 			AND timestamp > (
 				SELECT timestamp
-				FROM balances
+				FROM balance
 				WHERE account_id = 1
 				ORDER BY timestamp DESC
 				LIMIT 1
@@ -107,24 +107,24 @@ WHERE EXISTS (
 	);
 --
 	SELECT *
-from balances;
+from balance;
 -- Delete Balances until date or the first non computed one
-DELETE FROM balances
+DELETE FROM balance
 WHERE account_id = 1
 	AND timestamp >= "2006-01-02T15:04:05.999Z"
 	AND computed = TRUE;
 --
-SELECT  timestamp,value,computed,notes FROM balances WHERE account_id = 1
+SELECT  timestamp,value,computed,notes FROM balance WHERE account_id = 1
 --
-SELECT * from balances b INNER JOIN accounts a ON b.account_id = a.id ;
+SELECT * from balance b INNER JOIN account a ON b.account_id = a.id ;
 --
-INSERT INTO balances (account_id, value)
+INSERT INTO balance (account_id, value)
 SELECT 1,
 	last_balance + balance AS balance
 FROM (
 		(
 			SELECT value AS last_balance
-			FROM balances
+			FROM balance
 			WHERE account_id = 1
 			ORDER BY timestamp DESC
 			LIMIT 1
@@ -138,14 +138,14 @@ FROM (
 					),
 					0
 				) AS balance
-			FROM transactions
+			FROM 'transaction'
 			WHERE (
 					to_id = 1
 					OR from_id = 1
 				)
 				AND timestamp > (
 					SELECT timestamp
-					FROM balances
+					FROM balance
 					WHERE account_id = 1
 					ORDER BY timestamp DESC
 					LIMIT 1
@@ -154,41 +154,41 @@ FROM (
 	)
 WHERE EXISTS (
 		SELECT *
-		FROM transactions
+		FROM 'transaction'
 		WHERE (
 				to_id = 1
 				OR from_id = 1
 			)
 			AND timestamp > (
 				SELECT timestamp
-				FROM balances
+				FROM balance
 				WHERE account_id = 1
 				ORDER BY timestamp DESC
 				LIMIT 1
 			)
 	);
 --
-INSERT INTO transactions (from_id,to_id,operation_id,amount)
+INSERT INTO 'transaction' (from_id,to_id,operation_id,amount)
 SELECT 0,
 	1,
 	-1,
 	(5000 - value)
 FROM (
 		SELECT value
-		FROM balances
+		FROM balance
 		WHERE account_id = 1
 		ORDER BY timestamp DESC
 		LIMIT 1
 	)
 WHERE (
 		SELECT value
-		FROM balances
+		FROM balance
 		WHERE account_id = 1
 		ORDER BY timestamp DESC
 		LIMIT 1
 	) != 5000;
 --
-SELECT * from transactions ORDER BY timestamp DESC;
+SELECT * from 'transaction' ORDER BY timestamp DESC;
 SELECT *
-from balances
+from balance
 ORDER BY timestamp DESC;

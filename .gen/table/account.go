@@ -18,13 +18,14 @@ type accountTable struct {
 
 	//Columns
 	ID          sqlite.ColumnInteger
-	Created     sqlite.ColumnString
+	OwnerID     sqlite.ColumnInteger
 	Name        sqlite.ColumnString
 	DisplayName sqlite.ColumnString
-	OwnerID     sqlite.ColumnInteger
 	IsSystem    sqlite.ColumnInteger
 	IsWorld     sqlite.ColumnInteger
-	IsCredit    sqlite.ColumnInteger
+	IsGroup     sqlite.ColumnInteger
+	Type        sqlite.ColumnInteger
+	ParentID    sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
@@ -66,15 +67,16 @@ func newAccountTable(schemaName, tableName, alias string) *AccountTable {
 func newAccountTableImpl(schemaName, tableName, alias string) accountTable {
 	var (
 		IDColumn          = sqlite.IntegerColumn("id")
-		CreatedColumn     = sqlite.StringColumn("created")
+		OwnerIDColumn     = sqlite.IntegerColumn("owner_id")
 		NameColumn        = sqlite.StringColumn("name")
 		DisplayNameColumn = sqlite.StringColumn("display_name")
-		OwnerIDColumn     = sqlite.IntegerColumn("owner_id")
 		IsSystemColumn    = sqlite.IntegerColumn("is_system")
 		IsWorldColumn     = sqlite.IntegerColumn("is_world")
-		IsCreditColumn    = sqlite.IntegerColumn("is_credit")
-		allColumns        = sqlite.ColumnList{IDColumn, CreatedColumn, NameColumn, DisplayNameColumn, OwnerIDColumn, IsSystemColumn, IsWorldColumn, IsCreditColumn}
-		mutableColumns    = sqlite.ColumnList{CreatedColumn, NameColumn, DisplayNameColumn, OwnerIDColumn, IsSystemColumn, IsWorldColumn, IsCreditColumn}
+		IsGroupColumn     = sqlite.IntegerColumn("is_group")
+		TypeColumn        = sqlite.IntegerColumn("type")
+		ParentIDColumn    = sqlite.IntegerColumn("parent_id")
+		allColumns        = sqlite.ColumnList{IDColumn, OwnerIDColumn, NameColumn, DisplayNameColumn, IsSystemColumn, IsWorldColumn, IsGroupColumn, TypeColumn, ParentIDColumn}
+		mutableColumns    = sqlite.ColumnList{OwnerIDColumn, NameColumn, DisplayNameColumn, IsSystemColumn, IsWorldColumn, IsGroupColumn, TypeColumn, ParentIDColumn}
 	)
 
 	return accountTable{
@@ -82,13 +84,14 @@ func newAccountTableImpl(schemaName, tableName, alias string) accountTable {
 
 		//Columns
 		ID:          IDColumn,
-		Created:     CreatedColumn,
+		OwnerID:     OwnerIDColumn,
 		Name:        NameColumn,
 		DisplayName: DisplayNameColumn,
-		OwnerID:     OwnerIDColumn,
 		IsSystem:    IsSystemColumn,
 		IsWorld:     IsWorldColumn,
-		IsCredit:    IsCreditColumn,
+		IsGroup:     IsGroupColumn,
+		Type:        TypeColumn,
+		ParentID:    ParentIDColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

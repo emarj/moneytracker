@@ -1,24 +1,22 @@
 <script lang="ts">
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
-    import { DateFMT } from "../../util/utils";
     import { getOperationsByEntity } from "../../api";
-    import Amount from "../Amount.svelte";
-    import OperationTransactions from "../Operation/OperationTransactions.svelte";
     import { entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
     import Operation from "../Operation/Operation.svelte";
+    import { link } from "svelte-spa-router";
 
-    const queryClient = useQueryClient();
-    const operationsQuery = useQuery(["operations", "entity", $entityID], () =>
-        getOperationsByEntity($entityID)
+    const operationsQuery = useQuery(
+        ["operations", "entity", $entityID, "latest"],
+        () => getOperationsByEntity($entityID)
     );
 
     let expanded = false;
 </script>
 
 <div>
-    <h2>Last transactions</h2>
+    <h2>Lastest transactions</h2>
     <!--<button
         on:click={() => {
             console.log(`Invalidating Transactions of Entity ${eID}`);
@@ -38,6 +36,7 @@
                 </li>{/each}
         </ol>
     {/if}
+    <a href="/operations" use:link>More</a>
 </div>
 
 <style lang="scss">

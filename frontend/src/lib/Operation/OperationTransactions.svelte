@@ -1,5 +1,6 @@
 <script>
     import { isExpense, isIncome, isInternal } from "../../transactions";
+    import { DateFMT } from "../../util/utils";
     import AccountTag from "../AccountTag.svelte";
     import Amount from "../Amount.svelte";
     import { entityID } from "../../store";
@@ -12,6 +13,7 @@
         <ul>
             {#each transactions as t}
                 <li>
+                    <span class="date">{DateFMT(t.timestamp)}</span>
                     <span class="fromto">
                         <AccountTag account={t.from} eID={$entityID} /> →
                         <AccountTag account={t.to} eID={$entityID} /></span

@@ -2,20 +2,40 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"time"
 
 	"ronche.se/moneytracker"
 	"ronche.se/moneytracker/store/sqlite"
 )
 
+var Commit string
+var Branch string
+var Date string
+
 func main() {
 
-	s := sqlite.New("./db.sqlite", true)
+	fmt.Printf("MoneyTracker %s-%s (build %s)\n\n", Branch, Commit, Date)
+
+	var local = flag.Bool("local", false, "")
+	var port = flag.Int("port", 3245, "")
+	var dir = flag.String("dir", "./data", "")
+	var dbName = flag.String("db", "moneytracker.sqlite", "")
+	flag.Parse()
+
+	hostname := ""
+	if *local {
+		hostname = "localhost"
+	}
+	url := fmt.Sprintf("%s:%d", hostname, *port)
+
+	s := sqlite.New(path.Join(*dir, *dbName), true)
 
 	err := s.Open()
 	if err != nil {
@@ -31,8 +51,8 @@ func main() {
 	srv := moneytracker.NewServer(s)
 
 	go func() {
-		if err := srv.Start("localhost:3245"); err != nil && err != http.ErrServerClosed {
-			log.Fatal("shutting down the server")
+		if err := srv.Start(url); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server shut down with error: %s", err)
 		}
 	}()
 

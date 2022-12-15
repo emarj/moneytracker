@@ -13,9 +13,12 @@
     "@smui-extra/bottom-app-bar": "7.0.0-beta.0",
     "@smui/button": "7.0.0-beta.0",
     "@smui/circular-progress": "7.0.0-beta.0",
+    "@smui/dialog": "7.0.0-beta.0",
+    "@smui/drawer": "7.0.0-beta.0",
     "@smui/fab": "7.0.0-beta.0",
     "@smui/form-field": "7.0.0-beta.0",
     "@smui/icon-button": "7.0.0-beta.0",
+    "@smui/list": "7.0.0-beta.0",
     "@smui/select": "7.0.0-beta.0",
     "@smui/slider": "7.0.0-beta.0",
     "@smui/snackbar": "7.0.0-beta.0",
@@ -36,6 +39,8 @@
   },
   "dependencies": {
     "@sveltestack/svelte-query": "^1.6.0",
+    "svelte-icons": "^2.1.0",
+    "svelte-local-storage-store": "^0.3.1",
     "svelte-material-ui": "7.0.0-beta.0",
     "svelte-spa-router": "^3.3.0"
   }

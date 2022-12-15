@@ -3,4 +3,10 @@
   export let account;
 </script>
 
-{account.owner.id !== $entityID ? account.owner.name + ":" : ""}{account.name}
+{#if account.owner.id === 0}
+  🌐
+{:else}
+  {account.owner.id !== 0 && account.owner.id !== $entityID
+    ? account.owner.name + ":"
+    : ""}{account.name}
+{/if}

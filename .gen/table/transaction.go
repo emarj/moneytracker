@@ -18,9 +18,10 @@ type transactionTable struct {
 
 	//Columns
 	ID          sqlite.ColumnInteger
+	Timestamp   sqlite.ColumnString
 	FromID      sqlite.ColumnInteger
 	ToID        sqlite.ColumnInteger
-	Amount      sqlite.ColumnInteger
+	Amount      sqlite.ColumnString
 	OperationID sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
@@ -63,12 +64,13 @@ func newTransactionTable(schemaName, tableName, alias string) *TransactionTable 
 func newTransactionTableImpl(schemaName, tableName, alias string) transactionTable {
 	var (
 		IDColumn          = sqlite.IntegerColumn("id")
+		TimestampColumn   = sqlite.StringColumn("timestamp")
 		FromIDColumn      = sqlite.IntegerColumn("from_id")
 		ToIDColumn        = sqlite.IntegerColumn("to_id")
-		AmountColumn      = sqlite.IntegerColumn("amount")
+		AmountColumn      = sqlite.StringColumn("amount")
 		OperationIDColumn = sqlite.IntegerColumn("operation_id")
-		allColumns        = sqlite.ColumnList{IDColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn}
-		mutableColumns    = sqlite.ColumnList{FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn}
+		allColumns        = sqlite.ColumnList{IDColumn, TimestampColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn}
+		mutableColumns    = sqlite.ColumnList{TimestampColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn}
 	)
 
 	return transactionTable{
@@ -76,6 +78,7 @@ func newTransactionTableImpl(schemaName, tableName, alias string) transactionTab
 
 		//Columns
 		ID:          IDColumn,
+		Timestamp:   TimestampColumn,
 		FromID:      FromIDColumn,
 		ToID:        ToIDColumn,
 		Amount:      AmountColumn,

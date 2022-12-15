@@ -38,6 +38,12 @@ func (s *SQLiteStore) Open() error {
 	}
 	s.db = db
 
+	_, err = s.db.Exec(`PRAGMA journal_mode = WAL;
+						PRAGMA foreign_keys = ON;`)
+	if err != nil {
+		return err
+	}
+
 	if newDB {
 		err = s.Migrate()
 		if err != nil {

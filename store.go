@@ -11,17 +11,21 @@ type Store interface {
 	GetAccountsByEntity(eID int) ([]Account, error)
 	GetAccount(aID int) (*Account, error)
 	AddAccount(a Account) (null.Int, error)
-	DeleteAccount(aID int) error
+	DeleteAccount(aID int, onlyIfEmpty bool) error
 
 	GetBalance(aID int) (*Balance, error)
-	GetBalances(aID int) ([]Balance, error)
-	ComputeBalance(aID int) error
-	AddBalance(b Balance) error
+	GetHistory(aID int) ([]Balance, error)
+	SnapshotBalance(aID int) error
+	AdjustBalance(b Balance) error
 
 	GetOperation(int) (*Operation, error)
 	//GetTransactions() ([]Transaction, error)
-	GetTransactionsByAccount(aID int) ([]Transaction, error)
-	GetOperationsByEntity(eID int) ([]Operation, error)
+	GetTransactionsByAccount(aID int, limit int) ([]Transaction, error)
+	GetOperationsByEntity(eID int, limit int) ([]Operation, error)
 	AddOperation(op Operation) (null.Int, error)
 	DeleteOperation(tID int) error
+
+	GetCategories() ([]Category, error)
+
+	Login(user string, passwordHash []byte) (bool, error)
 }

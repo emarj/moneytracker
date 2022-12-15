@@ -4,9 +4,12 @@ specifiers:
   '@smui-extra/bottom-app-bar': 7.0.0-beta.0
   '@smui/button': 7.0.0-beta.0
   '@smui/circular-progress': 7.0.0-beta.0
+  '@smui/dialog': 7.0.0-beta.0
+  '@smui/drawer': 7.0.0-beta.0
   '@smui/fab': 7.0.0-beta.0
   '@smui/form-field': 7.0.0-beta.0
   '@smui/icon-button': 7.0.0-beta.0
+  '@smui/list': 7.0.0-beta.0
   '@smui/select': 7.0.0-beta.0
   '@smui/slider': 7.0.0-beta.0
   '@smui/snackbar': 7.0.0-beta.0
@@ -20,6 +23,8 @@ specifiers:
   sass: ^1.56.1
   svelte: ^3.53.1
   svelte-check: ^2.9.2
+  svelte-icons: ^2.1.0
+  svelte-local-storage-store: ^0.3.1
   svelte-material-ui: 7.0.0-beta.0
   svelte-preprocess: ^4.10.7
   svelte-spa-router: ^3.3.0
@@ -30,6 +35,8 @@ specifiers:
 
 dependencies:
   '@sveltestack/svelte-query': 1.6.0
+  svelte-icons: 2.1.0
+  svelte-local-storage-store: 0.3.1_svelte@3.53.1
   svelte-material-ui: 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   svelte-spa-router: 3.3.0
 
@@ -37,9 +44,12 @@ devDependencies:
   '@smui-extra/bottom-app-bar': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/button': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/circular-progress': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/dialog': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/drawer': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/fab': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/form-field': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/icon-button': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
+  '@smui/list': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/select': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/slider': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
   '@smui/snackbar': 7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4
@@ -244,7 +254,6 @@ packages:
       '@material/touch-target': 14.0.0
       '@material/typography': 14.0.0
       tslib: 2.4.1
-    dev: false
 
   /@material/dom/14.0.0:
     resolution: {integrity: sha512-8t88XyacclTj8qsIw9q0vEj4PI2KVncLoIsIMzwuMx49P2FZg6TsLjor262MI3Qs00UWAifuLMrhnOnfyrbe7Q==}
@@ -267,7 +276,6 @@ packages:
       '@material/theme': 14.0.0
       '@material/typography': 14.0.0
       tslib: 2.4.1
-    dev: false
 
   /@material/elevation/14.0.0:
     resolution: {integrity: sha512-Di3tkxTpXwvf1GJUmaC8rd+zVh5dB2SWMBGagL4+kT8UmjSISif/OPRGuGnXs3QhF6nmEjkdC0ijdZLcYQkepw==}
@@ -995,7 +1003,6 @@ packages:
     transitivePeerDependencies:
       - svelte
       - typescript
-    dev: false
 
   /@smui/drawer/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-vW8bo7h0ouqmuS9Rl2Np5yA6ZIdXVlR/MXzU/Nuqi5yNkWi0mdjE+SkvRNU8KsLUx7ytjwaw5cf6tPR18GO+Jg==}
@@ -1007,7 +1014,6 @@ packages:
     transitivePeerDependencies:
       - svelte
       - typescript
-    dev: false
 
   /@smui/fab/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-meFRZzyLqB7YxdNFSeKKtI/Z2AQdnXB23y4lzhaJRhiempvzFkETOOFbw8IcFmTAi5WvSzFrM3dm4f6qrn/8mw==}
@@ -2146,6 +2152,19 @@ packages:
     dependencies:
       svelte: 3.53.1
     dev: true
+
+  /svelte-icons/2.1.0:
+    resolution: {integrity: sha512-rHPQjweEc9fGSnvM0/4gA3pDHwyZyYsC5KhttCZRhSMJfLttJST5Uq0B16Czhw+HQ+HbSOk8kLigMlPs7gZtfg==}
+    dev: false
+
+  /svelte-local-storage-store/0.3.1_svelte@3.53.1:
+    resolution: {integrity: sha512-pG+jjBY8oZWQ1XRnVkLIuPPbPqBWVtj0IINQBjkZSpJ+OqMs285efd+oiGdk4vBDnqomw81SForn+KH1j3HguA==}
+    engines: {node: '>=0.14'}
+    peerDependencies:
+      svelte: ^3.48.0
+    dependencies:
+      svelte: 3.53.1
+    dev: false
 
   /svelte-material-ui/7.0.0-beta.0_7dvewpees4iyn2tkw2qzal77a4:
     resolution: {integrity: sha512-BX5UeSu9HGrv0XJ958IYy0uQLpgTzdQ4Ia7ufVyhC8opbWkriFxDgSivNa1un7UpkszI5tq4NB5Dt3ra+DPy5w==}

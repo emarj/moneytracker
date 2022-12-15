@@ -11,8 +11,13 @@
 </script>
 
 <div class="card">
-    <h3>{account.display_name}{account.is_credit ? "*" : ""}</h3>
-    <button class="more">
+    <h3>{account.display_name}{account.type == 1 ? "*" : ""}</h3>
+    <button
+        class="more"
+        on:click={() => {
+            push(`/account/${account.id}`);
+        }}
+    >
         <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -46,12 +51,13 @@
         </svg>
     </button>
     <AccountBalance id={account.id} bind:this={balance} />
-    <AccountMovements id={account.id} bind:this={transactions} />
+    <div class="movements">
+        <AccountMovements id={account.id} bind:this={transactions} />
+    </div>
     <button
         class="add"
         on:click={() => {
             push(`/add?from=${account.name}`);
-            window.scrollTo(0, 0);
         }}
         ><svg
             xmlns="http://www.w3.org/2000/svg"
@@ -72,15 +78,16 @@
     div.card {
         position: relative;
         padding: 1em;
-        background: rgb(34, 193, 195);
+        background: rgba(253, 187, 45, 1);
         background: linear-gradient(
             24deg,
-            rgba(34, 193, 195, 1) 0%,
+            rgb(196, 56, 196) 0%,
             rgba(253, 187, 45, 1) 100%
         );
         height: auto;
         width: 300px;
         border-radius: 15px;
+        transition: all 0.5s ease-in;
 
         h3 {
             text-align: center;
@@ -108,7 +115,7 @@
         }
 
         button.add {
-            margin-right: 0Io;
+            display: none;
             margin-left: auto;
         }
     }

@@ -1,19 +1,27 @@
 <script lang="ts">
   import CircularProgress from "@smui/circular-progress";
+  import MdAddCircleOutline from "svelte-icons/md/MdAddCircleOutline.svelte";
 
   import { getAccountsByEntity } from "../../api";
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
   import { entityID } from "../../store";
+  import { push } from "svelte-spa-router";
 
   const queryResult = useQuery(["accounts", $entityID], () =>
     getAccountsByEntity($entityID)
   );
 </script>
 
-<div>
+<div class="container">
   <h2>My Accounts</h2>
+
+  <button
+    class="add-account"
+    title="New Account"
+    on:click={() => push("/newaccount")}><MdAddCircleOutline /></button
+  >
 
   {#if $queryResult.isLoading}
     <span
@@ -34,12 +42,24 @@
 </div>
 
 <style lang="scss">
-  ul {
-    padding: 0;
-    list-style: none;
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
+  .container {
+    position: relative;
+
+    button.add-account {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
   }
 </style>

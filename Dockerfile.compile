@@ -1,0 +1,17 @@
+FROM golang as builder
+
+WORKDIR /app
+COPY . .
+
+RUN go mod vendor
+RUN CGO_ENABLED=0 GOOS=linux go build -o moneytracker -mod vendor ./cmd/server/main.go
+
+FROM scratch
+
+COPY --from=builder /app/moneytracker /
+
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=Europe/Rome
+
+EXPOSE 3245
+ENTRYPOINT ["/moneytracker"]

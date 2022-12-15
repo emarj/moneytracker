@@ -18,9 +18,11 @@ type operationTable struct {
 
 	//Columns
 	ID          sqlite.ColumnInteger
-	Timestamp   sqlite.ColumnString
+	CreatedOn   sqlite.ColumnString
+	ModifiedOn  sqlite.ColumnString
 	CreatedByID sqlite.ColumnInteger
 	Description sqlite.ColumnString
+	TypeID      sqlite.ColumnInteger
 	CategoryID  sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
@@ -63,12 +65,14 @@ func newOperationTable(schemaName, tableName, alias string) *OperationTable {
 func newOperationTableImpl(schemaName, tableName, alias string) operationTable {
 	var (
 		IDColumn          = sqlite.IntegerColumn("id")
-		TimestampColumn   = sqlite.StringColumn("timestamp")
+		CreatedOnColumn   = sqlite.StringColumn("created_on")
+		ModifiedOnColumn  = sqlite.StringColumn("modified_on")
 		CreatedByIDColumn = sqlite.IntegerColumn("created_by_id")
 		DescriptionColumn = sqlite.StringColumn("description")
+		TypeIDColumn      = sqlite.IntegerColumn("type_id")
 		CategoryIDColumn  = sqlite.IntegerColumn("category_id")
-		allColumns        = sqlite.ColumnList{IDColumn, TimestampColumn, CreatedByIDColumn, DescriptionColumn, CategoryIDColumn}
-		mutableColumns    = sqlite.ColumnList{TimestampColumn, CreatedByIDColumn, DescriptionColumn, CategoryIDColumn}
+		allColumns        = sqlite.ColumnList{IDColumn, CreatedOnColumn, ModifiedOnColumn, CreatedByIDColumn, DescriptionColumn, TypeIDColumn, CategoryIDColumn}
+		mutableColumns    = sqlite.ColumnList{CreatedOnColumn, ModifiedOnColumn, CreatedByIDColumn, DescriptionColumn, TypeIDColumn, CategoryIDColumn}
 	)
 
 	return operationTable{
@@ -76,9 +80,11 @@ func newOperationTableImpl(schemaName, tableName, alias string) operationTable {
 
 		//Columns
 		ID:          IDColumn,
-		Timestamp:   TimestampColumn,
+		CreatedOn:   CreatedOnColumn,
+		ModifiedOn:  ModifiedOnColumn,
 		CreatedByID: CreatedByIDColumn,
 		Description: DescriptionColumn,
+		TypeID:      TypeIDColumn,
 		CategoryID:  CategoryIDColumn,
 
 		AllColumns:     allColumns,

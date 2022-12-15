@@ -1,34 +1,42 @@
-import { writable } from 'svelte/store';
-import type { Writable } from 'svelte/store';
-import type { Entity, Account, Expense, Transaction, Operation } from './model'
+import { writable, derived } from 'svelte/store';
 
-export const entityID = writable(1);
+import { writable as lsWritable } from 'svelte-local-storage-store'
 
-export const defaultOperation: Operation = {
-    description: "",
-    category: "",
-    transactions: [],
-};
+// Persistent stores
+export const authStore = lsWritable("auth", null)
+export const entityID = lsWritable("entity_id", 1);
 
-export const newOp: Writable<Operation> = writable(defaultOperation);
-
-
-
-export const defaultExpense: Expense = {
-    timestamp: "2006-01-02T15:04:05.999Z",
-    description: "",
-    amount: null,
-    account: 1,
-    shared: false,
-    sharedAmount: null,
-    credAccount: null,
-    debAccount: null,
-    sharedWith: null,
-    category: "",
-};
-
-export const newExpense: Writable<Expense> = writable(defaultExpense);
-
-
+// In-memory stores
 export const messageStore = writable(null);
+export const showBalances = lsWritable("showBalances", true);
+
+
+// History Store
+function createHistoryStore() {
+    const { subscribe, set, update } = writable({ stack: [], aboutToPop: false });
+
+    return {
+        subscribe,
+        push: (route: string) => update(data => {
+            if (!data.aboutToPop) {
+                data.stack.push(route);
+            } else {
+                data.aboutToPop = false;
+            }
+            return data;
+        }),
+        pop: () => update((data) => {
+            data.stack.pop();
+            data.aboutToPop = true;
+            return data;
+        }),
+    };
+}
+
+export const historyStore = createHistoryStore();
+
+export const isFirstPage = derived(
+    historyStore,
+    $historyStore => $historyStore.stack.length <= 1
+);
 

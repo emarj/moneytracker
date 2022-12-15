@@ -72,7 +72,7 @@ func (s *SQLiteStore) AddEntity(e mt.Entity) (null.Int, error) {
 
 // This does not sense, we should delete also all entity accounts (and transactions)
 /*func (s *SQLiteStore) DeleteEntity(eID int) error {
-	_, err := s.db.Exec("DELETE FROM entities WHERE id=?", eID)
+	_, err := s.db.Exec("DELETE FROM entity WHERE id=?", eID)
 	if err != nil {
 		return err
 	}
