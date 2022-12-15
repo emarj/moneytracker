@@ -15,10 +15,10 @@ func (s *SQLiteStore) Seed() error {
 	var err error
 
 	entUser1 := mt.Entity{
-		RecordWithID: mt.RecordWithID{ID: null.IntFrom(1)},
-		Name:         "arianna",
-		IsSystem:     false,
-		IsExternal:   false,
+		ID:         null.IntFrom(1),
+		Name:       "arianna",
+		IsSystem:   false,
+		IsExternal: false,
 	}
 
 	_, err = s.AddEntity(entUser1)
@@ -27,10 +27,10 @@ func (s *SQLiteStore) Seed() error {
 	}
 
 	entUser2 := mt.Entity{
-		RecordWithID: mt.RecordWithID{ID: null.IntFrom(2)},
-		Name:         "marco",
-		IsSystem:     false,
-		IsExternal:   false,
+		ID:         null.IntFrom(2),
+		Name:       "marco",
+		IsSystem:   false,
+		IsExternal: false,
 	}
 
 	_, err = s.AddEntity(entUser2)
@@ -38,10 +38,10 @@ func (s *SQLiteStore) Seed() error {
 		return err
 	}
 	entUser3 := mt.Entity{
-		RecordWithID: mt.RecordWithID{ID: null.IntFrom(3)},
-		Name:         "am",
-		IsSystem:     false,
-		IsExternal:   false,
+		ID:         null.IntFrom(3),
+		Name:       "am",
+		IsSystem:   false,
+		IsExternal: false,
 	}
 
 	_, err = s.AddEntity(entUser3)
@@ -95,19 +95,15 @@ func (s *SQLiteStore) Seed() error {
 	}
 
 	for k, a := range accounts {
-		id, err := s.AddAccount(a)
+		a, err := s.AddAccount(a)
 		if err != nil {
 			return err
 		}
-		if a.ID.Valid && !id.Equal(a.ID) {
-			log.Warnf("seeding: insert account %s: expecting id %d, got %d", a.Name, a.ID.Int64, id.Int64)
-		}
-		a.ID = id
-		accounts[k] = a
+		accounts[k] = *a
 	}
 
 	var categories map[string]mt.Category = map[string]mt.Category{
-		"uncategorized": {RecordWithID: mt.RecordWithID{ID: null.IntFrom(0)}, Name: "Uncategorized"},
+		"uncategorized": {ID: null.IntFrom(0), Name: "Uncategorized"},
 		"cat1":          {Name: "Spesa"},
 		"cat2":          {Name: "Bollette"},
 		"cat3":          {Name: "Salute"},
@@ -132,10 +128,11 @@ func (s *SQLiteStore) Seed() error {
 	}
 
 	_, err = s.AddOperation(mt.Operation{
-		Description:  "Cena Fuori in 2",
-		Transactions: []mt.Transaction{{Timestamp: mt.DateTime{time.Now()}, From: accounts["user1:cc1"], To: mt.Account{RecordWithID: mt.RecordWithID{ID: null.IntFrom(0)}}, Amount: decimal.New(80, 0)}, {Timestamp: mt.DateTime{time.Now()}, From: accounts["user2:credits"], To: accounts["user1:credits"], Amount: decimal.New(40, 0)}},
-		TypeID:       mt.OpTypeExpense,
-		CategoryID:   0,
+		Description: "Cena Fuori in 2",
+		Transactions: []mt.Transaction{
+			{Timestamp: mt.DateTime{time.Now()}, From: accounts["user1:cc1"], To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)}, {Timestamp: mt.DateTime{time.Now()}, From: accounts["user2:credits"], To: accounts["user1:credits"], Amount: decimal.New(40, 0)}},
+		TypeID:     mt.OpTypeExpense,
+		CategoryID: 0,
 	})
 	if err != nil {
 		return err

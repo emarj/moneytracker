@@ -117,7 +117,6 @@ func (s *SQLiteStore) AdjustBalance(b mt.Balance) error {
 	}
 
 	op := mt.Operation{
-		Record:       mt.Record{CreatedByID: 0}, //?
 		Transactions: []mt.Transaction{t},
 		TypeID:       mt.OpTypeBalance,
 		CategoryID:   0,

@@ -7,35 +7,33 @@ import (
 
 //go:generate easytags $GOFILE json
 
-type RecordWithID struct {
-	ID null.Int `json:"id" sql:"primary_key"`
-}
-
 type Record struct {
-	RecordWithID
+	ID          null.Int `json:"id" sql:"primary_key"`
 	CreatedOn   DateTime `json:"created_on"`
 	ModifiedOn  DateTime `json:"modified_on"`
 	CreatedByID int      `json:"created_by_id"`
 }
 
 type User struct {
-	RecordWithID
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	IsAdmin     bool   `json:"is_admin"`
+	ID          null.Int `json:"id" sql:"primary_key"`
+	Name        string   `json:"name"`
+	DisplayName string   `json:"display_name"`
+	IsAdmin     bool     `json:"is_admin"`
+	Password    string   `json:"password"`
 }
 
 type Entity struct {
-	RecordWithID
-	Name       string `json:"name"`
-	IsSystem   bool   `json:"is_system"`
-	IsExternal bool   `json:"is_external"` // For example a friend that owes me
+	ID         null.Int `json:"id" sql:"primary_key"`
+	Name       string   `json:"name"`
+	IsSystem   bool     `json:"is_system"`
+	IsExternal bool     `json:"is_external"` // For example a friend that owes me
 }
 
 type Account struct {
-	RecordWithID
+	ID          null.Int `json:"id" sql:"primary_key"`
 	Name        string   `json:"name"`
 	DisplayName string   `json:"display_name"`
+	OwnerID     null.Int `json:"owner_id"`
 	Owner       Entity   `json:"owner"`     // TODO: Allow for shared accounts
 	IsSystem    bool     `json:"is_system"` // This can't be deleted by the user
 	IsWorld     bool     `json:"is_world"`
@@ -60,24 +58,27 @@ type Balance struct {
 }
 
 type Transaction struct {
-	RecordWithID
+	ID        null.Int        `json:"id" sql:"primary_key"`
 	Timestamp DateTime        `json:"timestamp"`
-	From      Account         `json:"from"`
-	To        Account         `json:"to"`
+	From      Account         `json:"from" alias:"from"`
+	To        Account         `json:"to" alias:"to"`
 	Amount    decimal.Decimal `json:"amount"`
 	Comment   string          `json:"comment"`
 	Operation Operation       `json:"operation"`
 }
 
 type Operation struct {
-	Record
+	ID          null.Int `json:"id" sql:"primary_key"`
+	CreatedOn   DateTime `json:"created_on"`
+	ModifiedOn  DateTime `json:"modified_on"`
+	CreatedByID int      `json:"created_by_id"`
 	//Shares []Entity
 	Title        string        `json:"title"`
 	Description  string        `json:"description"`
 	Transactions []Transaction `json:"transactions"`
-	Balances     []Balance     `json:"balances"`
-	TypeID       int           `json:"type_id"`
-	CategoryID   int           `json:"category_id"`
+	//Balances     []Balance     `json:"balances"`
+	TypeID     int `json:"type_id"`
+	CategoryID int `json:"category_id"`
 	//Parent       *Operation    `json:"parent"`
 }
 
@@ -91,7 +92,7 @@ const (
 )
 
 type Category struct {
-	RecordWithID
+	ID       null.Int `json:"id" sql:"primary_key"`
 	Name     string   `json:"name"`
 	ParentID null.Int `json:"parent_id"`
 }

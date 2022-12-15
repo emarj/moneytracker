@@ -176,7 +176,7 @@ func (s *Server) Login(c echo.Context) error {
 		return echo.ErrUnauthorized
 	}
 
-	user := User{RecordWithID: RecordWithID{ID: null.IntFrom(99)}, Name: login.User, IsAdmin: true} // This should be returned by the store.Login function
+	user := User{ID: null.IntFrom(99), Name: login.User, IsAdmin: true} // This should be returned by the store.Login function
 
 	// Valid login
 

@@ -32,5 +32,5 @@ prod:
 		docker run -d -p 3245:3245 -v /home/marco/data:/data emarj/moneytracker:latest
 gen:
 		jet -source=sqlite -dsn="./data/moneytracker.sqlite" -path="./.gen"
-		rm -rf ./.gen/model
+#		rm -rf ./.gen/model
 

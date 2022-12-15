@@ -12,10 +12,7 @@ import (
 func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 
 	stmt := jet.SELECT(
-		jt.Entity.ID,
-		jt.Entity.Name,
-		jt.Entity.IsSystem,
-		jt.Entity.IsExternal,
+		jt.Entity.AllColumns,
 	).FROM(jt.Entity)
 
 	entities := []mt.Entity{}
@@ -30,10 +27,7 @@ func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 func (s *SQLiteStore) GetEntity(eID int) (*mt.Entity, error) {
 
 	stmt := jet.SELECT(
-		jt.Entity.ID,
-		jt.Entity.Name,
-		jt.Entity.IsSystem,
-		jt.Entity.IsExternal,
+		jt.Entity.AllColumns,
 	).FROM(jt.Entity).WHERE(
 		jt.Entity.ID.EQ(jet.Int(int64(eID))),
 	)
@@ -49,12 +43,8 @@ func (s *SQLiteStore) GetEntity(eID int) (*mt.Entity, error) {
 func (s *SQLiteStore) AddEntity(e mt.Entity) (null.Int, error) {
 
 	id := null.Int{}
-	stmt := jt.Entity.INSERT(
-		jt.Entity.ID,
-		jt.Entity.Name,
-		jt.Entity.IsSystem,
-		jt.Entity.IsExternal,
-	).MODEL(e)
+	stmt := jt.Entity.INSERT(jt.Entity.AllColumns).RETURNING(jt.Entity.AllColumns).MODEL(e)
+
 	res, err := stmt.Exec(s.db)
 	if err != nil {
 		return id, err

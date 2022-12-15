@@ -11,7 +11,7 @@
         name: "",
         display_name: "",
         type: 0,
-        owner: { id: $entityID },
+        owner_id: $entityID,
     };
 
     let mutation = useMutation((a) => addAccount(a), {
