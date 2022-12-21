@@ -1,6 +1,8 @@
-package moneytracker
+package datetime
 
 import (
+	"bytes"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
@@ -9,13 +11,24 @@ import (
 
 const DateTimeFormat = "2006-01-02T15:04:05.999Z"
 
-type DateTime struct{ time.Time }
+var nullBytes = []byte("null")
+
+type DateTime struct {
+	sql.NullTime
+}
+
+func FromTime(t time.Time) DateTime {
+	return DateTime{sql.NullTime{
+		Time:  t,
+		Valid: true,
+	}}
+}
 
 func (t *DateTime) Scan(v interface{}) error {
 
 	var s string
 	switch z := v.(type) {
-	case []uint8:
+	case []byte:
 		s = string(z)
 	case string:
 		s = z
@@ -27,29 +40,49 @@ func (t *DateTime) Scan(v interface{}) error {
 	if err != nil {
 		return err
 	}
+	t.Valid = true
 	t.Time = vt
 	return nil
 }
 
 func (t DateTime) Value() (driver.Value, error) {
+	if !t.Valid {
+		return nil, nil
+	}
 	return driver.Value(t.String()), nil
 }
 
 func (t DateTime) String() string {
-	return t.UTC().Format(DateTimeFormat)
+	if !t.Valid {
+		return ""
+	}
+	return t.Time.UTC().Format(DateTimeFormat)
 }
 
-func (t *DateTime) UnmarshalJSON(json []byte) error {
-	str := string(json[1 : len(json)-1])
-	vt, err := time.Parse(DateTimeFormat, str)
-	if err != nil {
+func (t *DateTime) UnmarshalJSON(data []byte) error {
+	t.Valid = false
+	if bytes.Equal(data, nullBytes) {
+		return nil
+	}
 
+	var str string
+	err := json.Unmarshal(data, &str)
+	if err != nil {
 		return err
 	}
+	vt, err := time.Parse(DateTimeFormat, str)
+	if err != nil {
+		return err
+	}
+
+	t.Valid = true
 	t.Time = vt
 	return nil
 }
 
 func (t DateTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.UTC().Format(DateTimeFormat))
+	if !t.Valid {
+		return nullBytes, nil
+	}
+	return json.Marshal(t.String())
 }

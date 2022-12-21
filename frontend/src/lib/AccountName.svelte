@@ -3,10 +3,10 @@
   export let account;
 </script>
 
-{#if account.owner.id === 0}
+{#if account.owner_id === 0}
   🌐
 {:else}
-  {account.owner.id !== 0 && account.owner.id !== $entityID
+  {account.owner_id !== 0 && account.owner_id !== $entityID
     ? account.owner.name + ":"
     : ""}{account.name}
 {/if}

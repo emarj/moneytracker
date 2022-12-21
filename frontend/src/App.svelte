@@ -10,12 +10,14 @@
   import AccountForm from "./lib/Accounts/AccountForm.svelte";
   import MainMenu from "./lib/MainMenu.svelte";
   import Account from "./pages/Account.svelte";
+  import OperationPage from "./pages/OperationPage.svelte";
 
   const routes = {
     "/": Home,
     "/add": New,
     "/operations": AllOperations,
     "/account/:id": Account,
+    "/operation/:id": OperationPage,
     "/newaccount": AccountForm,
   };
 

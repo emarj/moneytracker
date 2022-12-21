@@ -20,12 +20,12 @@ var Branch string
 var Date string
 
 func main() {
-
 	fmt.Printf("MoneyTracker %s-%s (build %s)\n\n", Branch, Commit, Date)
 
 	var local = flag.Bool("local", false, "")
 	var port = flag.Int("port", 3245, "")
 	var dir = flag.String("dir", "./data", "")
+	var populate = flag.Bool("populate", false, "")
 	var dbName = flag.String("db", "moneytracker.sqlite", "")
 	flag.Parse()
 
@@ -35,7 +35,9 @@ func main() {
 	}
 	url := fmt.Sprintf("%s:%d", hostname, *port)
 
-	s := sqlite.New(path.Join(*dir, *dbName), true)
+	dsn := path.Join(*dir, *dbName)
+
+	s := sqlite.New(dsn, true)
 
 	err := s.Open()
 	if err != nil {
@@ -47,6 +49,13 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+
+	if *populate {
+		err := s.Seed()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	srv := moneytracker.NewServer(s)
 

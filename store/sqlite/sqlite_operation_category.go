@@ -1,45 +1,33 @@
 package sqlite
 
 import (
-	"gopkg.in/guregu/null.v4"
+	"fmt"
+
+	jet "github.com/go-jet/jet/v2/sqlite"
 	mt "ronche.se/moneytracker"
+	jt "ronche.se/moneytracker/.gen/table"
 )
 
 func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
 
-	rows, err := s.db.Query("SELECT * FROM category")
+	stmt := jet.SELECT(jt.Category.AllColumns).FROM(jt.Category)
+
+	categories := []mt.Category{}
+	err := stmt.Query(s.db, &categories)
 	if err != nil {
 		return nil, err
 	}
-
-	categories := []mt.Category{}
-	var c mt.Category
-
-	for rows.Next() {
-		if err = rows.Scan(&c.ID, &c.Name); err != nil {
-			return nil, err
-		}
-
-		categories = append(categories, c)
-	}
-
 	return categories, nil
 }
 
-func (s *SQLiteStore) AddCategory(c mt.Category) (null.Int, error) {
+func (s *SQLiteStore) AddCategory(c *mt.Category) error {
 
-	id := null.Int{}
-	res, err := s.db.Exec("INSERT INTO category (id,name) VALUES(?,?)", c.ID, c.Name)
+	stmt := jt.Category.INSERT(jt.Category.AllColumns).MODEL(&c).RETURNING(jt.Category.AllColumns)
+	err := stmt.Query(s.db, c)
 	if err != nil {
-		return id, err
+		return fmt.Errorf("insert category: %w", err)
 	}
 
-	id.Int64, err = res.LastInsertId()
-	if err != nil {
-		return id, err
-	}
-
-	id.Valid = true
-	return id, nil
+	return nil
 
 }

@@ -1,90 +1,27 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
-	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 
 	jt "ronche.se/moneytracker/.gen/table"
 
 	jet "github.com/go-jet/jet/v2/sqlite"
+	"github.com/shopspring/decimal"
 )
-
-const GetTransactionsByAccountQuery string = `SELECT  t.id,
-													t.timestamp,	
-													t.from_id,
-													t.to_id,
-													t.amount,
-													t.operation_id,
-													op.id,
-													op.created_by_id,
-													op.description
-											FROM 'transaction' t
-											INNER JOIN operation op
-											ON t.operation_id = op.id
-											WHERE from_id = :aID
-											OR to_id = :aID
-											ORDER BY t.timestamp DESC
-											LIMIT ?;`
-
-const GetOperationByEntityQuery string = `SELECT  t.*,
-												op.*,
-												fa.name AS from_name,
-												fa.display_name AS from_display_name,
-												ta.name AS to_name,
-												ta.display_name AS to_display_name,
-												fe.id,
-												fe.name,
-												te.id,
-												te.name
-												FROM 'transaction' t
-													INNER JOIN operation op ON t.operation_id = op.id
-													INNER JOIN account AS fa ON t.from_id = fa.id
-													INNER JOIN account AS ta ON t.to_id = ta.id
-													INNER JOIN entity AS fe ON fa.owner_id = fe.id
-													INNER JOIN entity AS te ON ta.owner_id = te.id
-												WHERE fa.owner_id = :eID
-													OR ta.owner_id = :eID
-												ORDER BY t.timestamp DESC,op.id,t.id
-												LIMIT ?;`
-
-const GetOperationQuery string = `SELECT  			op.id,
-													op.timestamp,
-													op.created_by_id,
-													op.description,
-													op.category_id,
-													t.id,
-													t.from_id,
-													t.to_id,
-													t.amount
-											FROM operation op
-											INNER JOIN 'transaction' t
-											ON t.operation_id = op.id
-											WHERE op.id = :oID;`
-
-const InsertTransactionQuery string = `INSERT INTO  'transaction' (
-													timestamp,
-													from_id,
-													to_id,
-													amount,
-													operation_id)
-											VALUES (?,?,?,?,?);`
-
-const InsertOperationQuery string = `INSERT INTO  operation (
-													created_by_id,
-													description,
-													category_id)
-												VALUES (?,?,?);`
 
 func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transaction, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
 
-	stmt := jet.SELECT(jt.Transaction.AllColumns,
+	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
+		jt.Transaction.AllColumns,
+		//jt.Balance.AllColumns,
 		From.AllColumns,
 		To.AllColumns,
 	).FROM(
@@ -94,7 +31,7 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transac
 		).INNER_JOIN(From, From.ID.EQ(jt.Transaction.FromID)).INNER_JOIN(To, To.ID.EQ(jt.Transaction.ToID)),
 	).WHERE(
 		jt.Transaction.FromID.EQ(jet.Int(int64(aID))).OR(jt.Transaction.ToID.EQ(jet.Int(int64(aID)))),
-	)
+	).ORDER_BY(jt.Transaction.Timestamp.DESC()).LIMIT(int64(limit))
 
 	transactions := []mt.Transaction{}
 
@@ -110,12 +47,17 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation,
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
 
+	OwnerFrom := jt.Entity.AS("from.owner")
+	OwnerTo := jt.Entity.AS("to.owner")
+
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
 		jt.Transaction.AllColumns,
-		//jt.Balance.AllColumns,
 		From.AllColumns,
 		To.AllColumns,
+		OwnerFrom.AllColumns,
+		OwnerTo.AllColumns,
+		jt.Balance.AllColumns,
 	).FROM(
 		jt.Operation.INNER_JOIN(
 			jt.Transaction,
@@ -126,12 +68,19 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation,
 		).INNER_JOIN(
 			To,
 			To.ID.EQ(jt.Transaction.ToID),
+		).INNER_JOIN(
+			OwnerFrom,
+			OwnerFrom.ID.EQ(From.OwnerID),
+		).INNER_JOIN(
+			OwnerTo,
+			OwnerTo.ID.EQ(To.OwnerID),
+		).LEFT_JOIN(
+			jt.Balance,
+			jt.Balance.OperationID.EQ(jt.Operation.ID),
 		),
 	).WHERE(
 		To.OwnerID.EQ(jet.Int(int64(eID))).OR(From.OwnerID.EQ(jet.Int(int64(eID)))),
 	).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(int64(limit))
-
-	fmt.Println(stmt.DebugSql())
 
 	operations := []mt.Operation{}
 
@@ -139,15 +88,51 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation,
 	if err != nil {
 		return nil, err
 	}
+
 	return operations, nil
 }
 
 func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 
+	From := jt.Account.AS("from")
+	To := jt.Account.AS("to")
+
+	OwnerFrom := jt.Entity.AS("from.owner")
+	OwnerTo := jt.Entity.AS("to.owner")
+
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
 		jt.Transaction.AllColumns,
-	).FROM(jt.Operation.INNER_JOIN(jt.Transaction, jt.Transaction.OperationID.EQ(jt.Operation.ID))).WHERE(jt.Operation.ID.EQ(jet.Int(int64(opID))))
+		jt.Balance.AllColumns,
+		From.AllColumns,
+		To.AllColumns,
+		OwnerFrom.AllColumns,
+		OwnerTo.AllColumns,
+	).FROM(
+		jt.Operation.INNER_JOIN(
+			jt.Transaction,
+			jt.Transaction.OperationID.EQ(jt.Operation.ID),
+		).LEFT_JOIN(
+			jt.Balance,
+			jt.Balance.OperationID.EQ(jt.Operation.ID),
+		).INNER_JOIN(
+			From,
+			From.ID.EQ(jt.Transaction.FromID),
+		).INNER_JOIN(
+			To,
+			To.ID.EQ(jt.Transaction.ToID),
+		).INNER_JOIN(
+			OwnerFrom,
+			OwnerFrom.ID.EQ(From.OwnerID),
+		).INNER_JOIN(
+			OwnerTo,
+			OwnerTo.ID.EQ(To.OwnerID),
+		),
+	).WHERE(
+		jt.Operation.ID.EQ(jet.Int(int64(opID))),
+	).ORDER_BY(jt.Transaction.Timestamp.DESC())
+
+	fmt.Println(stmt.DebugSql())
 
 	op := &mt.Operation{}
 	err := stmt.Query(s.db, op)
@@ -158,42 +143,97 @@ func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 	return op, nil
 }
 
-func (s *SQLiteStore) AddOperation(op mt.Operation) (null.Int, error) {
+func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
-	if op.Transactions == nil || len(op.Transactions) == 0 {
-		return op.ID, fmt.Errorf("an operation must have at least one transaction")
+	if len(op.Transactions) == 0 && op.TypeID != mt.OpTypeBalance {
+		return fmt.Errorf("an operation must have at least one transaction or must be of type balance")
 	}
+
+	if len(op.Balances) == 0 && op.TypeID == mt.OpTypeBalance {
+		return fmt.Errorf("an operation of type balance must have at least one balance")
+	}
+
+	// TODO: More checks
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return op.ID, err
+		return err
 	}
 	defer func() {
 		tx.Rollback()
 	}()
 
-	res, err := tx.Exec(InsertOperationQuery, op.CreatedByID, op.Description, op.CategoryID)
+	// save transaction list since we will overwrite it
+	transactions := op.Transactions
+	balances := op.Balances
+
+	// we define another operation in order to update the pointer only if the transaction is successful
+	var newOp mt.Operation
+
+	stmt := jt.Operation.INSERT(jt.Operation.AllColumns.Except(jt.Operation.CreatedOn, jt.Operation.ModifiedOn)).MODEL(op).RETURNING(jt.Operation.AllColumns)
+
+	err = stmt.Query(tx, &newOp)
 	if err != nil {
-		return op.ID, err
+		return err
 	}
 
-	op.ID.Int64, err = res.LastInsertId()
-	if err != nil {
-		return op.ID, err
+	if len(balances) > 0 && op.TypeID == mt.OpTypeBalance {
+
+		for i := range balances {
+
+			balances[i].Operation.ID = newOp.ID
+
+			balances[i].Delta, err = s.computeDelta(balances[i])
+			if err != nil {
+				return err
+			}
+
+		}
+
+		err = insertBalances(tx, balances)
+		if err != nil {
+			return err
+		}
+
+		newOp.Balances = balances
+
 	}
 
-	err = addTransactions(tx, op.Transactions, op.ID.Int64)
-	if err != nil {
-		return op.ID, err
+	if len(transactions) > 0 {
+		for i := range transactions {
+			transactions[i].Operation.ID = newOp.ID
+			fmt.Println(transactions[i].From.ID, transactions[i].To.ID)
+		}
+
+		err = insertTransactions(tx, transactions)
+		if err != nil {
+			return err
+		}
+
+		newOp.Transactions = transactions
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return op.ID, err
+		return err
 	}
 
-	op.ID.Valid = true
-	return op.ID, nil
+	// the insert is successful, update external operation
+	op = &newOp
+
+	return nil
+
+}
+
+func (s *SQLiteStore) computeDelta(b mt.Balance) (decimal.NullDecimal, error) {
+	var delta decimal.NullDecimal
+	currentBalance, err := s.GetBalanceNow(int(b.AccountID.Int64))
+	if err != nil {
+		return delta, err
+	}
+
+	delta = decimal.NewNullDecimal(b.Value.Sub(currentBalance.Value))
+	return delta, nil
 
 }
 
@@ -201,41 +241,18 @@ type DB interface {
 	Prepare(query string) (*sql.Stmt, error)
 	Exec(query string, args ...any) (sql.Result, error)
 	Query(query string, args ...any) (*sql.Rows, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
-func addTransaction(db DB, t *mt.Transaction) error {
-	res, err := db.Exec(InsertTransactionQuery, t.Timestamp, t.From.ID, t.To.ID, t.Amount, t.Operation.ID)
+func insertTransactions(db DB, txs []mt.Transaction) error {
+
+	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODELS(txs)
+	//.RETURNING(jt.Transaction.AllColumns)
+
+	_, err := stmt.Exec(db)
 	if err != nil {
-		return err
-	}
-
-	t.ID.Int64, err = res.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	t.ID.Valid = true
-	return nil
-}
-
-func addTransactions(db DB, txs []mt.Transaction, opID int64) error {
-	q, err := db.Prepare(InsertTransactionQuery)
-	if err != nil {
-		return err
-	}
-
-	var res sql.Result
-	for _, t := range txs {
-		res, err = q.Exec(t.Timestamp, t.From.ID, t.To.ID, t.Amount, opID)
-		if err != nil {
-			return fmt.Errorf("sdsdd %w", err)
-		}
-
-		t.ID.Int64, err = res.LastInsertId()
-		if err != nil {
-			return err
-		}
-		t.ID.Valid = true
+		return fmt.Errorf("insert transactions: %w", err)
 	}
 
 	return nil
@@ -243,7 +260,7 @@ func addTransactions(db DB, txs []mt.Transaction, opID int64) error {
 
 func (s *SQLiteStore) DeleteOperation(opID int) error {
 
-	// We could delete transactions with a trigger in the database
+	// We *could* delete transactions with a trigger in the database
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -253,16 +270,19 @@ func (s *SQLiteStore) DeleteOperation(opID int) error {
 		tx.Rollback()
 	}()
 
-	res, err := tx.Exec("DELETE FROM operation WHERE id=?", opID)
+	var stmt jet.DeleteStatement
+	stmt = jt.Transaction.DELETE().WHERE(jt.Transaction.OperationID.EQ(jet.Int(int64(opID))))
+	_, err = stmt.Exec(tx)
 	if err != nil {
 		return err
 	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return fmt.Errorf("error: no operation with id: %d", opID)
+	stmt = jt.Balance.DELETE().WHERE(jt.Balance.OperationID.EQ(jet.Int(int64(opID))))
+	_, err = stmt.Exec(tx)
+	if err != nil {
+		return err
 	}
-
-	_, err = tx.Exec("DELETE FROM 'transaction' WHERE operation_id=?", opID)
+	stmt = jt.Operation.DELETE().WHERE(jt.Operation.ID.EQ(jet.Int(int64(opID))))
+	_, err = stmt.Exec(tx)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,8 @@
     import { deleteOperation } from "../../api";
     import { useMutation, useQueryClient } from "@sveltestack/svelte-query";
     import { messageStore } from "../../store";
+    import Button from "@smui/button/src/Button.svelte";
+    import { push } from "svelte-spa-router";
 
     export let op: Operation;
 
@@ -66,6 +68,11 @@
     <div class="transactions">
         <OperationTransactions transactions={op.transactions} />
     </div>
+    <Button
+        on:click={() => {
+            push(`/operation/${op.id}`);
+        }}>Detail</Button
+    >
 </div>
 
 <style>

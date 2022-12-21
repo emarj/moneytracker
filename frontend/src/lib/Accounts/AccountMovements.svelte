@@ -1,7 +1,7 @@
 <script>
     import CircularProgress from "@smui/circular-progress";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
-    import { getTransactionsByAccount } from "../../api";
+    import { getAccountBalances, getTransactionsByAccount } from "../../api";
     import { DateFMT } from "../../util/utils";
     import Amount from "../Amount.svelte";
 
@@ -12,10 +12,16 @@
     const transactionsQuery = useQuery(["transactions", "account", id], () =>
         getTransactionsByAccount(id)
     );
+    const balancesQuery = useQuery(["balances", "account", id], () =>
+        getAccountBalances(id)
+    );
 
     export const refresh = () => {
         queryClient.invalidateQueries({
             queryKey: ["transactions", "account", id],
+        });
+        queryClient.invalidateQueries({
+            queryKey: ["balances", "account", id],
         });
     };
 </script>
@@ -38,6 +44,31 @@
                             hide_plus={false}
                         /></td
                     >
+                </tr>
+            {/each}
+        </table>
+    {/if}
+    {#if $balancesQuery.isLoading}
+        <CircularProgress style="height: 32px; width: 32px;" indeterminate />
+    {:else if $balancesQuery.error}
+        Error: {$balancesQuery.error.message}
+    {:else}
+        <table>
+            {#each $balancesQuery.data as b (b.id + b.timestamp)}
+                <tr>
+                    <td>{DateFMT(b.timestamp).substring(0, 5)}</td>
+                    <td><strong>{b.operation.description}</strong></td>
+                    <td>
+                        {#if b.delta}
+                            <Amount
+                                value={Math.abs(b.delta)}
+                                negative={b.delta < 0}
+                                hide_plus={false}
+                            /> ({b.value})
+                        {:else}
+                            {b.value}
+                        {/if}
+                    </td>
                 </tr>
             {/each}
         </table>

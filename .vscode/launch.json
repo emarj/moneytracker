@@ -10,7 +10,11 @@
             "request": "launch",
             "mode": "auto",
             "program": "./cmd/server/main.go",
-            "cwd": "./"
+            "cwd": "./",
+            "args": [
+                "--populate",
+                "--local"
+            ]
         }
     ]
 }

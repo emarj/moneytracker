@@ -2,9 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"os"
 
 	_ "embed"
 
@@ -25,13 +23,6 @@ func New(url string, create bool) *SQLiteStore {
 }
 
 func (s *SQLiteStore) Open() error {
-	_, err := os.Stat(s.url)
-	newDB := errors.Is(err, os.ErrNotExist)
-
-	if newDB && !s.create {
-		return err
-	}
-
 	db, err := sql.Open("sqlite", s.url)
 	if err != nil {
 		return err
@@ -44,13 +35,8 @@ func (s *SQLiteStore) Open() error {
 		return err
 	}
 
-	if newDB {
+	if s.create {
 		err = s.Migrate()
-		if err != nil {
-			return err
-		}
-
-		err = s.Seed()
 		if err != nil {
 			return err
 		}

@@ -117,7 +117,7 @@ func NewServer(store Store) *Server {
 	apiGroup.POST("/account", s.addAccount)
 
 	apiGroup.GET("/balances/:aid", s.getBalances)
-	apiGroup.POST("/balance", s.adjustBalance)
+	apiGroup.POST("/balance", s.setBalance)
 	apiGroup.GET("/balance/:aid", s.getBalance)
 
 	//apiGroup.GET("/transactions", s.getTransactions)
@@ -180,7 +180,7 @@ func (s *Server) Login(c echo.Context) error {
 
 	// Valid login
 
-	expiration := time.Now().Add(time.Hour * 72)
+	expiration := time.Now().Add(time.Hour * 720)
 
 	// Set custom claims
 	claims := &jwtCustomClaims{
@@ -331,14 +331,14 @@ func (s *Server) getBalance(c echo.Context) error {
 		return err
 	}
 
-	b, err := s.store.GetBalance(aID)
+	b, err := s.store.GetBalanceNow(aID)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, b)
 }
 
-func (s *Server) adjustBalance(c echo.Context) error {
+func (s *Server) setBalance(c echo.Context) error {
 	b := Balance{}
 
 	err := json.NewDecoder(c.Request().Body).Decode(&b)
@@ -353,7 +353,7 @@ func (s *Server) adjustBalance(c echo.Context) error {
 		return err
 	} */
 
-	err = s.store.AdjustBalance(b)
+	err = s.store.SetBalance(b)
 	if err != nil {
 		return err
 	}
@@ -375,12 +375,12 @@ func (s *Server) addAccount(c echo.Context) error {
 		return err
 	} */
 
-	id, err := s.store.AddAccount(a)
+	err = s.store.AddAccount(&a, nil)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, id)
+	return c.JSON(http.StatusOK, a)
 }
 
 func (s *Server) deleteAccount(c echo.Context) error {
@@ -480,12 +480,12 @@ func (s *Server) addOperation(c echo.Context) error {
 
 	op.CreatedByID = int(claims.User.ID.Int64)
 
-	id, err := s.store.AddOperation(op)
+	err = s.store.AddOperation(&op)
 	if err != nil {
 		return err
 	}
-	//do not return t since it might be incomplete
-	return c.JSON(http.StatusOK, id)
+
+	return c.JSON(http.StatusOK, op)
 }
 
 func (s *Server) getCategories(c echo.Context) error {

@@ -50,9 +50,10 @@ CREATE TABLE account (
 INSERT INTO account (id,owner_id,name,display_name,is_system,is_world) VALUES (0,0,"_world","World",TRUE,TRUE);
 ---
 CREATE TABLE balance (
-	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	timestamp TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
 	account_id INTEGER REFERENCES account(id),
 	value TEXT NOT NULL,
+	delta TEXT,
 	is_computed INTEGER NOT NULL CHECK (is_computed IN (0, 1)),
 	operation_id INTEGER REFERENCES operation(id),
 	PRIMARY KEY(account_id, timestamp)
@@ -89,5 +90,18 @@ CREATE TABLE operation (
 ---
 CREATE TABLE category (
 	id INTEGER PRIMARY KEY,
+	parent_id INTEGER,
 	name TEXT NOT NULL
 );
+
+INSERT INTO category (id,name) VALUES (0,"Uncategorized");
+INSERT INTO category (name) VALUES ("Spesa"),
+("Bollette"),
+("Salute"),
+("Ristoranti/Bar"),
+("Sport"),
+("Trasporti"),
+("Tasse"),
+("Regali"),
+("Viaggi");
+INSERT INTO category (parent_id,name) VALUES (1,"Saporlibero");

@@ -111,3 +111,5 @@ FROM `transaction`
      INNER JOIN account AS `from` ON (`from`.id = `transaction`.from_id)
      INNER JOIN account AS `to` ON (`to`.id = `transaction`.to_id)
 WHERE (`to`.owner_id = 1) OR (`from`.owner_id = 1);
+---
+SELECT * FROM category;

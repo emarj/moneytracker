@@ -2,22 +2,23 @@ module ronche.se/moneytracker
 
 go 1.19
 
+replace github.com/go-jet/jet/v2 => /Users/marco/Dev/jet
+
 require (
 	github.com/go-jet/jet/v2 v2.9.0
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/shopspring/decimal v1.3.1
-	github.com/wk8/go-ordered-map/v2 v2.1.5
 	golang.org/x/crypto v0.4.0
 	modernc.org/sqlite v1.20.0
 )
 
 require (
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 )
 
 require (
-	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0 // indirect
@@ -30,6 +31,7 @@ require (
 	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/wk8/go-ordered-map/v2 v2.1.5
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.3.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect

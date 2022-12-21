@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/labstack/gommon/log"
 	"github.com/shopspring/decimal"
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
+	"ronche.se/moneytracker/datetime"
 )
 
 func (s *SQLiteStore) Seed() error {
@@ -21,7 +21,7 @@ func (s *SQLiteStore) Seed() error {
 		IsExternal: false,
 	}
 
-	_, err = s.AddEntity(entUser1)
+	err = s.AddEntity(&entUser1)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (s *SQLiteStore) Seed() error {
 		IsExternal: false,
 	}
 
-	_, err = s.AddEntity(entUser2)
+	err = s.AddEntity(&entUser2)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func (s *SQLiteStore) Seed() error {
 		IsExternal: false,
 	}
 
-	_, err = s.AddEntity(entUser3)
+	err = s.AddEntity(&entUser3)
 	if err != nil {
 		return err
 	}
@@ -56,6 +56,7 @@ func (s *SQLiteStore) Seed() error {
 			Owner:       entUser1,
 		},
 		"user1:cc1": {
+			ID:          null.IntFrom(1004),
 			Name:        "conto_corrente",
 			DisplayName: "Conto Corrente",
 			Owner:       entUser1,
@@ -95,85 +96,69 @@ func (s *SQLiteStore) Seed() error {
 	}
 
 	for k, a := range accounts {
-		a, err := s.AddAccount(a)
+		err := s.AddAccount(&a, nil)
 		if err != nil {
 			return err
 		}
-		accounts[k] = *a
+		accounts[k] = a
 	}
 
-	var categories map[string]mt.Category = map[string]mt.Category{
-		"uncategorized": {ID: null.IntFrom(0), Name: "Uncategorized"},
-		"cat1":          {Name: "Spesa"},
-		"cat2":          {Name: "Bollette"},
-		"cat3":          {Name: "Salute"},
-		"cat4":          {Name: "Ristoranti/Bar"},
-		"cat5":          {Name: "Sport"},
-		"cat6":          {Name: "Trasporti"},
-		"cat7":          {Name: "Tasse"},
-		"cat8":          {Name: "Regali"},
-		"cat9":          {Name: "Viaggi"},
+	err = s.SetBalance(mt.Balance{
+		AccountID: accounts["user1:cc1"].ID,
+		Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -3)),
+		Value:     decimal.NewFromInt(4000),
+	})
+	if err != nil {
+		return err
 	}
 
-	for k, c := range categories {
-		id, err := s.AddCategory(c)
+	operations := []mt.Operation{
+		{
+			Description: "Cena Fuori in 2",
+			Transactions: []mt.Transaction{
+				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts["user1:cc1"], To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)},
+				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts["user2:credits"], To: accounts["user1:credits"], Amount: decimal.New(40, 0)}},
+			TypeID:     mt.OpTypeExpense,
+			CategoryID: 0,
+		},
+		{
+			Description: "Giroconto",
+			Transactions: []mt.Transaction{
+				{
+					Timestamp: datetime.FromTime(time.Now()),
+					From:      accounts["user1:cc1"],
+					To:        accounts["user1:cc2"],
+					Amount:    decimal.New(345, 0),
+				},
+			},
+			CategoryID: 2,
+		},
+		{
+			Description: "Prestito 100 Euro A -> M",
+			Transactions: []mt.Transaction{
+				{
+					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),
+					From:      accounts["user1:cash"],
+					To:        accounts["user2:cash"],
+					Amount:    decimal.New(100, 0),
+				},
+				{
+					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),
+					From:      accounts["user2:credits"],
+					To:        accounts["user1:credits"],
+					Amount:    decimal.New(100, 0),
+				},
+			},
+			CategoryID: 1,
+		},
+	}
+
+	for k, op := range operations {
+		err = s.AddOperation(&op)
 		if err != nil {
 			return err
 		}
-		if c.ID.Valid && !id.Equal(c.ID) {
-			log.Warnf("seeding: insert categories %s: expecting id %d, got %d", c.Name, c.ID.Int64, id.Int64)
-		}
-		c.ID = id
-		categories[k] = c
-	}
-
-	_, err = s.AddOperation(mt.Operation{
-		Description: "Cena Fuori in 2",
-		Transactions: []mt.Transaction{
-			{Timestamp: mt.DateTime{time.Now()}, From: accounts["user1:cc1"], To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)}, {Timestamp: mt.DateTime{time.Now()}, From: accounts["user2:credits"], To: accounts["user1:credits"], Amount: decimal.New(40, 0)}},
-		TypeID:     mt.OpTypeExpense,
-		CategoryID: 0,
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = s.AddOperation(mt.Operation{
-		Description: "Giroconto",
-		Transactions: []mt.Transaction{
-			{
-				Timestamp: mt.DateTime{time.Now()},
-				From:      accounts["user1:cc1"],
-				To:        accounts["user1:cc2"],
-				Amount:    decimal.New(345, 0),
-			},
-		},
-		CategoryID: 2,
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = s.AddOperation(mt.Operation{
-		Description: "Prestito 100 Euro A -> M",
-		Transactions: []mt.Transaction{
-			{
-				Timestamp: mt.DateTime{time.Now()},
-				From:      accounts["user1:cash"],
-				To:        accounts["user2:cash"],
-				Amount:    decimal.New(100, 0),
-			},
-			{
-				Timestamp: mt.DateTime{time.Now()},
-				From:      accounts["user2:credits"],
-				To:        accounts["user1:credits"],
-				Amount:    decimal.New(100, 0),
-			},
-		},
-		CategoryID: 1,
-	})
-	if err != nil {
-		return err
+		operations[k] = op
 	}
 
 	return nil

@@ -12,42 +12,32 @@ from operation;
 SELECT last_balance + balance AS balance
 FROM (
 		(
-			SELECT COUNT(),
-				IFNULL(value, 0) AS last_balance
-			FROM balance
-			WHERE account_id = 1001
-			ORDER BY timestamp DESC
-			LIMIT 1
+			SELECT
+					value AS last_balance
+				FROM balance
+				WHERE account_id = 1008 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
+				ORDER BY timestamp DESC
+				LIMIT 1
 		), (
 			SELECT IFNULL(
 					SUM(
 						CASE
-							WHEN to_id = 1001 THEN amount
-							WHEN from_id = 1001 THEN - amount
+							WHEN to_id = 1008 THEN amount
+							WHEN from_id = 1008 THEN - amount
 						END
 					),
 					0
 				) AS balance
 			FROM 'transaction'
-				INNER JOIN operation op ON operation_id = op.id
-			WHERE (
-					to_id = 1001
-					OR from_id = 1001
-				)
-				AND op.timestamp > (
-					SELECT timestamp
-					FROM (
-							SELECT COUNT(),
-								IFNULL(
-									timestamp,
-									STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '-100 year')
-								) AS timestamp
-							FROM balance
-							WHERE account_id = 1001
-							ORDER BY timestamp DESC
-							LIMIT 1
-						)
-				)
+			WHERE (to_id = 1008
+				OR from_id = 1008)
+				AND timestamp BETWEEN (
+								SELECT timestamp
+								FROM balance
+								WHERE account_id = 1008 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
+								ORDER BY timestamp DESC
+								LIMIT 1
+								) AND STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
 		)
 	);
 --
@@ -55,6 +45,13 @@ SELECT *
 from 'transaction';
 SELECT *
 from balance;
+---
+
+SELECT timestamp
+							FROM balance
+							WHERE account_id = 8
+							ORDER BY timestamp DESC
+							LIMIT 1
 -- Update Balance
 INSERT INTO balance (account_id, value)
 SELECT 1,

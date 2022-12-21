@@ -11,6 +11,7 @@ type Balance struct {
 	Timestamp   string `sql:"primary_key"`
 	AccountID   *int32 `sql:"primary_key"`
 	Value       string
+	Delta       *string
 	IsComputed  int32
 	OperationID *int32
 }
