@@ -17,8 +17,9 @@ type categoryTable struct {
 	sqlite.Table
 
 	//Columns
-	ID   sqlite.ColumnInteger
-	Name sqlite.ColumnString
+	ID       sqlite.ColumnInteger
+	ParentID sqlite.ColumnInteger
+	Name     sqlite.ColumnString
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
@@ -60,17 +61,19 @@ func newCategoryTable(schemaName, tableName, alias string) *CategoryTable {
 func newCategoryTableImpl(schemaName, tableName, alias string) categoryTable {
 	var (
 		IDColumn       = sqlite.IntegerColumn("id")
+		ParentIDColumn = sqlite.IntegerColumn("parent_id")
 		NameColumn     = sqlite.StringColumn("name")
-		allColumns     = sqlite.ColumnList{IDColumn, NameColumn}
-		mutableColumns = sqlite.ColumnList{NameColumn}
+		allColumns     = sqlite.ColumnList{IDColumn, ParentIDColumn, NameColumn}
+		mutableColumns = sqlite.ColumnList{ParentIDColumn, NameColumn}
 	)
 
 	return categoryTable{
 		Table: sqlite.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:   IDColumn,
-		Name: NameColumn,
+		ID:       IDColumn,
+		ParentID: ParentIDColumn,
+		Name:     NameColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

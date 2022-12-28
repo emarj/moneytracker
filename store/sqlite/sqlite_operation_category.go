@@ -10,13 +10,23 @@ import (
 
 func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
 
-	stmt := jet.SELECT(jt.Category.AllColumns).FROM(jt.Category)
+	Parent := jt.Category.AS("parent")
+	stmt := jet.SELECT(jt.Category.AllColumns, Parent.AllColumns).
+		FROM(
+			jt.Category.LEFT_JOIN(
+				Parent, Parent.ID.EQ(jt.Category.ParentID),
+			),
+		)
+
+	fmt.Println(stmt.DebugSql())
 
 	categories := []mt.Category{}
 	err := stmt.Query(s.db, &categories)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(categories)
 	return categories, nil
 }
 

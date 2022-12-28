@@ -93,7 +93,10 @@ const (
 )
 
 type Category struct {
-	ID       null.Int `json:"id" sql:"primary_key"`
-	Name     string   `json:"name"`
-	ParentID null.Int `json:"parent_id"`
+	ID       null.Int        `json:"id" sql:"primary_key"`
+	Name     string          `json:"name"`
+	ParentID null.Int        `json:"parent_id"`
+	Parent   *ParentCategory `json:"parent" alias:"parent"`
 }
+
+type ParentCategory Category

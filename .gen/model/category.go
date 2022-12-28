@@ -8,6 +8,7 @@
 package model
 
 type Category struct {
-	ID   *int32 `sql:"primary_key"`
-	Name string
+	ID       *int32 `sql:"primary_key"`
+	ParentID *int32
+	Name     string
 }

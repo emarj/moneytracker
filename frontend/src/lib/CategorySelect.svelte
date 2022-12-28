@@ -18,7 +18,10 @@
     {:else if $entitiesQuery.data}
         <Select variant="outlined" bind:value {label}>
             {#each $entitiesQuery.data as cat (cat.id)}
-                <Option value={cat.id}>{cat.name}</Option>
+                <Option value={cat.id}
+                    >{#if cat.parent_id}{cat.parent
+                            .name}/{/if}{cat.name}</Option
+                >
             {/each}
         </Select>
     {/if}
