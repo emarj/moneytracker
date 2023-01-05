@@ -19,8 +19,9 @@
         <Select variant="outlined" bind:value {label}>
             {#each $entitiesQuery.data as cat (cat.id)}
                 <Option value={cat.id}
-                    >{#if cat.parent_id}{cat.parent
-                            .name}/{/if}{cat.name}</Option
+                    >{#if cat.parent_id}{cat.parent.name}/{/if}<strong
+                        >{cat.name}</strong
+                    ></Option
                 >
             {/each}
         </Select>

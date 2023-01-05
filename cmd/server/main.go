@@ -25,6 +25,7 @@ func main() {
 	var local = flag.Bool("local", false, "")
 	var port = flag.Int("port", 3245, "")
 	var dir = flag.String("dir", "./data", "")
+	var tempDB = flag.Bool("tempDB", false, "")
 	var populate = flag.Bool("populate", false, "")
 	var dbName = flag.String("db", "moneytracker.sqlite", "")
 	flag.Parse()
@@ -36,6 +37,17 @@ func main() {
 	url := fmt.Sprintf("%s:%d", hostname, *port)
 
 	dsn := path.Join(*dir, *dbName)
+
+	if *tempDB {
+
+		f, err := os.CreateTemp("", *dbName)
+		if err != nil {
+			panic(err)
+		}
+		dsn = f.Name()
+		fmt.Println("created temp db: ", dsn)
+		f.Close()
+	}
 
 	s := sqlite.New(dsn, true)
 

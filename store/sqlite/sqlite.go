@@ -13,17 +13,17 @@ import (
 var schema string
 
 type SQLiteStore struct {
-	url    string
+	dsn    string
 	create bool
 	db     *sql.DB
 }
 
-func New(url string, create bool) *SQLiteStore {
-	return &SQLiteStore{url: url, create: create}
+func New(dsn string, create bool) *SQLiteStore {
+	return &SQLiteStore{dsn: dsn, create: create}
 }
 
 func (s *SQLiteStore) Open() error {
-	db, err := sql.Open("sqlite", s.url)
+	db, err := sql.Open("sqlite", s.dsn)
 	if err != nil {
 		return err
 	}

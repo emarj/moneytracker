@@ -1,6 +1,8 @@
 package moneytracker
 
 import (
+	"encoding/json"
+
 	"github.com/shopspring/decimal"
 	"gopkg.in/guregu/null.v4"
 	"ronche.se/moneytracker/datetime"
@@ -50,12 +52,12 @@ const (
 )
 
 type Balance struct {
-	AccountID  null.Int            `json:"account_id" sql:"primary_key"`
-	Timestamp  datetime.DateTime   `json:"timestamp" sql:"primary_key"`
-	Value      decimal.Decimal     `json:"value"`
-	Delta      decimal.NullDecimal `json:"delta"`
-	IsComputed bool                `json:"is_computed"`
-	Operation  Operation           `json:"operation" mapping:".ID:operation_id"`
+	AccountID   null.Int            `json:"account_id" sql:"primary_key"`
+	Timestamp   datetime.DateTime   `json:"timestamp" sql:"primary_key"`
+	Value       decimal.Decimal     `json:"value"`
+	Delta       decimal.NullDecimal `json:"delta"`
+	IsComputed  bool                `json:"is_computed"`
+	OperationID null.Int            `json:"operation_id"`
 }
 
 type Transaction struct {
@@ -74,27 +76,28 @@ type Operation struct {
 	ModifiedOn  datetime.DateTime `json:"modified_on"`
 	CreatedByID int               `json:"created_by_id"`
 	//Shares []Entity
-	Title        string        `json:"title"`
-	Description  string        `json:"description"`
-	Transactions []Transaction `json:"transactions"`
-	Balances     []Balance     `json:"balances"`
-	TypeID       int           `json:"type_id"`
-	CategoryID   int           `json:"category_id"`
+	Description  string          `json:"description"`
+	Transactions []Transaction   `json:"transactions"`
+	Balances     []Balance       `json:"balances"`
+	TypeID       int             `json:"type_id"`
+	CategoryID   int             `json:"category_id"`
+	Details      json.RawMessage `json:"details"`
 	//Parent       *Operation    `json:"parent"`
 }
 
 // This must be the same as in schema.sql
 const (
-	OpTypeOther    int = iota
-	OpTypeExpense      // Something that enters the system?
-	OpTypeIncome       // Something that exits the system?
-	OpTypeTransfer     // Just a transfer
-	OpTypeBalance      // A balance adjust
+	OpTypeOther         int = iota
+	OpTypeExpense           // Something that enters the system?
+	OpTypeIncome            // Something that exits the system?
+	OpTypeTransfer          // Just a transfer
+	OpTypeBalanceAdjust     // A balance adjust
 )
 
 type Category struct {
 	ID       null.Int        `json:"id" sql:"primary_key"`
 	Name     string          `json:"name"`
+	FullName string          `json:"full_name"`
 	ParentID null.Int        `json:"parent_id"`
 	Parent   *ParentCategory `json:"parent" alias:"parent"`
 }

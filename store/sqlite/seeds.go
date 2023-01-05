@@ -134,7 +134,7 @@ func (s *SQLiteStore) Seed() error {
 			CategoryID: 2,
 		},
 		{
-			Description: "Prestito 100 Euro A -> M",
+			Description: "Prestito 100 Euro a Marco",
 			Transactions: []mt.Transaction{
 				{
 					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),

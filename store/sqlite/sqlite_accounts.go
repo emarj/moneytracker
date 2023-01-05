@@ -79,9 +79,8 @@ func (s *SQLiteStore) AddAccount(a *mt.Account, initialBalance *mt.Balance) erro
 	}
 	if initialBalance == nil {
 		initialBalance = &mt.Balance{
-			Value:     decimal.Zero,
-			Delta:     decimal.NullDecimal{},
-			Operation: mt.Operation{},
+			Value: decimal.Zero,
+			Delta: decimal.NullDecimal{},
 		}
 	}
 

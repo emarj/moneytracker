@@ -85,6 +85,7 @@ CREATE TABLE operation (
 	description TEXT NOT NULL,
 	type_id INTEGER DEFAULT 0 REFERENCES operation_type(id),
 	---
+	details TEXT,
 	category_id INTEGER DEFAULT 0 REFERENCES category(id)
 );
 ---
@@ -95,13 +96,13 @@ CREATE TABLE category (
 );
 
 INSERT INTO category (id,name) VALUES (0,"Uncategorized");
-INSERT INTO category (name) VALUES ("Spesa"),
-("Bollette"),
-("Salute"),
-("Ristoranti/Bar"),
-("Sport"),
-("Trasporti"),
-("Tasse"),
-("Regali"),
-("Viaggi");
+INSERT INTO category (name) VALUES  ("Spesa"),
+									("Bollette"),
+									("Salute"),
+									("Ristoranti/Bar"),
+									("Sport"),
+									("Trasporti"),
+									("Tasse"),
+									("Regali"),
+									("Viaggi");
 INSERT INTO category (parent_id,name) VALUES (1,"Saporlibero");

@@ -145,11 +145,11 @@ func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 
 func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
-	if len(op.Transactions) == 0 && op.TypeID != mt.OpTypeBalance {
+	if len(op.Transactions) == 0 && op.TypeID != mt.OpTypeBalanceAdjust {
 		return fmt.Errorf("an operation must have at least one transaction or must be of type balance")
 	}
 
-	if len(op.Balances) == 0 && op.TypeID == mt.OpTypeBalance {
+	if len(op.Balances) == 0 && op.TypeID == mt.OpTypeBalanceAdjust {
 		return fmt.Errorf("an operation of type balance must have at least one balance")
 	}
 
@@ -177,11 +177,11 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 		return err
 	}
 
-	if len(balances) > 0 && op.TypeID == mt.OpTypeBalance {
+	if len(balances) > 0 && op.TypeID == mt.OpTypeBalanceAdjust {
 
 		for i := range balances {
 
-			balances[i].Operation.ID = newOp.ID
+			balances[i].OperationID = newOp.ID
 
 			balances[i].Delta, err = s.computeDelta(balances[i])
 			if err != nil {

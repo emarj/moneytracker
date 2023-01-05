@@ -83,10 +83,9 @@ func (s *SQLiteStore) GetBalanceAt(aID int, timestamp datetime.DateTime) (*mt.Ba
 func (s *SQLiteStore) SetBalance(b mt.Balance) error {
 
 	err := s.AddOperation(&mt.Operation{
-		Title:       "Balance Adjust",
-		Description: "",
+		Description: "Balance Adjust",
 		Balances:    []mt.Balance{b},
-		TypeID:      mt.OpTypeBalance,
+		TypeID:      mt.OpTypeBalanceAdjust,
 	})
 	if err != nil {
 		return err
