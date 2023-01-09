@@ -64,10 +64,9 @@
                                 value={Math.abs(b.delta)}
                                 negative={b.delta < 0}
                                 hide_plus={false}
-                            /> ({b.value})
-                        {:else}
-                            {b.value}
+                            />
                         {/if}
+                        ({b.value})
                     </td>
                 </tr>
             {/each}

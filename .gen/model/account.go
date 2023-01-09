@@ -16,5 +16,5 @@ type Account struct {
 	IsWorld     int32
 	IsGroup     int32
 	Type        int32
-	ParentID    *int32
+	GroupID     *int32
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -262,6 +263,9 @@ func (s *Server) getEntity(c echo.Context) error {
 
 	e, err := s.store.GetEntity(eID)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return echo.ErrNotFound
+		}
 		return err
 	}
 	return c.JSON(http.StatusOK, e)
@@ -286,6 +290,9 @@ func (s *Server) getAccount(c echo.Context) error {
 
 	a, err := s.store.GetAccount(aID)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return echo.ErrNotFound
+		}
 		return err
 	}
 	return c.JSON(http.StatusOK, a)
@@ -333,6 +340,9 @@ func (s *Server) getBalance(c echo.Context) error {
 
 	b, err := s.store.GetBalanceNow(aID)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return echo.ErrNotFound
+		}
 		return err
 	}
 	return c.JSON(http.StatusOK, b)
@@ -460,6 +470,9 @@ func (s *Server) getOperation(c echo.Context) error {
 
 	op, err := s.store.GetOperation(opID)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return echo.ErrNotFound
+		}
 		return err
 	}
 	return c.JSON(http.StatusOK, op)

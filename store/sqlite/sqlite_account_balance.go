@@ -2,32 +2,26 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 
+	jet "github.com/go-jet/jet/v2/sqlite"
 	jt "ronche.se/moneytracker/.gen/table"
 	"ronche.se/moneytracker/datetime"
 )
 
 func (s *SQLiteStore) GetHistory(aID int) ([]mt.Balance, error) {
 
-	rows, err := s.db.Query(`SELECT account_id,timestamp,value,delta FROM balance WHERE account_id = ? ORDER BY timestamp DESC`, aID)
-	if err != nil {
-		return nil, err
-	}
+	stmt := jet.SELECT(jt.Balance.AllColumns).FROM(jt.Balance).WHERE(jt.Balance.AccountID.EQ(jet.Int(int64(aID)))).ORDER_BY(jt.Balance.Timestamp.DESC())
 
 	balances := []mt.Balance{}
-	var b mt.Balance
-
-	for rows.Next() {
-		if err = rows.Scan(&b.AccountID, &b.Timestamp, &b.Value, &b.Delta); err != nil {
-			return nil, err
-		}
-
-		balances = append(balances, b)
+	err := stmt.Query(s.db, &balances)
+	if err != nil {
+		return nil, err
 	}
 
 	return balances, nil
@@ -71,6 +65,9 @@ func (s *SQLiteStore) GetBalanceAt(aID int, timestamp datetime.DateTime) (*mt.Ba
 			)
 		);`, sql.Named("aID", aID), sql.Named("timestamp", timestamp.String())).Scan(&b.Value)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, mt.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -177,7 +174,7 @@ func (s *SQLiteStore) SnapshotBalance(aID int) error {
 
 }
 
-func insertBalances(db DB, balances []mt.Balance) error {
+func insertBalances(db TXDB, balances []mt.Balance) error {
 
 	stmt := jt.Balance.INSERT(jt.Balance.AllColumns).MODELS(balances)
 

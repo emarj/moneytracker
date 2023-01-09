@@ -23,6 +23,7 @@ type operationTable struct {
 	CreatedByID sqlite.ColumnInteger
 	Description sqlite.ColumnString
 	TypeID      sqlite.ColumnInteger
+	Details     sqlite.ColumnString
 	CategoryID  sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
@@ -70,9 +71,10 @@ func newOperationTableImpl(schemaName, tableName, alias string) operationTable {
 		CreatedByIDColumn = sqlite.IntegerColumn("created_by_id")
 		DescriptionColumn = sqlite.StringColumn("description")
 		TypeIDColumn      = sqlite.IntegerColumn("type_id")
+		DetailsColumn     = sqlite.StringColumn("details")
 		CategoryIDColumn  = sqlite.IntegerColumn("category_id")
-		allColumns        = sqlite.ColumnList{IDColumn, CreatedOnColumn, ModifiedOnColumn, CreatedByIDColumn, DescriptionColumn, TypeIDColumn, CategoryIDColumn}
-		mutableColumns    = sqlite.ColumnList{CreatedOnColumn, ModifiedOnColumn, CreatedByIDColumn, DescriptionColumn, TypeIDColumn, CategoryIDColumn}
+		allColumns        = sqlite.ColumnList{IDColumn, CreatedOnColumn, ModifiedOnColumn, CreatedByIDColumn, DescriptionColumn, TypeIDColumn, DetailsColumn, CategoryIDColumn}
+		mutableColumns    = sqlite.ColumnList{CreatedOnColumn, ModifiedOnColumn, CreatedByIDColumn, DescriptionColumn, TypeIDColumn, DetailsColumn, CategoryIDColumn}
 	)
 
 	return operationTable{
@@ -85,6 +87,7 @@ func newOperationTableImpl(schemaName, tableName, alias string) operationTable {
 		CreatedByID: CreatedByIDColumn,
 		Description: DescriptionColumn,
 		TypeID:      TypeIDColumn,
+		Details:     DetailsColumn,
 		CategoryID:  CategoryIDColumn,
 
 		AllColumns:     allColumns,

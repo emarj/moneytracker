@@ -14,5 +14,6 @@ type Operation struct {
 	CreatedByID int32
 	Description string
 	TypeID      *int32
+	Details     *string
 	CategoryID  *int32
 }

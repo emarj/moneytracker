@@ -16,7 +16,6 @@ func UseSchema(schema string) {
 	Balance = Balance.FromSchema(schema)
 	Category = Category.FromSchema(schema)
 	Entity = Entity.FromSchema(schema)
-	Info = Info.FromSchema(schema)
 	Operation = Operation.FromSchema(schema)
 	OperationType = OperationType.FromSchema(schema)
 	Transaction = Transaction.FromSchema(schema)

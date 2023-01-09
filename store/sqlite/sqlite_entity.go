@@ -1,10 +1,13 @@
 package sqlite
 
 import (
+	"errors"
+
 	mt "ronche.se/moneytracker"
 
 	jt "ronche.se/moneytracker/.gen/table"
 
+	"github.com/go-jet/jet/v2/qrm"
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
@@ -34,6 +37,9 @@ func (s *SQLiteStore) GetEntity(eID int) (*mt.Entity, error) {
 	e := &mt.Entity{}
 	err := stmt.Query(s.db, e)
 	if err != nil {
+		if errors.Is(err, qrm.ErrNoRows) {
+			return nil, mt.ErrNotFound
+		}
 		return nil, err
 	}
 	return e, nil

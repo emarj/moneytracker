@@ -32,16 +32,22 @@ type Entity struct {
 	IsExternal bool     `json:"is_external"` // For example a friend that owes me
 }
 
+type AccountType struct {
+	ID   null.Int `json:"id" sql:"primary_key"`
+	Name string   `json:"name"`
+}
+
 type Account struct {
-	ID          null.Int `json:"id" sql:"primary_key"`
-	Name        string   `json:"name"`
-	DisplayName string   `json:"display_name"`
-	Owner       Entity   `json:"owner" alias:"owner" mapping:".ID:owner_id"` // TODO: Allow for shared accounts
-	IsSystem    bool     `json:"is_system"`                                  // This can't be deleted by the user
-	IsWorld     bool     `json:"is_world"`
-	IsGroup     bool     `json:"is_group"` // This should not be type inside type
-	Type        int      `json:"type"`
-	ParentID    null.Int `json:"parent_id"`
+	ID          null.Int     `json:"id" sql:"primary_key"`
+	Name        string       `json:"name"`
+	DisplayName string       `json:"display_name"`
+	Owner       Entity       `json:"owner" alias:"owner" mapping:".ID:owner_id"` // TODO: Allow for shared accounts
+	IsSystem    bool         `json:"is_system"`                                  // This can't be deleted by the user
+	IsWorld     bool         `json:"is_world"`
+	IsGroup     bool         `json:"is_group"` // This should not be type inside type
+	TypeID      int          `json:"type_id"`
+	Type        *AccountType `json:"type"`
+	GroupID     null.Int     `json:"group_id"`
 }
 
 // These must the same as in schema.sql
@@ -58,6 +64,7 @@ type Balance struct {
 	Delta       decimal.NullDecimal `json:"delta"`
 	IsComputed  bool                `json:"is_computed"`
 	OperationID null.Int            `json:"operation_id"`
+	Operation   Operation           `json:"operation"`
 }
 
 type Transaction struct {
@@ -76,28 +83,34 @@ type Operation struct {
 	ModifiedOn  datetime.DateTime `json:"modified_on"`
 	CreatedByID int               `json:"created_by_id"`
 	//Shares []Entity
-	Description  string          `json:"description"`
-	Transactions []Transaction   `json:"transactions"`
-	Balances     []Balance       `json:"balances"`
-	TypeID       int             `json:"type_id"`
-	CategoryID   int             `json:"category_id"`
-	Details      json.RawMessage `json:"details"`
+	Description  string         `json:"description"`
+	TypeID       int            `json:"type_id"`
+	Type         *OperationType `json:"type"`
+	Transactions []Transaction  `json:"transactions"`
+	Balances     []Balance      `json:"balances"`
+	//////////////////////////////////////////////
+	CategoryID int             `json:"category_id"`
+	Details    json.RawMessage `json:"details"`
 	//Parent       *Operation    `json:"parent"`
+}
+
+type OperationType struct {
+	ID   int    `json:"id" sql:"primary_key"`
+	Name string `json:"name"`
 }
 
 // This must be the same as in schema.sql
 const (
 	OpTypeOther         int = iota
+	OpTypeBalanceAdjust     // A balance adjust
 	OpTypeExpense           // Something that enters the system?
 	OpTypeIncome            // Something that exits the system?
 	OpTypeTransfer          // Just a transfer
-	OpTypeBalanceAdjust     // A balance adjust
 )
 
 type Category struct {
 	ID       null.Int        `json:"id" sql:"primary_key"`
 	Name     string          `json:"name"`
-	FullName string          `json:"full_name"`
 	ParentID null.Int        `json:"parent_id"`
 	Parent   *ParentCategory `json:"parent" alias:"parent"`
 }

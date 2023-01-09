@@ -22,15 +22,18 @@ clean:
 		rm -f $(BINARY_NAME)
 dev:
 		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate --tempDB
+dev-file:
+		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate
 dev-no-proxy:
 		go run ./cmd/server/main.go
 push:
 		docker push -a emarj/moneytracker
-run:
+docker-run:
 		docker run --rm -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:latest
-prod: 
+docker-prod: 
 		docker run -d -p 3245:3245 -v /home/marco/data:/data emarj/moneytracker:latest
 gen:
-		jet -source=sqlite -dsn="./data/moneytracker.sqlite" -path="./.gen"
-#		rm -rf ./.gen/model
+		jet -source=sqlite -dsn="./data/moneytracker.sqlite" -path="./.gen" -skip
+schema:
+		sqlite3 data/moneytracker.sqlite < store/sqlite/queries/schema.sql
 

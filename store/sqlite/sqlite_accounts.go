@@ -2,12 +2,14 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	mt "ronche.se/moneytracker"
 
 	jt "ronche.se/moneytracker/.gen/table"
 
+	"github.com/go-jet/jet/v2/qrm"
 	jet "github.com/go-jet/jet/v2/sqlite"
 	"github.com/shopspring/decimal"
 )
@@ -55,6 +57,9 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 	var a mt.Account
 	err := stmt.Query(s.db, &a)
 	if err != nil {
+		if errors.Is(err, qrm.ErrNoRows) {
+			return nil, mt.ErrNotFound
+		}
 		return nil, err
 	}
 	return &a, nil
@@ -100,7 +105,7 @@ func (s *SQLiteStore) AddAccount(a *mt.Account, initialBalance *mt.Balance) erro
 
 }
 
-func insertAccount(db DB, a *mt.Account) error {
+func insertAccount(db TXDB, a *mt.Account) error {
 	stmt := jt.Account.INSERT(jt.Account.AllColumns).MODEL(a).RETURNING(jt.Account.AllColumns)
 
 	err := stmt.Query(db, a)

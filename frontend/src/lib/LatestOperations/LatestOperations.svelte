@@ -33,7 +33,8 @@
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <li on:click={() => (expanded = !expanded)} class:expanded>
                     <Operation {op} />
-                </li>{/each}
+                </li>
+            {/each}
         </ol>
     {/if}
     <a href="/operations" use:link>More</a>

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -12,14 +13,22 @@ import (
 //go:embed queries/schema.sql
 var schema string
 
-type SQLiteStore struct {
-	dsn    string
-	create bool
-	db     *sql.DB
+type TXDB interface {
+	Prepare(query string) (*sql.Stmt, error)
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
-func New(dsn string, create bool) *SQLiteStore {
-	return &SQLiteStore{dsn: dsn, create: create}
+type SQLiteStore struct {
+	dsn     string
+	migrate bool
+	db      *sql.DB
+}
+
+func New(dsn string, migrate bool) *SQLiteStore {
+	return &SQLiteStore{dsn: dsn, migrate: migrate}
 }
 
 func (s *SQLiteStore) Open() error {
@@ -35,7 +44,7 @@ func (s *SQLiteStore) Open() error {
 		return err
 	}
 
-	if s.create {
+	if s.migrate {
 		err = s.Migrate()
 		if err != nil {
 			return err

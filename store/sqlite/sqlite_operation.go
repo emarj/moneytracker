@@ -1,8 +1,6 @@
 package sqlite
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 
 	mt "ronche.se/moneytracker"
@@ -150,7 +148,7 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 	}
 
 	if len(op.Balances) == 0 && op.TypeID == mt.OpTypeBalanceAdjust {
-		return fmt.Errorf("an operation of type balance must have at least one balance")
+		return fmt.Errorf("a balance adjust operation must have at least one balance")
 	}
 
 	// TODO: More checks
@@ -237,15 +235,7 @@ func (s *SQLiteStore) computeDelta(b mt.Balance) (decimal.NullDecimal, error) {
 
 }
 
-type DB interface {
-	Prepare(query string) (*sql.Stmt, error)
-	Exec(query string, args ...any) (sql.Result, error)
-	Query(query string, args ...any) (*sql.Rows, error)
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-}
-
-func insertTransactions(db DB, txs []mt.Transaction) error {
+func insertTransactions(db TXDB, txs []mt.Transaction) error {
 
 	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODELS(txs)
 	//.RETURNING(jt.Transaction.AllColumns)

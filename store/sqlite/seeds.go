@@ -14,6 +14,30 @@ func (s *SQLiteStore) Seed() error {
 	fmt.Println("Seeding...")
 	var err error
 
+	// Add Categories
+	categories := []string{
+		"Spesa",
+		"Utenze",
+		"Utenze/Energia",
+		"Utenze/Internet",
+		"Utenze/Telefonia",
+		"Salute",
+		"Ristoranti - Bar",
+		"Sport",
+		"Trasporti",
+		"Tasse",
+		"Tasse/Rifiuti",
+		"Regali",
+		"Viaggi",
+	}
+
+	for _, n := range categories {
+		_, err = s.AddCategory(n)
+		if err != nil {
+			return err
+		}
+	}
+
 	entUser1 := mt.Entity{
 		ID:         null.IntFrom(1),
 		Name:       "arianna",
@@ -80,13 +104,13 @@ func (s *SQLiteStore) Seed() error {
 			Name:        "credits",
 			DisplayName: "Crediti",
 			Owner:       entUser1,
-			Type:        mt.AccountCredit,
+			TypeID:      mt.AccountCredit,
 		},
 		"user2:credits": {
 			Name:        "credits",
 			DisplayName: "Crediti",
 			Owner:       entUser2,
-			Type:        mt.AccountCredit,
+			TypeID:      mt.AccountCredit,
 		},
 		"user3:comune": {
 			Name:        "cassa_comune",
@@ -94,6 +118,15 @@ func (s *SQLiteStore) Seed() error {
 			Owner:       entUser3,
 		},
 	}
+
+	/* data, err := json.MarshalIndent(accounts, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	println("---------------")
+
+	println(string(data)) */
 
 	for k, a := range accounts {
 		err := s.AddAccount(&a, nil)
