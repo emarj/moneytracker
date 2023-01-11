@@ -3,7 +3,6 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
@@ -105,12 +104,12 @@ func getBalanceAt(db TXDB, aID int64, timestamp datetime.DateTime) (mt.Balance, 
 	return cb, nil
 }
 
-func (s *SQLiteStore) GetValueNow(aID int64) (mt.Balance, error) {
-	return s.GetValueAt(aID, datetime.FromTime(time.Now()))
-}
-
 func (s *SQLiteStore) GetValueAt(aID int64, timestamp datetime.DateTime) (mt.Balance, error) {
 	return getBalanceAt(s.db, aID, timestamp)
+}
+
+func (s *SQLiteStore) GetValueNow(aID int64) (mt.Balance, error) {
+	return s.GetValueAt(aID, datetime.Now())
 }
 
 func (s *SQLiteStore) SetBalance(b mt.Balance) error {
@@ -210,27 +209,20 @@ func (s *SQLiteStore) SnapshotBalance(aID int64) error {
 
 }
 
-/* func (s *SQLiteStore) computeDelta(b mt.Balance) (decimal.NullDecimal, error) {
-	var delta decimal.NullDecimal
-	currentBalance, err := s.GetValueNow(int64(b.AccountID.Int64))
+func insertBalance(tx TXDB, balance *mt.Balance) error {
+
+	b, err := getBalanceAt(tx, balance.AccountID.Int64, balance.Timestamp)
 	if err != nil {
-		return delta, err
+		return err
 	}
 
-	delta = decimal.NewNullDecimal(b.Value.Sub(currentBalance.Value))
-	return delta, nil
+	balance.Delta = b.Delta
 
-} */
+	//TODO: We could update delta directly in the insert query. To do this
 
-/* func insertBalance(db TXDB, balance mt.Balance) error {
-	return insertBalances(db, []mt.Balance{balance})
-} */
+	stmt := jt.Balance.INSERT(jt.Balance.AllColumns).MODEL(balance)
 
-func insertBalances(db TXDB, balances []mt.Balance) error {
-
-	stmt := jt.Balance.INSERT(jt.Balance.AllColumns).MODELS(balances)
-
-	_, err := stmt.Exec(db)
+	_, err = stmt.Exec(tx)
 	if err != nil {
 		return err
 	}

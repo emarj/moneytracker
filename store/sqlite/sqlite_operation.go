@@ -6,7 +6,6 @@ import (
 	mt "ronche.se/moneytracker"
 
 	jt "ronche.se/moneytracker/.gen/table"
-	"ronche.se/moneytracker/datetime"
 
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
@@ -167,6 +166,7 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 	// we define another operation in order to update the pointer only if the transaction is successful
 	var newOp mt.Operation
 
+	//FIXME: use correct columns. Maybe just return id
 	stmt := jt.Operation.INSERT(jt.Operation.AllColumns.Except(jt.Operation.CreatedOn, jt.Operation.ModifiedOn)).MODEL(op).RETURNING(jt.Operation.AllColumns)
 
 	err = stmt.Query(tx, &newOp)
@@ -174,33 +174,20 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 		return err
 	}
 
-	if len(balances) > 0 && op.TypeID == mt.OpTypeBalanceAdjust {
+	for i := range balances {
+		balances[i].OperationID = newOp.ID
 
-		for i := range balances {
-
-			balances[i].OperationID = newOp.ID
-
-			b, err := getBalanceAt(tx, balances[i].AccountID.Int64, datetime.Now())
-			if err != nil {
-				return err
-			}
-
-			balances[i].Delta = b.Delta
-		}
-
-		err = insertBalances(tx, balances)
+		err = insertBalance(tx, &balances[i])
 		if err != nil {
 			return err
 		}
 
-		newOp.Balances = balances
-
 	}
+	newOp.Balances = balances
 
 	if len(transactions) > 0 {
 		for i := range transactions {
 			transactions[i].Operation.ID = newOp.ID
-			fmt.Println(transactions[i].From.ID, transactions[i].To.ID)
 		}
 
 		err = insertTransactions(tx, transactions)
