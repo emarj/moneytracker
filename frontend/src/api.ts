@@ -43,7 +43,7 @@ export const getAccountBalance = (aID: number) =>
     fetcher(`${baseURL}/balance/${aID}`)
 
 export const getAccountBalances = (aID: number) =>
-    fetcher(`${baseURL}/balances/${aID}`)
+    fetcher(`${baseURL}/balance/history/${aID}`)
 
 export const adjustBalance = (bal) =>
     fetcher(`${baseURL}/balance`, { method: "POST", body: JSON.stringify(bal) })

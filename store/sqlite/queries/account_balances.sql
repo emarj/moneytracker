@@ -9,32 +9,34 @@ from 'transaction';
 SELECT *
 from operation;
 -- Get Current Balance
-SELECT last_balance + balance AS balance
+SELECT last_balance,delta, last_balance + delta AS balance
 FROM (
 		(
 			SELECT
-					value AS last_balance
+					IFNULL(value,0) AS last_balance,
+					COUNT()
 				FROM balance
-				WHERE account_id = 1008 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
+				WHERE account_id = 1 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
 				ORDER BY timestamp DESC
 				LIMIT 1
 		), (
 			SELECT IFNULL(
 					SUM(
 						CASE
-							WHEN to_id = 1008 THEN amount
-							WHEN from_id = 1008 THEN - amount
+							WHEN to_id = 1 THEN amount
+							WHEN from_id = 1 THEN - amount
 						END
 					),
 					0
-				) AS balance
+				) AS delta,
+				COUNT()
 			FROM 'transaction'
-			WHERE (to_id = 1008
-				OR from_id = 1008)
+			WHERE (to_id = 1
+				OR from_id = 1)
 				AND timestamp BETWEEN (
 								SELECT timestamp
 								FROM balance
-								WHERE account_id = 1008 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
+								WHERE account_id = 1 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
 								ORDER BY timestamp DESC
 								LIMIT 1
 								) AND STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')

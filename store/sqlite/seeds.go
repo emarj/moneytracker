@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
 	mt "ronche.se/moneytracker"
 	"ronche.se/moneytracker/datetime"
@@ -24,6 +25,7 @@ func (s *SQLiteStore) Seed() error {
 		"Salute",
 		"Ristoranti - Bar",
 		"Sport",
+		"Sport/Tennis",
 		"Trasporti",
 		"Tasse",
 		"Tasse/Rifiuti",
@@ -73,84 +75,76 @@ func (s *SQLiteStore) Seed() error {
 		return err
 	}
 
-	var accounts map[string]mt.Account = map[string]mt.Account{
-		"user1:cash": {
-			Name:        "contanti",
-			DisplayName: "Contanti",
-			Owner:       entUser1,
-		},
-		"user1:cc1": {
-			ID:          null.IntFrom(1004),
-			Name:        "conto_corrente",
-			DisplayName: "Conto Corrente",
-			Owner:       entUser1,
-		},
-		"user1:cc2": {
-			Name:        "conto_corrente_posta",
-			DisplayName: "Conto Banco Posta",
-			Owner:       entUser1,
-		},
-		"user2:cc": {
-			Name:        "conto_corrente",
-			DisplayName: "Conto Corrente",
-			Owner:       entUser2,
-		},
-		"user2:cash": {
-			Name:        "contanti",
-			DisplayName: "Contanti",
-			Owner:       entUser2,
-		},
-		"user1:credits": {
-			Name:        "credits",
-			DisplayName: "Crediti",
-			Owner:       entUser1,
-			TypeID:      mt.AccountCredit,
-		},
-		"user2:credits": {
-			Name:        "credits",
-			DisplayName: "Crediti",
-			Owner:       entUser2,
-			TypeID:      mt.AccountCredit,
-		},
-		"user3:comune": {
-			Name:        "cassa_comune",
-			DisplayName: "Cassa Comune",
-			Owner:       entUser3,
-		},
-	}
+	accounts := orderedmap.New[string, mt.Account]()
 
-	/* data, err := json.MarshalIndent(accounts, "", "\t")
-	if err != nil {
-		return err
-	}
+	accounts.Store("user1:cash", mt.Account{
+		Name:        "contanti",
+		DisplayName: "Contanti",
+		Owner:       entUser1,
+	})
 
-	println("---------------")
+	accounts.Store("user1:cc1", mt.Account{
+		Name:        "conto_corrente",
+		DisplayName: "Conto Corrente",
+		Owner:       entUser1,
+	})
+	accounts.Store("user1:cc2", mt.Account{
+		Name:        "conto_corrente_posta",
+		DisplayName: "Conto Banco Posta",
+		Owner:       entUser1,
+	})
+	accounts.Store("user2:cc", mt.Account{
+		Name:        "conto_corrente",
+		DisplayName: "Conto Corrente",
+		Owner:       entUser2,
+	})
+	accounts.Store("user2:cash", mt.Account{
+		Name:        "contanti",
+		DisplayName: "Contanti",
+		Owner:       entUser2,
+	})
+	accounts.Store("user1:credits", mt.Account{
+		Name:        "credits",
+		DisplayName: "Crediti",
+		Owner:       entUser1,
+		TypeID:      mt.AccountCredit,
+	})
+	accounts.Store("user2:credits", mt.Account{
+		Name:        "credits",
+		DisplayName: "Crediti",
+		Owner:       entUser2,
+		TypeID:      mt.AccountCredit,
+	})
+	accounts.Store("user3:comune", mt.Account{
+		Name:        "cassa_comune",
+		DisplayName: "Cassa Comune",
+		Owner:       entUser3,
+	})
 
-	println(string(data)) */
-
-	for k, a := range accounts {
-		err := s.AddAccount(&a, nil)
+	for pair := accounts.Oldest(); pair != nil; pair = pair.Next() {
+		err := s.AddAccount(&pair.Value)
 		if err != nil {
 			return err
 		}
-		accounts[k] = a
 	}
 
-	err = s.SetBalance(mt.Balance{
-		AccountID: accounts["user1:cc1"].ID,
-		Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -3)),
-		Value:     decimal.NewFromInt(4000),
+	/* err = s.SetBalance(mt.Balance{
+		AccountID: accounts.Value("user1:cc1").ID,
+		ValueAt: mt.ValueAt{
+			Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -3)),
+			Value:     decimal.NewFromInt(4000),
+		},
 	})
 	if err != nil {
 		return err
-	}
+	} */
 
 	operations := []mt.Operation{
 		{
 			Description: "Cena Fuori in 2",
 			Transactions: []mt.Transaction{
-				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts["user1:cc1"], To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)},
-				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts["user2:credits"], To: accounts["user1:credits"], Amount: decimal.New(40, 0)}},
+				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts.Value("user1:cc1"), To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)},
+				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts.Value("user2:credits"), To: accounts.Value("user1:credits"), Amount: decimal.New(40, 0)}},
 			TypeID:     mt.OpTypeExpense,
 			CategoryID: 0,
 		},
@@ -159,8 +153,8 @@ func (s *SQLiteStore) Seed() error {
 			Transactions: []mt.Transaction{
 				{
 					Timestamp: datetime.FromTime(time.Now()),
-					From:      accounts["user1:cc1"],
-					To:        accounts["user1:cc2"],
+					From:      accounts.Value("user1:cc1"),
+					To:        accounts.Value("user1:cc2"),
 					Amount:    decimal.New(345, 0),
 				},
 			},
@@ -171,14 +165,14 @@ func (s *SQLiteStore) Seed() error {
 			Transactions: []mt.Transaction{
 				{
 					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),
-					From:      accounts["user1:cash"],
-					To:        accounts["user2:cash"],
+					From:      accounts.Value("user1:cash"),
+					To:        accounts.Value("user2:cash"),
 					Amount:    decimal.New(100, 0),
 				},
 				{
 					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),
-					From:      accounts["user2:credits"],
-					To:        accounts["user1:credits"],
+					From:      accounts.Value("user2:credits"),
+					To:        accounts.Value("user1:credits"),
 					Amount:    decimal.New(100, 0),
 				},
 			},

@@ -57,10 +57,14 @@ const (
 	AccountInvestment
 )
 
+type ValueAt struct {
+	Timestamp datetime.DateTime `json:"timestamp" sql:"primary_key"`
+	Value     decimal.Decimal   `json:"value"`
+}
+
 type Balance struct {
-	AccountID   null.Int            `json:"account_id" sql:"primary_key"`
-	Timestamp   datetime.DateTime   `json:"timestamp" sql:"primary_key"`
-	Value       decimal.Decimal     `json:"value"`
+	AccountID null.Int `json:"account_id" sql:"primary_key"`
+	ValueAt
 	Delta       decimal.NullDecimal `json:"delta"`
 	IsComputed  bool                `json:"is_computed"`
 	OperationID null.Int            `json:"operation_id"`

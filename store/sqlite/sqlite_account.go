@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-jet/jet/v2/qrm"
 	jet "github.com/go-jet/jet/v2/sqlite"
-	"github.com/shopspring/decimal"
 )
 
 func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
@@ -32,7 +31,7 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 	return accounts, nil
 }
 
-func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
+func (s *SQLiteStore) GetAccountsByEntity(eID int64) ([]mt.Account, error) {
 
 	stmt := jet.SELECT(jt.Account.AllColumns,
 		jt.Entity.AllColumns,
@@ -48,7 +47,7 @@ func (s *SQLiteStore) GetAccountsByEntity(eID int) ([]mt.Account, error) {
 	return accounts, nil
 }
 
-func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
+func (s *SQLiteStore) GetAccount(aID int64) (*mt.Account, error) {
 
 	stmt := jet.SELECT(jt.Account.AllColumns,
 		jt.Entity.AllColumns,
@@ -65,33 +64,29 @@ func (s *SQLiteStore) GetAccount(aID int) (*mt.Account, error) {
 	return &a, nil
 }
 
-func (s *SQLiteStore) AddAccount(a *mt.Account, initialBalance *mt.Balance) error {
+func (s *SQLiteStore) AddAccount(a *mt.Account) error {
 
-	tx, err := s.db.Begin()
+	var err error
+
+	/* tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	defer func() {
 		tx.Rollback()
-	}()
+	}() */
 
-	fmt.Println(a.ID)
-
-	//newAcc := *a
-	err = insertAccount(tx, a)
+	err = insertAccount(s.db, a)
 	if err != nil {
 		return err
 	}
-	if initialBalance == nil {
-		initialBalance = &mt.Balance{
-			Value: decimal.Zero,
-			Delta: decimal.NullDecimal{},
-		}
+
+	/* b := mt.Balance{
+		AccountID: a.ID,
+		ValueAt:   initialBalance,
 	}
 
-	initialBalance.AccountID = a.ID
-
-	err = insertBalances(tx, []mt.Balance{*initialBalance})
+	err = insertBalances(tx, []mt.Balance{b})
 	if err != nil {
 		return err
 	}
@@ -99,7 +94,7 @@ func (s *SQLiteStore) AddAccount(a *mt.Account, initialBalance *mt.Balance) erro
 	err = tx.Commit()
 	if err != nil {
 		return err
-	}
+	} */
 
 	return nil
 
@@ -116,7 +111,7 @@ func insertAccount(db TXDB, a *mt.Account) error {
 	return nil
 }
 
-func (s *SQLiteStore) DeleteAccount(aID int, onlyIfEmpty bool) error {
+func (s *SQLiteStore) DeleteAccount(aID int64, onlyIfEmpty bool) error {
 
 	tx, err := s.db.Begin()
 	if err != nil {

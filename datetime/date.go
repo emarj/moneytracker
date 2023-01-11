@@ -17,6 +17,10 @@ type DateTime struct {
 	sql.NullTime
 }
 
+func Now() DateTime {
+	return FromTime(time.Now())
+}
+
 func FromTime(t time.Time) DateTime {
 	return DateTime{sql.NullTime{
 		Time:  t,

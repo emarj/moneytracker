@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -117,9 +116,9 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
 	apiGroup.POST("/account", s.addAccount)
 
-	apiGroup.GET("/balances/:aid", s.getBalances)
-	apiGroup.POST("/balance", s.setBalance)
 	apiGroup.GET("/balance/:aid", s.getBalance)
+	apiGroup.GET("/balance/history/:aid", s.getBalanceHistory)
+	apiGroup.POST("/balance", s.setBalance)
 
 	//apiGroup.GET("/transactions", s.getTransactions)
 	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
@@ -256,7 +255,7 @@ func (s *Server) Greet(c echo.Context) error {
 
 func (s *Server) getEntity(c echo.Context) error {
 
-	eID, err := strconv.Atoi(c.Param("eid"))
+	eID, err := Atoi64(c.Param("eid"))
 	if err != nil {
 		return err
 	}
@@ -283,7 +282,7 @@ func (s *Server) getEntities(c echo.Context) error {
 
 func (s *Server) getAccount(c echo.Context) error {
 
-	aID, err := strconv.Atoi(c.Param("aid"))
+	aID, err := Atoi64(c.Param("aid"))
 	if err != nil {
 		return err
 	}
@@ -308,23 +307,23 @@ func (s *Server) getAccounts(c echo.Context) error {
 }
 
 func (s *Server) getAccountsByEntity(c echo.Context) error {
-	eID, err := strconv.Atoi(c.Param("eid"))
+	eID, err := Atoi64(c.Param("eid"))
 	if err != nil {
 		return err
 	}
-	el, err := s.store.GetAccountsByEntity(eID)
+	el, err := s.store.GetAccountsByEntity(int64(eID))
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, el)
 }
 
-func (s *Server) getBalances(c echo.Context) error {
-	aID, err := strconv.Atoi(c.Param("aid"))
+func (s *Server) getBalanceHistory(c echo.Context) error {
+	aID, err := Atoi64(c.Param("aid"))
 	if err != nil {
 		return err
 	}
-	bl, err := s.store.GetHistory(aID)
+	bl, err := s.store.GetBalanceHistory(aID)
 	if err != nil {
 		return err
 	}
@@ -333,12 +332,12 @@ func (s *Server) getBalances(c echo.Context) error {
 
 func (s *Server) getBalance(c echo.Context) error {
 
-	aID, err := strconv.Atoi(c.Param("aid"))
+	aID, err := Atoi64(c.Param("aid"))
 	if err != nil {
 		return err
 	}
 
-	b, err := s.store.GetBalanceNow(aID)
+	b, err := s.store.GetValueNow(aID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return echo.ErrNotFound
@@ -385,7 +384,7 @@ func (s *Server) addAccount(c echo.Context) error {
 		return err
 	} */
 
-	err = s.store.AddAccount(&a, nil)
+	err = s.store.AddAccount(&a)
 	if err != nil {
 		return err
 	}
@@ -394,7 +393,7 @@ func (s *Server) addAccount(c echo.Context) error {
 }
 
 func (s *Server) deleteAccount(c echo.Context) error {
-	aID, err := strconv.Atoi(c.Param("aid"))
+	aID, err := Atoi64(c.Param("aid"))
 	if err != nil {
 		return err
 	}
@@ -418,15 +417,15 @@ func (s *Server) deleteAccount(c echo.Context) error {
 }*/
 
 func (s *Server) getTransactionsByAccount(c echo.Context) error {
-	aID, err := strconv.Atoi(c.Param("aid"))
+	aID, err := Atoi64(c.Param("aid"))
 	if err != nil {
 		return err
 	}
 
-	limit := 5
+	limit := int64(5)
 	limitStr := c.QueryParam("limit")
 	if limitStr != "" {
-		limit, err = strconv.Atoi(limitStr)
+		limit, err = Atoi64(limitStr)
 		if err != nil {
 			return err
 		}
@@ -440,15 +439,15 @@ func (s *Server) getTransactionsByAccount(c echo.Context) error {
 }
 
 func (s *Server) getOperationsByEntity(c echo.Context) error {
-	aID, err := strconv.Atoi(c.Param("eid"))
+	aID, err := Atoi64(c.Param("eid"))
 	if err != nil {
 		return err
 	}
 
-	limit := 5
+	limit := int64(5)
 	limitStr := c.QueryParam("limit")
 	if limitStr != "" {
-		limit, err = strconv.Atoi(limitStr)
+		limit, err = Atoi64(limitStr)
 		if err != nil {
 			return err
 		}
@@ -463,7 +462,7 @@ func (s *Server) getOperationsByEntity(c echo.Context) error {
 
 func (s *Server) getOperation(c echo.Context) error {
 
-	opID, err := strconv.Atoi(c.Param("opid"))
+	opID, err := Atoi64(c.Param("opid"))
 	if err != nil {
 		return err
 	}
@@ -511,7 +510,7 @@ func (s *Server) getCategories(c echo.Context) error {
 
 func (s *Server) deleteOperation(c echo.Context) error {
 
-	opID, err := strconv.Atoi(c.Param("opid"))
+	opID, err := Atoi64(c.Param("opid"))
 	if err != nil {
 		return err
 	}

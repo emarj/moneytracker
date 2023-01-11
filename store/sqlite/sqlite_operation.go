@@ -6,12 +6,12 @@ import (
 	mt "ronche.se/moneytracker"
 
 	jt "ronche.se/moneytracker/.gen/table"
+	"ronche.se/moneytracker/datetime"
 
 	jet "github.com/go-jet/jet/v2/sqlite"
-	"github.com/shopspring/decimal"
 )
 
-func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transaction, error) {
+func (s *SQLiteStore) GetTransactionsByAccount(aID int64, limit int64) ([]mt.Transaction, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
@@ -19,7 +19,6 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transac
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
 		jt.Transaction.AllColumns,
-		//jt.Balance.AllColumns,
 		From.AllColumns,
 		To.AllColumns,
 	).FROM(
@@ -28,8 +27,8 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transac
 			jt.Operation.ID.EQ(jt.Transaction.OperationID),
 		).INNER_JOIN(From, From.ID.EQ(jt.Transaction.FromID)).INNER_JOIN(To, To.ID.EQ(jt.Transaction.ToID)),
 	).WHERE(
-		jt.Transaction.FromID.EQ(jet.Int(int64(aID))).OR(jt.Transaction.ToID.EQ(jet.Int(int64(aID)))),
-	).ORDER_BY(jt.Transaction.Timestamp.DESC()).LIMIT(int64(limit))
+		jt.Transaction.FromID.EQ(jet.Int(aID)).OR(jt.Transaction.ToID.EQ(jet.Int(aID))),
+	).ORDER_BY(jt.Transaction.Timestamp.DESC()).LIMIT(limit)
 
 	transactions := []mt.Transaction{}
 
@@ -40,7 +39,7 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int, limit int) ([]mt.Transac
 	return transactions, nil
 }
 
-func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation, error) {
+func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operation, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
@@ -77,8 +76,8 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation,
 			jt.Balance.OperationID.EQ(jt.Operation.ID),
 		),
 	).WHERE(
-		To.OwnerID.EQ(jet.Int(int64(eID))).OR(From.OwnerID.EQ(jet.Int(int64(eID)))),
-	).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(int64(limit))
+		To.OwnerID.EQ(jet.Int(eID)).OR(From.OwnerID.EQ(jet.Int(eID))),
+	).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(limit)
 
 	operations := []mt.Operation{}
 
@@ -90,7 +89,7 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int, limit int) ([]mt.Operation,
 	return operations, nil
 }
 
-func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
+func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
@@ -127,7 +126,7 @@ func (s *SQLiteStore) GetOperation(opID int) (*mt.Operation, error) {
 			OwnerTo.ID.EQ(To.OwnerID),
 		),
 	).WHERE(
-		jt.Operation.ID.EQ(jet.Int(int64(opID))),
+		jt.Operation.ID.EQ(jet.Int(opID)),
 	).ORDER_BY(jt.Transaction.Timestamp.DESC())
 
 	fmt.Println(stmt.DebugSql())
@@ -181,11 +180,12 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 			balances[i].OperationID = newOp.ID
 
-			balances[i].Delta, err = s.computeDelta(balances[i])
+			b, err := getBalanceAt(tx, balances[i].AccountID.Int64, datetime.Now())
 			if err != nil {
 				return err
 			}
 
+			balances[i].Delta = b.Delta
 		}
 
 		err = insertBalances(tx, balances)
@@ -223,18 +223,6 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 }
 
-func (s *SQLiteStore) computeDelta(b mt.Balance) (decimal.NullDecimal, error) {
-	var delta decimal.NullDecimal
-	currentBalance, err := s.GetBalanceNow(int(b.AccountID.Int64))
-	if err != nil {
-		return delta, err
-	}
-
-	delta = decimal.NewNullDecimal(b.Value.Sub(currentBalance.Value))
-	return delta, nil
-
-}
-
 func insertTransactions(db TXDB, txs []mt.Transaction) error {
 
 	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODELS(txs)
@@ -248,7 +236,7 @@ func insertTransactions(db TXDB, txs []mt.Transaction) error {
 	return nil
 }
 
-func (s *SQLiteStore) DeleteOperation(opID int) error {
+func (s *SQLiteStore) DeleteOperation(opID int64) error {
 
 	// We *could* delete transactions with a trigger in the database
 
@@ -261,17 +249,17 @@ func (s *SQLiteStore) DeleteOperation(opID int) error {
 	}()
 
 	var stmt jet.DeleteStatement
-	stmt = jt.Transaction.DELETE().WHERE(jt.Transaction.OperationID.EQ(jet.Int(int64(opID))))
+	stmt = jt.Transaction.DELETE().WHERE(jt.Transaction.OperationID.EQ(jet.Int(opID)))
 	_, err = stmt.Exec(tx)
 	if err != nil {
 		return err
 	}
-	stmt = jt.Balance.DELETE().WHERE(jt.Balance.OperationID.EQ(jet.Int(int64(opID))))
+	stmt = jt.Balance.DELETE().WHERE(jt.Balance.OperationID.EQ(jet.Int(opID)))
 	_, err = stmt.Exec(tx)
 	if err != nil {
 		return err
 	}
-	stmt = jt.Operation.DELETE().WHERE(jt.Operation.ID.EQ(jet.Int(int64(opID))))
+	stmt = jt.Operation.DELETE().WHERE(jt.Operation.ID.EQ(jet.Int(opID)))
 	_, err = stmt.Exec(tx)
 	if err != nil {
 		return err

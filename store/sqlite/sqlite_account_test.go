@@ -8,11 +8,13 @@ import (
 	mt "ronche.se/moneytracker"
 )
 
-func TestAccountsCreateGet(t *testing.T) {
+func TestAccountCreateGet(t *testing.T) {
 	store := New(":memory:", true)
 	err := store.Open()
 	require.NoError(t, err)
-	defer store.Close()
+	defer func() {
+		store.Close()
+	}()
 
 	a := mt.Account{
 		Name:        "testacc",
@@ -21,11 +23,11 @@ func TestAccountsCreateGet(t *testing.T) {
 		TypeID:      mt.AccountMoney,
 	}
 
-	err = store.AddAccount(&a, nil)
+	err = store.AddAccount(&a)
 	require.NoError(t, err)
-	require.Equal(t, a.ID.Valid, true)
+	require.True(t, a.ID.Valid)
 
-	b, err := store.GetAccount(int(a.ID.Int64))
+	b, err := store.GetAccount(a.ID.Int64)
 	require.NoError(t, err)
 
 	require.Equal(t, &a, b)

@@ -26,12 +26,12 @@ func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 	return entities, nil
 }
 
-func (s *SQLiteStore) GetEntity(eID int) (*mt.Entity, error) {
+func (s *SQLiteStore) GetEntity(eID int64) (*mt.Entity, error) {
 
 	stmt := jet.SELECT(
 		jt.Entity.AllColumns,
 	).FROM(jt.Entity).WHERE(
-		jt.Entity.ID.EQ(jet.Int(int64(eID))),
+		jt.Entity.ID.EQ(jet.Int(eID)),
 	)
 
 	e := &mt.Entity{}

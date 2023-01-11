@@ -21,9 +21,9 @@ clean:
 		go clean
 		rm -f $(BINARY_NAME)
 dev:
+		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate 
+dev-temp:
 		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate --tempDB
-dev-file:
-		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate
 dev-no-proxy:
 		go run ./cmd/server/main.go
 push:
