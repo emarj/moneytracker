@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"ronche.se/moneytracker/datetime"
+	"github.com/emarj/moneytracker/datetime"
 )
 
 func TestMain(m *testing.M) {

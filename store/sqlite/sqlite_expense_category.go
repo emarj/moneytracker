@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	mt "github.com/emarj/moneytracker"
+	jt "github.com/emarj/moneytracker/.gen/table"
 	"github.com/go-jet/jet/v2/qrm"
 	jet "github.com/go-jet/jet/v2/sqlite"
-	mt "ronche.se/moneytracker"
-	jt "ronche.se/moneytracker/.gen/table"
 )
 
 func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {

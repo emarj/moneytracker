@@ -3,13 +3,13 @@ package sqlite
 import (
 	"testing"
 
+	mt "github.com/emarj/moneytracker"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/guregu/null.v4"
-	mt "ronche.se/moneytracker"
 )
 
 func TestAccountCreateGet(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {

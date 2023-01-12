@@ -1,4 +1,4 @@
-module ronche.se/moneytracker
+module github.com/emarj/moneytracker
 
 go 1.19
 

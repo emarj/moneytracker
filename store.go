@@ -1,6 +1,6 @@
 package moneytracker
 
-import "ronche.se/moneytracker/datetime"
+import "github.com/emarj/moneytracker/datetime"
 
 type Store interface {
 	GetEntities() ([]Entity, error)

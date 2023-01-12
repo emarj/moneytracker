@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	mt "github.com/emarj/moneytracker"
 	"gopkg.in/guregu/null.v4"
-	mt "ronche.se/moneytracker"
 
+	jt "github.com/emarj/moneytracker/.gen/table"
+	"github.com/emarj/moneytracker/datetime"
 	jet "github.com/go-jet/jet/v2/sqlite"
-	jt "ronche.se/moneytracker/.gen/table"
-	"ronche.se/moneytracker/datetime"
 )
 
 func (s *SQLiteStore) getBalanceHistory(aID int64, limit int64) ([]mt.Balance, error) {

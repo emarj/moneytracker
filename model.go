@@ -3,9 +3,9 @@ package moneytracker
 import (
 	"encoding/json"
 
+	"github.com/emarj/moneytracker/datetime"
 	"github.com/shopspring/decimal"
 	"gopkg.in/guregu/null.v4"
-	"ronche.se/moneytracker/datetime"
 )
 
 //go:generate easytags $GOFILE json

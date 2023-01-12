@@ -32,6 +32,10 @@ func New(dsn string, migrate bool) *SQLiteStore {
 	return &SQLiteStore{dsn: dsn, migrate: migrate}
 }
 
+func NewTemp() *SQLiteStore {
+	return New(":memory:", true)
+}
+
 func (s *SQLiteStore) Open() error {
 	db, err := sql.Open("sqlite", s.dsn)
 	if err != nil {

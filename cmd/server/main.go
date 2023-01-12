@@ -11,8 +11,8 @@ import (
 	"path"
 	"time"
 
-	"ronche.se/moneytracker"
-	"ronche.se/moneytracker/store/sqlite"
+	"github.com/emarj/moneytracker"
+	"github.com/emarj/moneytracker/store/sqlite"
 )
 
 var Commit string

@@ -3,16 +3,16 @@ package sqlite
 import (
 	"testing"
 
+	mt "github.com/emarj/moneytracker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	mt "ronche.se/moneytracker"
 )
 
 func TestEntity(t *testing.T) {
 	require := require.New(t)
 	assert := assert.New(t)
 
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(err)
 	defer func() {
@@ -52,7 +52,7 @@ func TestEntity(t *testing.T) {
 func TestGetEntityNotFound(t *testing.T) {
 	require := require.New(t)
 
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(err)
 	defer func() {

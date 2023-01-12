@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	mt "github.com/emarj/moneytracker"
+	"github.com/emarj/moneytracker/datetime"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
-	mt "ronche.se/moneytracker"
-	"ronche.se/moneytracker/datetime"
 )
 
 type Point struct {
@@ -57,7 +57,7 @@ func PointList(v decimal.Decimal, times []datetime.DateTime) []Point {
 ///////////////////////////////////////////////////////////////////////////
 
 func TestAccountNoBalance(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {
@@ -81,7 +81,7 @@ func TestAccountNoBalance(t *testing.T) {
 }
 
 func TestAccountZeroBalance(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {
@@ -113,7 +113,7 @@ func TestAccountZeroBalance(t *testing.T) {
 }
 
 func TestAccountBalance(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {
@@ -149,7 +149,7 @@ func TestAccountBalance(t *testing.T) {
 }
 
 func TestAccountBalanceWithNoBalanceAndTransactions(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {
@@ -190,7 +190,7 @@ func TestAccountBalanceWithNoBalanceAndTransactions(t *testing.T) {
 }
 
 func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {

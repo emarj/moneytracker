@@ -3,9 +3,9 @@ package sqlite
 import (
 	"fmt"
 
-	mt "ronche.se/moneytracker"
+	mt "github.com/emarj/moneytracker"
 
-	jt "ronche.se/moneytracker/.gen/table"
+	jt "github.com/emarj/moneytracker/.gen/table"
 
 	jet "github.com/go-jet/jet/v2/sqlite"
 )

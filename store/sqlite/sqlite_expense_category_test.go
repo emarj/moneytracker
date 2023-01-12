@@ -3,20 +3,20 @@ package sqlite
 import (
 	"testing"
 
+	mt "github.com/emarj/moneytracker"
 	"github.com/stretchr/testify/require"
-	"ronche.se/moneytracker"
 )
 
 func TestInsertCategory(t *testing.T) {
-	store := New(":memory:", true)
+	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
 	defer func() {
 		store.Close()
 	}()
 
-	var cats []moneytracker.Category
-	var res moneytracker.Category
+	var cats []mt.Category
+	var res mt.Category
 
 	cats, err = store.GetCategories()
 	require.NoError(t, err)
