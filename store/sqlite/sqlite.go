@@ -33,7 +33,7 @@ func New(dsn string, migrate bool) *SQLiteStore {
 }
 
 func NewTemp() *SQLiteStore {
-	return New(":memory:", true)
+	return New("file::memory:?cache=shared", true)
 }
 
 func (s *SQLiteStore) Open() error {
@@ -69,11 +69,13 @@ func (s *SQLiteStore) Close() error {
 
 func (s *SQLiteStore) Migrate() error {
 
-	fmt.Println("Migrating...")
+	fmt.Print("Migrating...")
 	_, err := s.db.Exec(schema)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("OK")
 
 	return nil
 

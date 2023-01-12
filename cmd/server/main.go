@@ -38,18 +38,13 @@ func main() {
 
 	dsn := path.Join(*dir, *dbName)
 
+	var s *sqlite.SQLiteStore
+
 	if *tempDB {
-
-		f, err := os.CreateTemp("", *dbName)
-		if err != nil {
-			panic(err)
-		}
-		dsn = f.Name()
-		fmt.Println("created temp db: ", dsn)
-		f.Close()
+		s = sqlite.NewTemp()
+	} else {
+		s = sqlite.New(dsn, true)
 	}
-
-	s := sqlite.New(dsn, true)
 
 	err := s.Open()
 	if err != nil {

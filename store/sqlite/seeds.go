@@ -12,7 +12,7 @@ import (
 )
 
 func (s *SQLiteStore) Seed() error {
-	fmt.Println("Seeding...")
+	fmt.Print("Seeding...")
 	var err error
 
 	// Add Categories
@@ -187,6 +187,8 @@ func (s *SQLiteStore) Seed() error {
 		}
 		operations[k] = op
 	}
+
+	fmt.Println("OK")
 
 	return nil
 }
