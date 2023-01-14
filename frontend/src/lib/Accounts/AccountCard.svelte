@@ -10,8 +10,8 @@
     let transactions;
 </script>
 
-<div class="card">
-    <h3>{account.display_name}{account.type == 1 ? "*" : ""}</h3>
+<div class="card" class:credit={account.type_id == 1}>
+    <h3>{account.display_name}</h3>
     <button
         class="more"
         on:click={() => {
@@ -88,6 +88,10 @@
         width: 300px;
         border-radius: 15px;
         transition: all 0.5s ease-in;
+
+        &.credit {
+            background: rgb(52, 226, 136);
+        }
 
         h3 {
             text-align: center;

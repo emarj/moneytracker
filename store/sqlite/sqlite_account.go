@@ -65,36 +65,10 @@ func (s *SQLiteStore) GetAccount(aID int64) (*mt.Account, error) {
 }
 
 func (s *SQLiteStore) AddAccount(a *mt.Account) error {
-
-	var err error
-
-	/* tx, err := s.db.Begin()
+	err := insertAccount(s.db, a)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		tx.Rollback()
-	}() */
-
-	err = insertAccount(s.db, a)
-	if err != nil {
-		return err
-	}
-
-	/* b := mt.Balance{
-		AccountID: a.ID,
-		ValueAt:   initialBalance,
-	}
-
-	err = insertBalances(tx, []mt.Balance{b})
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return err
-	} */
 
 	return nil
 

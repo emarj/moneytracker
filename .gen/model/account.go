@@ -15,6 +15,6 @@ type Account struct {
 	IsSystem    int32
 	IsWorld     int32
 	IsGroup     int32
-	Type        int32
+	TypeID      int32
 	GroupID     *int32
 }

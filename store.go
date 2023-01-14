@@ -13,12 +13,12 @@ type Store interface {
 	AddAccount(a *Account) error
 	DeleteAccount(aID int64, onlyIfEmpty bool) error
 
-	GetValueAt(aID int64, time datetime.DateTime) (Balance, error)
-	GetValueNow(aID int64) (Balance, error)
+	GetBalanceAt(aID int64, time datetime.DateTime) (Balance, error)
+	GetBalanceNow(aID int64) (Balance, error)
 	GetLastBalance(aID int64) (Balance, error)
 	GetBalanceHistory(aID int64) ([]Balance, error)
 	SnapshotBalance(aID int64) error
-	SetBalance(b Balance) error
+	SetBalance(b *Balance) error
 
 	GetOperation(int64) (*Operation, error)
 	//GetTransactions() ([]Transaction, error)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	mt "github.com/emarj/moneytracker"
+	"github.com/shopspring/decimal"
 	"gopkg.in/guregu/null.v4"
 
 	jt "github.com/emarj/moneytracker/.gen/table"
@@ -12,16 +13,24 @@ import (
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
-func (s *SQLiteStore) getBalanceHistory(aID int64, limit int64) ([]mt.Balance, error) {
+func getBalanceHistory(txdb TXDB, aID int64, limit int64, isComputed null.Bool) ([]mt.Balance, error) {
 
-	stmt := jet.SELECT(jt.Balance.AllColumns).FROM(jt.Balance).WHERE(jt.Balance.AccountID.EQ(jet.Int(aID))).ORDER_BY(jt.Balance.Timestamp.DESC())
+	where := jt.Balance.AccountID.EQ(jet.Int(aID))
+	if isComputed.Valid {
+		where.AND(jt.Balance.IsComputed.EQ(jet.Int(Btoi(isComputed.Bool))))
+	}
+
+	stmt := jet.SELECT(jt.Balance.AllColumns, jt.Operation.AllColumns).
+		FROM(jt.Balance.LEFT_JOIN(jt.Operation, jt.Balance.OperationID.EQ(jt.Operation.ID))).
+		WHERE(where).
+		ORDER_BY(jt.Balance.Timestamp.DESC())
 
 	if limit > 0 {
 		stmt = stmt.LIMIT(limit)
 	}
 
 	balances := []mt.Balance{}
-	err := stmt.Query(s.db, &balances)
+	err := stmt.Query(txdb, &balances)
 	if err != nil {
 		return nil, err
 	}
@@ -30,13 +39,13 @@ func (s *SQLiteStore) getBalanceHistory(aID int64, limit int64) ([]mt.Balance, e
 }
 
 func (s *SQLiteStore) GetBalanceHistory(aID int64) ([]mt.Balance, error) {
-	return s.getBalanceHistory(aID, 0)
+	return getBalanceHistory(s.db, aID, 0, null.Bool{})
 }
 
 func (s *SQLiteStore) GetLastBalance(aID int64) (mt.Balance, error) {
 
 	var b mt.Balance
-	history, err := s.getBalanceHistory(aID, 1)
+	history, err := getBalanceHistory(s.db, aID, 1, null.Bool{})
 	if err != nil {
 		return b, err
 	}
@@ -53,46 +62,50 @@ func (s *SQLiteStore) GetLastBalance(aID int64) (mt.Balance, error) {
 func getBalanceAt(db TXDB, aID int64, timestamp datetime.DateTime) (mt.Balance, error) {
 
 	var cb mt.Balance
+	var err error
 
-	row := db.QueryRow(`
-		SELECT last_balance + delta AS current_balance, delta
+	row := db.QueryRow(`SELECT last_balance + delta AS current_balance, delta
 		FROM (
 			(
-				SELECT
-					timestamp AS last_timestamp,
-					IFNULL(value,0) AS last_balance,
-					COUNT()
+				SELECT IFNULL((
+				SELECT value
 				FROM balance
 				WHERE account_id = :aID AND timestamp <= :timestamp
 				ORDER BY timestamp DESC
 				LIMIT 1
+				),0) AS last_balance
 			), (
-				SELECT IFNULL(
-						SUM(
+				SELECT IFNULL((
+					SELECT	IFNULL(SUM(
 							CASE
 								WHEN to_id = :aID THEN amount
 								WHEN from_id = :aID THEN - amount
 							END
-						),
-						0
-					) AS delta,
-					COUNT()
-				FROM 'transaction'
-				WHERE (to_id = :aID
-					OR from_id = :aID)
-					AND timestamp BETWEEN IFNULL((
-									SELECT timestamp
-									FROM balance
-									WHERE account_id = :aID AND timestamp <= :timestamp
-									ORDER BY timestamp DESC
-									LIMIT 1),STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now','-1000 years')) AND :timestamp
-			)
+						),0)
+					FROM 'transaction'
+					WHERE (to_id = :aID
+						OR from_id = :aID)
+						AND timestamp BETWEEN IFNULL((
+										SELECT timestamp
+										FROM balance
+										WHERE account_id = :aID AND timestamp <= :timestamp
+										ORDER BY timestamp DESC
+										LIMIT 1),STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now','-1000 years')) AND :timestamp
+			),0) AS delta
+		)
 		);`,
 		sql.Named("aID", aID),
 		sql.Named("timestamp", timestamp.String()),
 	)
+	if err != nil {
+		return cb, err
+	}
 
-	err := row.Scan(&cb.ValueAt.Value, &cb.Delta)
+	//TODO: Delta is nice to have but not really used in the application.
+	// We *could* return (last_balance,delta) and let the user compute the current_balance.
+	// This would make more sense but it is not really useful
+
+	err = row.Scan(&cb.Value, &cb.Delta)
 	if err != nil {
 		return cb, err
 	}
@@ -104,21 +117,47 @@ func getBalanceAt(db TXDB, aID int64, timestamp datetime.DateTime) (mt.Balance, 
 	return cb, nil
 }
 
-func (s *SQLiteStore) GetValueAt(aID int64, timestamp datetime.DateTime) (mt.Balance, error) {
+func (s *SQLiteStore) GetBalanceAt(aID int64, timestamp datetime.DateTime) (mt.Balance, error) {
 	return getBalanceAt(s.db, aID, timestamp)
 }
 
-func (s *SQLiteStore) GetValueNow(aID int64) (mt.Balance, error) {
-	return s.GetValueAt(aID, datetime.Now())
+func (s *SQLiteStore) GetBalanceNow(aID int64) (mt.Balance, error) {
+	return s.GetBalanceAt(aID, datetime.Now())
 }
 
-func (s *SQLiteStore) SetBalance(b mt.Balance) error {
+func (s *SQLiteStore) SetBalance(b *mt.Balance) error {
 
-	err := s.AddOperation(&mt.Operation{
-		Description: "Balance Adjust",
-		Balances:    []mt.Balance{b},
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		tx.Rollback()
+	}()
+
+	desc := "Balance Adjust"
+	if b.Comment != "" {
+		desc = b.Comment
+	}
+	op := mt.Operation{
+		Description: desc,
 		TypeID:      mt.OpTypeBalanceAdjust,
-	})
+	}
+
+	err = insertOperation(tx, &op)
+	if err != nil {
+		return err
+	}
+
+	b.OperationID = op.ID
+	b.Operation = &op
+
+	err = insertBalance(tx, b)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
@@ -211,15 +250,16 @@ func (s *SQLiteStore) SnapshotBalance(aID int64) error {
 
 func insertBalance(tx TXDB, balance *mt.Balance) error {
 
+	var err error
 	b, err := getBalanceAt(tx, balance.AccountID.Int64, balance.Timestamp)
 	if err != nil {
 		return err
 	}
 
-	balance.Delta = b.Delta
+	balance.Delta = decimal.NewNullDecimal(balance.Value.Sub(b.Value))
 
 	//TODO: We could update delta directly in the insert query. To do this
-
+	// Here we do not return anything since there are no generated fields
 	stmt := jt.Balance.INSERT(jt.Balance.AllColumns).MODEL(balance)
 
 	_, err = stmt.Exec(tx)
@@ -231,13 +271,35 @@ func insertBalance(tx TXDB, balance *mt.Balance) error {
 
 }
 
-func (s *SQLiteStore) DeleteComputedBalancesAfter(aID int64, date datetime.DateTime) error {
-	_, err := s.db.Exec(`
-			DELETE FROM balance
-			WHERE account_id = ?
-			AND is_computed = TRUE
-			AND timestamp >= ?
-	`, aID, date)
+func updateBalances(txdb TXDB, timestamp datetime.DateTime, aIDs ...int64) error {
+	var err error
+	for _, aID := range aIDs {
+		err = deleteComputedBalances(txdb, aID, timestamp)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func deleteComputedBalances(txdb TXDB, aID int64, timestamp datetime.DateTime) error {
+	_, err := txdb.Exec(`
+						DELETE FROM balance
+						WHERE account_id = :aID
+						AND is_computed = TRUE
+						AND timestamp BETWEEN :timestamp AND (
+											-- Find the first user non-computed balance
+											IFNULL(SELECT timestamp FROM balance
+											WHERE
+												account_id = :aID
+												AND is_computed = FALSE
+												AND timestamp > :timestamp
+											ORDER BY timestamp ASC
+											LIMIT 1,STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '+1000 year')))
+	`,
+		sql.Named("aID", aID),
+		sql.Named("timestamp", timestamp))
 	if err != nil {
 		return err
 	}

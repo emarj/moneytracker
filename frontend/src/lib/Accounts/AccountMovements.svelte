@@ -42,8 +42,8 @@
                             value={t.amount}
                             negative={t.from.id == id}
                             hide_plus={false}
-                        /></td
-                    >
+                        />
+                    </td>
                 </tr>
             {/each}
         </table>
@@ -55,18 +55,31 @@
     {:else}
         <table>
             {#each $balancesQuery.data as b (b.id + b.timestamp)}
-                <tr>
+                <tr class="balance">
                     <td>{DateFMT(b.timestamp).substring(0, 5)}</td>
-                    <td><strong>{b.operation.description}</strong></td>
                     <td>
-                        {#if b.delta}
+                        <strong>
+                            {#if b.operation}
+                                {b.operation.description}
+                            {:else if b.comment}
+                                {b.comment}
+                            {:else}
+                                Balance adjust
+                            {/if}
+                        </strong>
+                    </td>
+                    <td>
+                        <strong>{b.value}</strong>
+                        <!--   {#if b.delta}
                             <Amount
                                 value={Math.abs(b.delta)}
                                 negative={b.delta < 0}
                                 hide_plus={false}
                             />
-                        {/if}
-                        ({b.value})
+                            ({b.value})
+                        {:else}
+                            <strong>{b.value}</strong>
+                        {/if} -->
                     </td>
                 </tr>
             {/each}
@@ -81,6 +94,13 @@
     table {
         font-family: monospace;
         font-size: 0.9rem;
+        border-collapse: collapse;
+
+        tr.balance {
+            border: 1px solid black;
+            border-left: none;
+            border-right: none;
+        }
     }
 
     div :global(.amount) {

@@ -28,6 +28,16 @@ func FromTime(t time.Time) DateTime {
 	}}
 }
 
+func (t DateTime) Plus(d time.Duration) DateTime {
+	return FromTime(t.Time.Add(d))
+}
+
+func (t DateTime) Minus(d time.Duration) DateTime {
+	return t.Plus(-1 * d)
+}
+
+//JSON and SQL methods
+
 func (t *DateTime) Scan(v interface{}) error {
 
 	var s string

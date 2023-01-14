@@ -12,13 +12,13 @@ from operation;
 SELECT last_balance,delta, last_balance + delta AS balance
 FROM (
 		(
-			SELECT
-					IFNULL(value,0) AS last_balance,
-					COUNT()
-				FROM balance
-				WHERE account_id = 1 AND timestamp <= STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')
-				ORDER BY timestamp DESC
-				LIMIT 1
+		SELECT IFNULL((
+			SELECT value
+			FROM balance
+			WHERE account_id = :aID AND timestamp <= :timestamp
+			ORDER BY timestamp DESC
+			LIMIT 1
+			),0) AS last_balance
 		), (
 			SELECT IFNULL(
 					SUM(
@@ -191,3 +191,15 @@ SELECT * from 'transaction' ORDER BY timestamp DESC;
 SELECT *
 from balance
 ORDER BY timestamp DESC;
+--
+SELECT * FROM balance
+WHERE account_id = 2
+AND timestamp BETWEEN
+					STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 day')
+					AND (SELECT timestamp FROM balance
+										WHERE
+											account_id = 2
+											AND is_computed = FALSE
+											AND timestamp > STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 day')
+										ORDER BY timestamp ASC
+										LIMIT 1)

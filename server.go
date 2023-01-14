@@ -5,7 +5,6 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -337,7 +336,7 @@ func (s *Server) getBalance(c echo.Context) error {
 		return err
 	}
 
-	b, err := s.store.GetValueNow(aID)
+	b, err := s.store.GetBalanceNow(aID)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return echo.ErrNotFound
@@ -355,19 +354,17 @@ func (s *Server) setBalance(c echo.Context) error {
 		return err
 	}
 
-	fmt.Printf("-----------------\n%v\n---------", b)
-
 	/* claims, err := extractClaims(c)
 	if err != nil {
 		return err
 	} */
 
-	err = s.store.SetBalance(b)
+	err = s.store.SetBalance(&b)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusOK, b)
 }
 
 func (s *Server) addAccount(c echo.Context) error {

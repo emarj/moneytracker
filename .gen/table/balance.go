@@ -21,6 +21,7 @@ type balanceTable struct {
 	AccountID   sqlite.ColumnInteger
 	Value       sqlite.ColumnString
 	Delta       sqlite.ColumnString
+	Comment     sqlite.ColumnString
 	IsComputed  sqlite.ColumnInteger
 	OperationID sqlite.ColumnInteger
 
@@ -67,10 +68,11 @@ func newBalanceTableImpl(schemaName, tableName, alias string) balanceTable {
 		AccountIDColumn   = sqlite.IntegerColumn("account_id")
 		ValueColumn       = sqlite.StringColumn("value")
 		DeltaColumn       = sqlite.StringColumn("delta")
+		CommentColumn     = sqlite.StringColumn("comment")
 		IsComputedColumn  = sqlite.IntegerColumn("is_computed")
 		OperationIDColumn = sqlite.IntegerColumn("operation_id")
-		allColumns        = sqlite.ColumnList{TimestampColumn, AccountIDColumn, ValueColumn, DeltaColumn, IsComputedColumn, OperationIDColumn}
-		mutableColumns    = sqlite.ColumnList{ValueColumn, DeltaColumn, IsComputedColumn, OperationIDColumn}
+		allColumns        = sqlite.ColumnList{TimestampColumn, AccountIDColumn, ValueColumn, DeltaColumn, CommentColumn, IsComputedColumn, OperationIDColumn}
+		mutableColumns    = sqlite.ColumnList{ValueColumn, DeltaColumn, CommentColumn, IsComputedColumn, OperationIDColumn}
 	)
 
 	return balanceTable{
@@ -81,6 +83,7 @@ func newBalanceTableImpl(schemaName, tableName, alias string) balanceTable {
 		AccountID:   AccountIDColumn,
 		Value:       ValueColumn,
 		Delta:       DeltaColumn,
+		Comment:     CommentColumn,
 		IsComputed:  IsComputedColumn,
 		OperationID: OperationIDColumn,
 

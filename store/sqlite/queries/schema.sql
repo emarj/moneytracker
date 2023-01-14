@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS account (
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
 	is_world INTEGER NOT NULL DEFAULT FALSE CHECK (is_world IN (0, 1)),
 	is_group INTEGER NOT NULL DEFAULT FALSE CHECK (is_group IN (0, 1)),
-	type INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT 0 REFERENCES account_type(id),
+	type_id INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT 0 REFERENCES account_type(id),
 	group_id INTEGER REFERENCES account(id)
 );
 ---
@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS balance (
 	account_id INTEGER REFERENCES account(id),
 	value TEXT NOT NULL,
 	delta TEXT,
+	comment TEXT,
 	is_computed INTEGER NOT NULL CHECK (is_computed IN (0, 1)),
 	operation_id INTEGER REFERENCES operation(id),
 	PRIMARY KEY(account_id, timestamp)

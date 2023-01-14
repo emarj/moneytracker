@@ -2,10 +2,9 @@ package sqlite
 
 import (
 	"fmt"
-	"time"
 
 	mt "github.com/emarj/moneytracker"
-	"github.com/emarj/moneytracker/datetime"
+	tt "github.com/emarj/moneytracker/datetime/test"
 	"github.com/shopspring/decimal"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
@@ -14,6 +13,8 @@ import (
 func (s *SQLiteStore) Seed() error {
 	fmt.Print("Seeding...")
 	var err error
+
+	tt.Init()
 
 	// Add Categories
 	categories := []string{
@@ -128,23 +129,31 @@ func (s *SQLiteStore) Seed() error {
 		}
 	}
 
-	/* err = s.SetBalance(mt.Balance{
+	err = s.SetBalance(&mt.Balance{
 		AccountID: accounts.Value("user1:cc1").ID,
-		ValueAt: mt.ValueAt{
-			Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -3)),
-			Value:     decimal.NewFromInt(4000),
-		},
+		Timestamp: tt.BEFORE,
+		Value:     decimal.NewFromInt(4000),
+		Comment:   "Initial balance",
 	})
 	if err != nil {
 		return err
-	} */
+	}
+
+	err = s.SetBalance(&mt.Balance{
+		AccountID: accounts.Value("user1:cc1").ID,
+		Timestamp: tt.Now,
+		Value:     decimal.NewFromInt(5000),
+	})
+	if err != nil {
+		return err
+	}
 
 	operations := []mt.Operation{
 		{
 			Description: "Cena Fuori in 2",
 			Transactions: []mt.Transaction{
-				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts.Value("user1:cc1"), To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)},
-				{Timestamp: datetime.FromTime(time.Now().AddDate(0, 0, -1)), From: accounts.Value("user2:credits"), To: accounts.Value("user1:credits"), Amount: decimal.New(40, 0)}},
+				{Timestamp: tt.Before, From: accounts.Value("user1:cc1"), To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)},
+				{Timestamp: tt.Before, From: accounts.Value("user2:credits"), To: accounts.Value("user1:credits"), Amount: decimal.New(40, 0)}},
 			TypeID:     mt.OpTypeExpense,
 			CategoryID: 0,
 		},
@@ -152,7 +161,7 @@ func (s *SQLiteStore) Seed() error {
 			Description: "Giroconto",
 			Transactions: []mt.Transaction{
 				{
-					Timestamp: datetime.FromTime(time.Now()),
+					Timestamp: tt.Before,
 					From:      accounts.Value("user1:cc1"),
 					To:        accounts.Value("user1:cc2"),
 					Amount:    decimal.New(345, 0),
@@ -164,13 +173,13 @@ func (s *SQLiteStore) Seed() error {
 			Description: "Prestito 100 Euro a Marco",
 			Transactions: []mt.Transaction{
 				{
-					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),
+					Timestamp: tt.Before,
 					From:      accounts.Value("user1:cash"),
 					To:        accounts.Value("user2:cash"),
 					Amount:    decimal.New(100, 0),
 				},
 				{
-					Timestamp: datetime.FromTime(time.Now().AddDate(0, -1, 0)),
+					Timestamp: tt.Before,
 					From:      accounts.Value("user2:credits"),
 					To:        accounts.Value("user1:credits"),
 					Amount:    decimal.New(100, 0),

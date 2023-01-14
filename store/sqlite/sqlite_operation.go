@@ -6,6 +6,7 @@ import (
 	mt "github.com/emarj/moneytracker"
 
 	jt "github.com/emarj/moneytracker/.gen/table"
+	"github.com/emarj/moneytracker/datetime"
 
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
@@ -139,14 +140,39 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 	return op, nil
 }
 
+func insertOperation(txdb TXDB, op *mt.Operation) error {
+	now := datetime.Now()
+
+	op.CreatedOn = now
+	op.ModifiedOn = now
+
+	stmt := jt.Operation.INSERT(jt.Operation.AllColumns).
+		MODEL(op).
+		RETURNING(jt.Operation.ID)
+
+	// We do not use Jet here since it only works for structs
+	q, args := stmt.Sql()
+	err := txdb.QueryRow(q, args...).Scan(&op.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 	if len(op.Transactions) == 0 && op.TypeID != mt.OpTypeBalanceAdjust {
 		return fmt.Errorf("an operation must have at least one transaction or must be of type balance")
 	}
 
-	if len(op.Balances) == 0 && op.TypeID == mt.OpTypeBalanceAdjust {
-		return fmt.Errorf("a balance adjust operation must have at least one balance")
+	if op.TypeID == mt.OpTypeBalanceAdjust {
+		if len(op.Balances) == 0 {
+			return fmt.Errorf("a balance adjust operation must have at least one balance")
+		}
+		if len(op.Transactions) > 0 {
+			return fmt.Errorf("a balance adjust operation must not have transactions")
+		}
 	}
 
 	// TODO: More checks
@@ -159,43 +185,34 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 		tx.Rollback()
 	}()
 
-	// save transaction list since we will overwrite it
-	transactions := op.Transactions
-	balances := op.Balances
+	//We need to do this in order to update the external operation only in case of success
+	newOp := *op
 
-	// we define another operation in order to update the pointer only if the transaction is successful
-	var newOp mt.Operation
-
-	//FIXME: use correct columns. Maybe just return id
-	stmt := jt.Operation.INSERT(jt.Operation.AllColumns.Except(jt.Operation.CreatedOn, jt.Operation.ModifiedOn)).MODEL(op).RETURNING(jt.Operation.AllColumns)
-
-	err = stmt.Query(tx, &newOp)
+	err = insertOperation(tx, &newOp)
 	if err != nil {
 		return err
 	}
 
-	for i := range balances {
-		balances[i].OperationID = newOp.ID
+	for i := range newOp.Balances {
+		newOp.Balances[i].OperationID = newOp.ID
+		newOp.Balances[i].Operation = &newOp
 
-		err = insertBalance(tx, &balances[i])
+		err = insertBalance(tx, &newOp.Balances[i])
 		if err != nil {
 			return err
 		}
 
 	}
-	newOp.Balances = balances
 
-	if len(transactions) > 0 {
-		for i := range transactions {
-			transactions[i].Operation.ID = newOp.ID
+	if len(newOp.Transactions) > 0 {
+		for i := range newOp.Transactions {
+			newOp.Transactions[i].Operation = &newOp
+
+			err = insertTransaction(tx, &newOp.Transactions[i])
+			if err != nil {
+				return err
+			}
 		}
-
-		err = insertTransactions(tx, transactions)
-		if err != nil {
-			return err
-		}
-
-		newOp.Transactions = transactions
 	}
 
 	err = tx.Commit()
@@ -210,22 +227,26 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 }
 
-func insertTransactions(db TXDB, txs []mt.Transaction) error {
+func insertTransaction(txdb TXDB, tx *mt.Transaction) error {
 
-	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODELS(txs)
+	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODEL(tx)
 	//.RETURNING(jt.Transaction.AllColumns)
 
-	_, err := stmt.Exec(db)
+	_, err := stmt.Exec(txdb)
 	if err != nil {
 		return fmt.Errorf("insert transactions: %w", err)
 	}
+
+	//TODO: Here we should fix future balances and deltas until the first user inserted one
+	/* err = updateBalances(txdb, tx.Timestamp, tx.From.ID.Int64, tx.To.ID.Int64)
+	if err != nil {
+		return fmt.Errorf("insert transactions: %w", err)
+	} */
 
 	return nil
 }
 
 func (s *SQLiteStore) DeleteOperation(opID int64) error {
-
-	// We *could* delete transactions with a trigger in the database
 
 	tx, err := s.db.Begin()
 	if err != nil {
