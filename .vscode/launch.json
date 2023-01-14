@@ -11,6 +11,9 @@
             "mode": "auto",
             "program": "./cmd/server/main.go",
             "cwd": "./",
+            "env": {
+                "MT_FRONTEND_URL": "http://localhost:5173/"
+            },
             "args": [
                 "--populate",
                 "--local",

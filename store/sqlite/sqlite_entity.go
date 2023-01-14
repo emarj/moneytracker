@@ -47,7 +47,9 @@ func (s *SQLiteStore) GetEntity(eID int64) (*mt.Entity, error) {
 
 func (s *SQLiteStore) AddEntity(e *mt.Entity) error {
 
-	stmt := jt.Entity.INSERT(jt.Entity.AllColumns).RETURNING(jt.Entity.AllColumns).MODEL(e)
+	stmt := jt.Entity.INSERT(jt.Entity.AllColumns).
+		MODEL(e).
+		RETURNING(jt.Entity.AllColumns)
 
 	err := stmt.Query(s.db, e)
 	if err != nil {

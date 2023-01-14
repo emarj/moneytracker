@@ -41,8 +41,9 @@ type Account struct {
 	ID          null.Int     `json:"id" sql:"primary_key"`
 	Name        string       `json:"name"`
 	DisplayName string       `json:"display_name"`
-	Owner       Entity       `json:"owner" alias:"owner" mapping:".ID:owner_id"` // TODO: Allow for shared accounts
-	IsSystem    bool         `json:"is_system"`                                  // This can't be deleted by the user
+	OwnerID     int64        `json:"owner_id"`
+	Owner       Entity       `json:"owner" alias:"owner"` // TODO: Allow for shared accounts
+	IsSystem    bool         `json:"is_system"`           // This can't be deleted by the user
 	IsWorld     bool         `json:"is_world"`
 	IsGroup     bool         `json:"is_group"` // This should not be type inside type
 	TypeID      int          `json:"type_id"`
@@ -69,13 +70,16 @@ type Balance struct {
 }
 
 type Transaction struct {
-	ID        null.Int          `json:"id" sql:"primary_key"`
-	Timestamp datetime.DateTime `json:"timestamp"`
-	From      Account           `json:"from" alias:"from" mapping:".ID:from_id"`
-	To        Account           `json:"to" alias:"to" mapping:".ID:to_id"`
-	Amount    decimal.Decimal   `json:"amount"`
-	Comment   string            `json:"comment"`
-	Operation *Operation        `json:"operation" mapping:".ID:operation_id"`
+	ID          null.Int          `json:"id" sql:"primary_key"`
+	Timestamp   datetime.DateTime `json:"timestamp"`
+	FromID      int64             `json:"from_id"`
+	From        *Account          `json:"from" alias:"from"`
+	ToID        int64             `json:"to_id"`
+	To          *Account          `json:"to" alias:"to"`
+	Amount      decimal.Decimal   `json:"amount"`
+	Comment     string            `json:"comment"`
+	OperationID int64             `json:"operation_id"`
+	Operation   *Operation        `json:"operation"`
 }
 
 type Operation struct {

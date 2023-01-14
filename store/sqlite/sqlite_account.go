@@ -1,7 +1,6 @@
 package sqlite
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -74,10 +73,35 @@ func (s *SQLiteStore) AddAccount(a *mt.Account) error {
 
 }
 
-func insertAccount(db TXDB, a *mt.Account) error {
-	stmt := jt.Account.INSERT(jt.Account.AllColumns).MODEL(a).RETURNING(jt.Account.AllColumns)
+func insertAccount(txdb TXDB, a *mt.Account) error {
+	stmt := jt.Account.INSERT(jt.Account.AllColumns).
+		MODEL(a).
+		RETURNING(jt.Account.AllColumns)
 
-	err := stmt.Query(db, a)
+	err := stmt.Query(txdb, a)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (s *SQLiteStore) UpdateAccount(a *mt.Account) error {
+	err := updateAccount(s.db, a)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func updateAccount(txdb TXDB, a *mt.Account) error {
+	stmt := jt.Account.UPDATE(jt.Account.AllColumns).
+		WHERE(jt.Account.ID.EQ(jet.Int(a.ID.Int64))).
+		MODEL(a) //.RETURNING(jt.Account.AllColumns)
+
+	//println(stmt.DebugSql())
+	_, err := stmt.Exec(txdb)
 	if err != nil {
 		return err
 	}
@@ -85,7 +109,7 @@ func insertAccount(db TXDB, a *mt.Account) error {
 	return nil
 }
 
-func (s *SQLiteStore) DeleteAccount(aID int64, onlyIfEmpty bool) error {
+func (s *SQLiteStore) DeleteAccount(aID int64) error {
 
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -95,34 +119,50 @@ func (s *SQLiteStore) DeleteAccount(aID int64, onlyIfEmpty bool) error {
 		tx.Rollback()
 	}()
 
-	if onlyIfEmpty {
-		row := tx.QueryRow(`SELECT  count()
-						FROM 'transaction' t
-						WHERE from_id = :aID
-						OR to_id = :aID`, sql.Named("aID", aID))
-		var n int
-		err = row.Scan(&n)
-		if err != nil {
-			return err
-		}
-
-		if n > 0 {
-			return fmt.Errorf("impossible to delete account id=%d since there are %d transaction associated to it", aID, n)
-		}
-
-	}
-
-	_, err = tx.Exec(`DELETE FROM account WHERE id=?`, aID)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(`DELETE FROM balance WHERE account_id=?`, aID)
+	err = deleteAccount(tx, aID)
 	if err != nil {
 		return err
 	}
 
 	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteAccount(txdb TXDB, aID int64) error {
+
+	selectStmt := jt.Transaction.SELECT(jet.COUNT(jet.STAR)).
+		WHERE(
+			jt.Transaction.FromID.EQ(jet.Int(aID)).
+				OR(jt.Transaction.ToID.EQ(jet.Int(aID))),
+		)
+
+	q, args := selectStmt.Sql()
+	var n int
+	err := txdb.QueryRow(q, args...).Scan(&n)
+	if err != nil {
+		return err
+	}
+
+	if n > 0 {
+		return fmt.Errorf("impossible to delete account id=%d: there are %d transaction associated with it", aID, n)
+	}
+
+	//println(stmt.DebugSql())
+
+	_, err = jt.Account.DELETE().
+		WHERE(jt.Account.ID.EQ(jet.Int(aID))).
+		Exec(txdb)
+	if err != nil {
+		return err
+	}
+
+	_, err = jt.Balance.DELETE().
+		WHERE(jt.Balance.AccountID.EQ(jet.Int(aID))).
+		Exec(txdb)
 	if err != nil {
 		return err
 	}

@@ -10,8 +10,8 @@
     let account = {
         name: "",
         display_name: "",
-        type: 0,
-        owner: { id: $entityID },
+        type_id: 0,
+        owner_id: $entityID,
     };
 
     let mutation = useMutation((a) => addAccount(a), {
@@ -29,7 +29,7 @@
 <form>
     <Textfield label="Name" bind:value={account.name} />
     <Textfield label="Display Name" bind:value={account.display_name} />
-    <Select variant="outlined" bind:value={account.type} label="Type">
+    <Select variant="outlined" bind:value={account.type_id} label="Type">
         <Option value={0}>Money</Option>
         <Option value={1}>Credit</Option>
     </Select>

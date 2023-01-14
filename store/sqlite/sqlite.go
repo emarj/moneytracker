@@ -28,12 +28,12 @@ type SQLiteStore struct {
 	db      *sql.DB
 }
 
-func New(dsn string, migrate bool) *SQLiteStore {
-	return &SQLiteStore{dsn: dsn, migrate: migrate}
+func New(filename string, migrate bool) *SQLiteStore {
+	return &SQLiteStore{dsn: filename + "?cache=shared", migrate: migrate}
 }
 
 func NewTemp() *SQLiteStore {
-	return New("file::memory:?cache=shared", true)
+	return New("file::memory:", true)
 }
 
 func (s *SQLiteStore) Open() error {

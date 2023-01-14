@@ -51,7 +51,7 @@
         label="Description"
         style="width: 100%;"
     />
-    <AccountSelect owner_id={$entityID} type={0} bind:value={e.account} />
+    <AccountSelect owner_id={$entityID} type_id={0} bind:value={e.account} />
 
     <Textfield
         variant="outlined"
@@ -61,7 +61,7 @@
         input$pattern={"\\d+(\\.\\d{2})?"}
     />
 
-    <CategorySelect bind:value={e.category} />
+    <CategorySelect bind:value={e.category_id} />
     <!-- <TagInput
         existing={[
             { id: 1, name: "tag1" },

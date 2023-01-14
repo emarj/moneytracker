@@ -43,9 +43,11 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
+	BalanceAcc := jt.Account.AS("balance_account")
 
 	OwnerFrom := jt.Entity.AS("from.owner")
 	OwnerTo := jt.Entity.AS("to.owner")
+	OwnerBalanceAcc := jt.Entity.AS("balance_account.owner")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
@@ -56,28 +58,36 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 		OwnerTo.AllColumns,
 		jt.Balance.AllColumns,
 	).FROM(
-		jt.Operation.INNER_JOIN(
+		(jt.Operation.SELECT(jet.STAR).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(limit)).AsTable("operation").LEFT_JOIN(
 			jt.Transaction,
 			jt.Transaction.OperationID.EQ(jt.Operation.ID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			From,
 			From.ID.EQ(jt.Transaction.FromID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			To,
 			To.ID.EQ(jt.Transaction.ToID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			OwnerFrom,
 			OwnerFrom.ID.EQ(From.OwnerID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			OwnerTo,
 			OwnerTo.ID.EQ(To.OwnerID),
 		).LEFT_JOIN(
 			jt.Balance,
 			jt.Balance.OperationID.EQ(jt.Operation.ID),
+		).LEFT_JOIN(
+			BalanceAcc,
+			BalanceAcc.ID.EQ(jt.Balance.AccountID),
+		).LEFT_JOIN(
+			OwnerBalanceAcc,
+			OwnerBalanceAcc.ID.EQ(BalanceAcc.OwnerID),
 		),
 	).WHERE(
-		To.OwnerID.EQ(jet.Int(eID)).OR(From.OwnerID.EQ(jet.Int(eID))),
-	).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(limit)
+		(To.OwnerID.EQ(jet.Int(eID)).OR(From.OwnerID.EQ(jet.Int(eID)))).OR(OwnerBalanceAcc.ID.EQ(jet.Int(eID))),
+	)
+
+	//println(stmt.DebugSql())
 
 	operations := []mt.Operation{}
 
@@ -93,9 +103,11 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
+	BalanceAcc := jt.Account.AS("balance_account")
 
 	OwnerFrom := jt.Entity.AS("from.owner")
 	OwnerTo := jt.Entity.AS("to.owner")
+	OwnerBalanceAcc := jt.Entity.AS("balance_account.owner")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
@@ -106,30 +118,34 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 		OwnerFrom.AllColumns,
 		OwnerTo.AllColumns,
 	).FROM(
-		jt.Operation.INNER_JOIN(
+		jt.Operation.LEFT_JOIN(
 			jt.Transaction,
 			jt.Transaction.OperationID.EQ(jt.Operation.ID),
 		).LEFT_JOIN(
-			jt.Balance,
-			jt.Balance.OperationID.EQ(jt.Operation.ID),
-		).INNER_JOIN(
 			From,
 			From.ID.EQ(jt.Transaction.FromID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			To,
 			To.ID.EQ(jt.Transaction.ToID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			OwnerFrom,
 			OwnerFrom.ID.EQ(From.OwnerID),
-		).INNER_JOIN(
+		).LEFT_JOIN(
 			OwnerTo,
 			OwnerTo.ID.EQ(To.OwnerID),
+		).LEFT_JOIN(
+			jt.Balance,
+			jt.Balance.OperationID.EQ(jt.Operation.ID),
+		).LEFT_JOIN(
+			BalanceAcc,
+			BalanceAcc.ID.EQ(jt.Balance.AccountID),
+		).LEFT_JOIN(
+			OwnerBalanceAcc,
+			OwnerBalanceAcc.ID.EQ(BalanceAcc.OwnerID),
 		),
 	).WHERE(
 		jt.Operation.ID.EQ(jet.Int(opID)),
 	).ORDER_BY(jt.Transaction.Timestamp.DESC())
-
-	fmt.Println(stmt.DebugSql())
 
 	op := &mt.Operation{}
 	err := stmt.Query(s.db, op)
@@ -195,23 +211,25 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 	for i := range newOp.Balances {
 		newOp.Balances[i].OperationID = newOp.ID
-		newOp.Balances[i].Operation = &newOp
 
 		err = insertBalance(tx, &newOp.Balances[i])
 		if err != nil {
 			return err
 		}
 
+		newOp.Balances[i].Operation = &newOp
 	}
 
 	if len(newOp.Transactions) > 0 {
 		for i := range newOp.Transactions {
-			newOp.Transactions[i].Operation = &newOp
+			newOp.Transactions[i].OperationID = newOp.ID.Int64
 
 			err = insertTransaction(tx, &newOp.Transactions[i])
 			if err != nil {
 				return err
 			}
+
+			newOp.Transactions[i].Operation = &newOp
 		}
 	}
 
@@ -229,10 +247,13 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 func insertTransaction(txdb TXDB, tx *mt.Transaction) error {
 
-	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODEL(tx)
-	//.RETURNING(jt.Transaction.AllColumns)
+	if tx.FromID == tx.ToID {
+		return fmt.Errorf("a transaction cannot be from and to the same account")
+	}
 
-	_, err := stmt.Exec(txdb)
+	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODEL(tx).RETURNING(jt.Transaction.AllColumns)
+
+	err := stmt.Query(txdb, tx)
 	if err != nil {
 		return fmt.Errorf("insert transactions: %w", err)
 	}

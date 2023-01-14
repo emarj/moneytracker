@@ -307,3 +307,18 @@ func deleteComputedBalances(txdb TXDB, aID int64, timestamp datetime.DateTime) e
 	return nil
 
 }
+
+func (s *SQLiteStore) DeleteBalance(aID int64, timestamp datetime.DateTime) error {
+	stmt := jt.Balance.DELETE().
+		WHERE(
+			jt.Balance.AccountID.EQ(jet.Int(aID)).
+				AND(jt.Balance.Timestamp.EQ(jet.String(timestamp.String()))),
+		)
+
+	_, err := stmt.Exec(s.db)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

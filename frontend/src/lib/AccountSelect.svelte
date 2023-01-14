@@ -9,7 +9,7 @@
     const accountsQuery = useQuery(["accounts"], () => getAccounts());
 
     export let neg = false;
-    export let type = null;
+    export let type_id = null;
     export let firstSelected = true;
     export let disabled = false;
 
@@ -25,7 +25,7 @@
             owner_id === null ||
             (((a.owner.id == owner_id && !neg) ||
                 (a.owner.id != owner_id && neg)) &&
-                (type === null || a.type == type || a.is_world))
+                (type_id === null || a.type_id == type_id || a.is_world))
     );
 </script>
 

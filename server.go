@@ -84,7 +84,7 @@ func NewServer(store Store) *Server {
 
 	apiGroup := s.router.Group("api")
 	apiGroup.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}\t error=${error} \n",
+		Format: "${time_unix_micro}: method=${method}, uri=${uri}, status=${status}\t error=${error} \n",
 	}))
 
 	config := middleware.JWTConfig{
@@ -395,7 +395,7 @@ func (s *Server) deleteAccount(c echo.Context) error {
 		return err
 	}
 
-	err = s.store.DeleteAccount(aID, true)
+	err = s.store.DeleteAccount(aID)
 	if err != nil {
 		return err
 	}

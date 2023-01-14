@@ -29,7 +29,7 @@
     label="Description"
     style="width: 100%;"
 />
-<CategorySelect bind:value={op.category} />
+<CategorySelect bind:value={op.category_id} />
 
 <div class="transactions">
     <ul>
@@ -39,8 +39,8 @@
                 <div>
                     <AccountSelect
                         label="From"
-                        bind:value={t.from.id}
-                    /><AccountSelect label="To" bind:value={t.to.id} />
+                        bind:value={t.from_id}
+                    /><AccountSelect label="To" bind:value={t.to_id} />
                 </div>
                 <Textfield
                     label="Amount"

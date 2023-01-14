@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS balance (
 ---
 CREATE TABLE IF NOT EXISTS 'transaction' (
 	id INTEGER PRIMARY KEY,
-	timestamp TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	timestamp TEXT NOT NULL,
 	from_id INTEGER NOT NULL,
 	to_id INTEGER NOT NULL,
 	amount TEXT NOT NULL,

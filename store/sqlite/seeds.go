@@ -81,45 +81,45 @@ func (s *SQLiteStore) Seed() error {
 	accounts.Store("user1:cash", mt.Account{
 		Name:        "contanti",
 		DisplayName: "Contanti",
-		Owner:       entUser1,
+		OwnerID:     entUser1.ID.Int64,
 	})
 
 	accounts.Store("user1:cc1", mt.Account{
 		Name:        "conto_corrente",
 		DisplayName: "Conto Corrente",
-		Owner:       entUser1,
+		OwnerID:     entUser1.ID.Int64,
 	})
 	accounts.Store("user1:cc2", mt.Account{
 		Name:        "conto_corrente_posta",
 		DisplayName: "Conto Banco Posta",
-		Owner:       entUser1,
+		OwnerID:     entUser1.ID.Int64,
 	})
 	accounts.Store("user2:cc", mt.Account{
 		Name:        "conto_corrente",
 		DisplayName: "Conto Corrente",
-		Owner:       entUser2,
+		OwnerID:     entUser2.ID.Int64,
 	})
 	accounts.Store("user2:cash", mt.Account{
 		Name:        "contanti",
 		DisplayName: "Contanti",
-		Owner:       entUser2,
+		OwnerID:     entUser2.ID.Int64,
 	})
 	accounts.Store("user1:credits", mt.Account{
 		Name:        "credits",
 		DisplayName: "Crediti",
-		Owner:       entUser1,
+		OwnerID:     entUser1.ID.Int64,
 		TypeID:      mt.AccountCredit,
 	})
 	accounts.Store("user2:credits", mt.Account{
 		Name:        "credits",
 		DisplayName: "Crediti",
-		Owner:       entUser2,
+		OwnerID:     entUser2.ID.Int64,
 		TypeID:      mt.AccountCredit,
 	})
 	accounts.Store("user3:comune", mt.Account{
 		Name:        "cassa_comune",
 		DisplayName: "Cassa Comune",
-		Owner:       entUser3,
+		OwnerID:     entUser3.ID.Int64,
 	})
 
 	for pair := accounts.Oldest(); pair != nil; pair = pair.Next() {
@@ -152,8 +152,19 @@ func (s *SQLiteStore) Seed() error {
 		{
 			Description: "Cena Fuori in 2",
 			Transactions: []mt.Transaction{
-				{Timestamp: tt.Before, From: accounts.Value("user1:cc1"), To: mt.Account{ID: null.IntFrom(0)}, Amount: decimal.New(80, 0)},
-				{Timestamp: tt.Before, From: accounts.Value("user2:credits"), To: accounts.Value("user1:credits"), Amount: decimal.New(40, 0)}},
+				{
+					Timestamp: tt.Before,
+					FromID:    accounts.Value("user1:cc1").ID.Int64,
+					ToID:      0,
+					Amount:    decimal.New(80, 0),
+				},
+				{
+					Timestamp: tt.Before,
+					FromID:    accounts.Value("user2:credits").ID.Int64,
+					ToID:      accounts.Value("user1:credits").ID.Int64,
+					Amount:    decimal.New(40, 0),
+				},
+			},
 			TypeID:     mt.OpTypeExpense,
 			CategoryID: 0,
 		},
@@ -162,26 +173,26 @@ func (s *SQLiteStore) Seed() error {
 			Transactions: []mt.Transaction{
 				{
 					Timestamp: tt.Before,
-					From:      accounts.Value("user1:cc1"),
-					To:        accounts.Value("user1:cc2"),
+					FromID:    accounts.Value("user1:cc1").ID.Int64,
+					ToID:      accounts.Value("user1:cc2").ID.Int64,
 					Amount:    decimal.New(345, 0),
 				},
 			},
 			CategoryID: 2,
 		},
 		{
-			Description: "Prestito 100 Euro a Marco",
+			Description: "Prestito per acquisto",
 			Transactions: []mt.Transaction{
 				{
 					Timestamp: tt.Before,
-					From:      accounts.Value("user1:cash"),
-					To:        accounts.Value("user2:cash"),
+					FromID:    accounts.Value("user1:cash").ID.Int64,
+					ToID:      accounts.Value("user2:cash").ID.Int64,
 					Amount:    decimal.New(100, 0),
 				},
 				{
 					Timestamp: tt.Before,
-					From:      accounts.Value("user2:credits"),
-					To:        accounts.Value("user1:credits"),
+					FromID:    accounts.Value("user2:credits").ID.Int64,
+					ToID:      accounts.Value("user1:credits").ID.Int64,
 					Amount:    decimal.New(100, 0),
 				},
 			},

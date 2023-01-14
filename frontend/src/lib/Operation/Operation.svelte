@@ -68,6 +68,13 @@
     <div class="transactions">
         <OperationTransactions transactions={op.transactions} />
     </div>
+    {#if op.balances}
+        <div class="balances">
+            {#each op.balances as bal}
+                {bal.value}
+            {/each}
+        </div>
+    {/if}
     <Button
         on:click={() => {
             push(`/operation/${op.id}`);

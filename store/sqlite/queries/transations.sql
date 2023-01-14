@@ -122,3 +122,17 @@ SELECT category.id AS "category.id",
      parent.name AS "parent.name"
 FROM category
      LEFT JOIN category AS parent ON (parent.id = category.parent_id);
+     -----
+
+SELECT *
+FROM operation
+     LEFT JOIN `transaction` ON (`transaction`.operation_id = operation.id)
+     LEFT JOIN account AS `from` ON (`from`.id = `transaction`.from_id)
+     LEFT JOIN account AS `to` ON (`to`.id = `transaction`.to_id)
+     LEFT JOIN entity AS `from.owner` ON (`from.owner`.id = `from`.owner_id)
+     LEFT JOIN entity AS `to.owner` ON (`to.owner`.id = `to`.owner_id)
+     LEFT JOIN balance ON (balance.operation_id = operation.id)
+     LEFT JOIN entity AS `bal_owner` ON (bal_owner.id = balance.account_id)
+WHERE ((`to`.owner_id = 1) OR (`from`.owner_id = 1)) OR (bal_owner.id = 1)
+ORDER BY operation.modified_on DESC
+LIMIT 1000;

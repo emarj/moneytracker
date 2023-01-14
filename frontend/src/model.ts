@@ -16,8 +16,11 @@ export type Transaction = {
     id?: number;
     timestamp?: Date;
     amount?: number;
+    from_id: number;
     from?: Account;
+    to_id: number;
     to?: Account;
+    operation_id?: number;
     operation?: Operation;
 };
 
@@ -25,8 +28,8 @@ export type Operation = {
     id?: number;
     date_modified?: Date;
     description: string;
-    category?: number;
-    transactions: Transaction[];
+    category_id?: number;
+    transactions?: Transaction[];
 };
 
 export type Tag = {
@@ -40,7 +43,7 @@ export class Expense {
     description: string = "";
     account: number;
     shares: Share[] = [];
-    category: number;
+    category_id: number;
     tags: Tag[] = [];
 
     set isShared(shared: boolean) {
@@ -65,13 +68,13 @@ export class Expense {
     toOperation(): Operation {
         let op = {
             description: this.description,
-            category: this.category,
+            category_id: this.category_id,
             transactions: [
                 {
                     timestamp: this.timestamp,
                     amount: this.amount,
-                    from: { id: this.account },
-                    to: { id: 0 },
+                    from_id: this.account,
+                    to_id: 0,
                 },
 
             ],
@@ -82,8 +85,8 @@ export class Expense {
                 op.transactions.push({
                     timestamp: this.timestamp,
                     amount: s.amount,
-                    to: { id: s.credAccount },
-                    from: { id: s.debAccount },
+                    to_id: s.credAccount,
+                    from_id: s.debAccount,
                 })
             }
         }
@@ -142,12 +145,12 @@ export class Share {
 };
 
 export const emptyTransaction: Transaction = {
-    amount: 0, to: {}, from: {}
+    amount: 0, to_id: 0, from_id: 0
 };
 
 export const emptyOperation: Operation = {
     description: "",
-    category: "",
+    category_id: 0,
     transactions: [emptyTransaction],
 };
 

@@ -147,12 +147,14 @@ func TestAccountBalance(t *testing.T) {
 	assert.True(t, b.Delta.Valid)
 	assert.True(t, b.Delta.Decimal.Equal(b.Value))
 
-	m := NewValueMap(acc, PointList(decimal.Zero, tt.Past...), PointList(b.Value, tt.Future...))
+	m := NewValueMap(acc,
+		PointList(decimal.Zero, tt.Past...),
+		PointList(b.Value, tt.Future...))
 	m.Test(t, store)
 
 }
 
-func TestAccountBalanceWithNoBalanceAndTransactions(t *testing.T) {
+func TestAccountBalanceWithTransactions(t *testing.T) {
 	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)
@@ -178,8 +180,8 @@ func TestAccountBalanceWithNoBalanceAndTransactions(t *testing.T) {
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Now,
-				From:      acc,
-				To:        mt.Account{ID: null.IntFrom(0)},
+				FromID:    acc.ID.Int64,
+				ToID:      0,
 				Amount:    delta,
 			},
 		},
@@ -188,7 +190,9 @@ func TestAccountBalanceWithNoBalanceAndTransactions(t *testing.T) {
 
 	amount := delta.Neg()
 
-	m := NewValueMap(acc, PointList(decimal.Zero, tt.Past...), PointList(amount, tt.Future...))
+	m := NewValueMap(acc,
+		PointList(decimal.Zero, tt.Past...),
+		PointList(amount, tt.Future...))
 	m.Test(t, store)
 }
 
@@ -228,8 +232,8 @@ func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Now,
-				From:      acc,
-				To:        mt.Account{ID: null.IntFrom(0)},
+				FromID:    acc.ID.Int64,
+				ToID:      0,
 				Amount:    delta,
 			},
 		},
@@ -254,8 +258,8 @@ func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Later,
-				From:      acc,
-				To:        mt.Account{ID: null.IntFrom(0)},
+				FromID:    acc.ID.Int64,
+				ToID:      0,
 				Amount:    delta1,
 			},
 		},
@@ -322,8 +326,8 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Now.Plus(tt.Epsilon),
-				From:      acc,
-				To:        mt.Account{ID: null.IntFrom(0)},
+				FromID:    acc.ID.Int64,
+				ToID:      0,
 				Amount:    delta,
 			},
 		},
@@ -350,8 +354,8 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.BEFORE,
-				From:      mt.Account{ID: null.IntFrom(0)},
-				To:        acc,
+				FromID:    0,
+				ToID:      acc.ID.Int64,
 				Amount:    delta,
 			},
 		},
@@ -362,16 +366,54 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 	m.MultiSet(PointList(delta, tt.BEFORE, tt.Before))
 	m.Test(t, store)
 
-	/*
-		TODO: Fix deltas
+	//TODO: Fix deltas
 
-		expectedDelta := bNow.Delta.Decimal.Sub(delta)
+	/* expectedDelta := bNow.Delta.Decimal.Sub(delta)
 
-		// The delta should be updated
-		b2, err := store.GetLastBalance(acc.ID.Int64)
-		require.NoError(t, err)
-		// The delta should be updated
-		assert.True(t, b2.Delta.Decimal.Equal(expectedDelta),
-			fmt.Sprintf("want %s, got %s", expectedDelta, b2.Delta.Decimal),
-		) */
+	// The delta should be updated
+	b2, err := store.GetLastBalance(acc.ID.Int64)
+	require.NoError(t, err)
+	// The delta should be updated
+	assert.True(t, b2.Delta.Decimal.Equal(expectedDelta),
+		fmt.Sprintf("want %s, got %s", expectedDelta, b2.Delta.Decimal),
+	) */
+}
+
+func TestAccountBalanceDelete(t *testing.T) {
+	store := NewTemp()
+	err := store.Open()
+	require.NoError(t, err)
+	defer func() {
+		store.Close()
+	}()
+
+	acc := mt.Account{
+		Name:        "acc",
+		DisplayName: "Acc",
+		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		TypeID:      mt.AccountMoney,
+	}
+	err = store.AddAccount(&acc)
+	require.NoError(t, err)
+	assert.True(t, acc.ID.Valid)
+
+	b := mt.Balance{
+		AccountID: acc.ID,
+		Timestamp: tt.Now,
+		Value:     decimal.NewFromInt(1000),
+	}
+	err = store.SetBalance(&b)
+	require.NoError(t, err)
+	assert.True(t, b.Delta.Valid)
+	assert.True(t, b.Delta.Decimal.Equal(b.Value))
+
+	m := NewValueMap(acc, PointList(decimal.Zero, tt.Past...), PointList(b.Value, tt.Future...))
+	m.Test(t, store)
+
+	err = store.DeleteBalance(acc.ID.Int64, tt.Now)
+	require.NoError(t, err)
+
+	m.MultiSet(PointList(decimal.Zero, tt.Times...))
+	m.Test(t, store)
+
 }
