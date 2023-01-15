@@ -25,7 +25,7 @@
 
 <div>
     <h1>{account.display_name}{account.type == 1 ? "*" : ""}</h1>
-    type: {account.type}, name: {account.name}
+    type_id: {account.type_id}, name: {account.name}
     <AccountBalance id={account.id} bind:this={balance} />
     <div class="movements">
         <AccountMovements id={account.id} bind:this={transactions} />

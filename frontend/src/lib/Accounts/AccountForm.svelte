@@ -2,10 +2,13 @@
     import Select, { Option } from "@smui/select";
     import Button from "@smui/button";
     import Textfield from "@smui/textfield";
-    import { useMutation } from "@sveltestack/svelte-query";
-    import { addAccount } from "../../api";
+    import { useMutation, useQuery } from "@sveltestack/svelte-query";
+    import { addAccount, getTypes } from "../../api";
     import { pop } from "svelte-spa-router";
     import { entityID } from "../../store";
+    import { capitalize } from "../../util/utils";
+
+    const typesQuery = useQuery(["types"], () => getTypes());
 
     let account = {
         name: "",
@@ -29,10 +32,21 @@
 <form>
     <Textfield label="Name" bind:value={account.name} />
     <Textfield label="Display Name" bind:value={account.display_name} />
-    <Select variant="outlined" bind:value={account.type_id} label="Type">
-        <Option value={0}>Money</Option>
-        <Option value={1}>Credit</Option>
-    </Select>
+
+    {#if $typesQuery.isLoading}
+        ...
+    {:else if $typesQuery.error}
+        error
+    {:else}
+        <Select variant="outlined" bind:value={account.type_id} label="Type">
+            {#each $typesQuery.data.account as t}
+                {#if !t.system}
+                    <Option value={t.id}>{capitalize(t.name)}</Option>
+                {/if}
+            {/each}
+        </Select>
+    {/if}
+
     <div>
         <Button type="reset">Cancel</Button>
         <Button type="submit" on:click={handler}>Create</Button>

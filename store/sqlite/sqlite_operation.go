@@ -43,11 +43,11 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
-	BalanceAcc := jt.Account.AS("balance_account")
+	BalanceAcc := jt.Account.AS("account")
 
 	OwnerFrom := jt.Entity.AS("from.owner")
 	OwnerTo := jt.Entity.AS("to.owner")
-	OwnerBalanceAcc := jt.Entity.AS("balance_account.owner")
+	OwnerBalanceAcc := jt.Entity.AS("account.owner")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
@@ -57,6 +57,7 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 		OwnerFrom.AllColumns,
 		OwnerTo.AllColumns,
 		jt.Balance.AllColumns,
+		BalanceAcc.AllColumns,
 	).FROM(
 		(jt.Operation.SELECT(jet.STAR).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(limit)).AsTable("operation").LEFT_JOIN(
 			jt.Transaction,
@@ -85,6 +86,10 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 		),
 	).WHERE(
 		(To.OwnerID.EQ(jet.Int(eID)).OR(From.OwnerID.EQ(jet.Int(eID)))).OR(OwnerBalanceAcc.ID.EQ(jet.Int(eID))),
+	).ORDER_BY(
+		jt.Operation.ModifiedOn.DESC(),
+		jt.Transaction.Timestamp.DESC(),
+		jt.Balance.Timestamp.DESC(),
 	)
 
 	//println(stmt.DebugSql())
@@ -103,20 +108,21 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
-	BalanceAcc := jt.Account.AS("balance_account")
+	BalanceAcc := jt.Account.AS("account")
 
 	OwnerFrom := jt.Entity.AS("from.owner")
 	OwnerTo := jt.Entity.AS("to.owner")
-	OwnerBalanceAcc := jt.Entity.AS("balance_account.owner")
+	OwnerBalanceAcc := jt.Entity.AS("account.owner")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
 		jt.Transaction.AllColumns,
-		jt.Balance.AllColumns,
 		From.AllColumns,
 		To.AllColumns,
 		OwnerFrom.AllColumns,
 		OwnerTo.AllColumns,
+		jt.Balance.AllColumns,
+		BalanceAcc.AllColumns,
 	).FROM(
 		jt.Operation.LEFT_JOIN(
 			jt.Transaction,

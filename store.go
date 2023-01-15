@@ -28,6 +28,10 @@ type Store interface {
 	DeleteOperation(opID int64) error
 
 	GetCategories() ([]Category, error)
+	AddCategory(fullName string) (Category, error)
+
+	GetOperationTypes() []OperationType
+	GetAccountTypes() []AccountType
 
 	Login(user string, passwordHash []byte) (bool, error)
 }

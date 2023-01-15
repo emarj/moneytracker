@@ -8,6 +8,8 @@ import (
 	_ "embed"
 
 	_ "modernc.org/sqlite"
+
+	mt "github.com/emarj/moneytracker"
 )
 
 //go:embed queries/schema.sql
@@ -26,6 +28,9 @@ type SQLiteStore struct {
 	dsn     string
 	migrate bool
 	db      *sql.DB
+	//
+	accountTypes   []mt.AccountType
+	operationTypes []mt.OperationType
 }
 
 func New(filename string, migrate bool) *SQLiteStore {
@@ -51,6 +56,11 @@ func (s *SQLiteStore) Open() error {
 
 	if s.migrate {
 		err = s.Migrate()
+		if err != nil {
+			return err
+		}
+
+		err = s.Seeding()
 		if err != nil {
 			return err
 		}

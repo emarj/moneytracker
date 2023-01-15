@@ -73,7 +73,7 @@ func TestAccountNoBalance(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
@@ -98,7 +98,7 @@ func TestAccountZeroBalance(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
@@ -131,7 +131,7 @@ func TestAccountBalance(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
@@ -166,7 +166,7 @@ func TestAccountBalanceWithTransactions(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
@@ -176,7 +176,6 @@ func TestAccountBalanceWithTransactions(t *testing.T) {
 
 	err = store.AddOperation(&mt.Operation{
 		Description: "",
-		TypeID:      mt.OpTypeExpense,
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Now,
@@ -208,7 +207,7 @@ func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
@@ -228,7 +227,6 @@ func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
 
 	err = store.AddOperation(&mt.Operation{
 		Description: "",
-		TypeID:      mt.OpTypeExpense,
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Now,
@@ -254,7 +252,6 @@ func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
 
 	err = store.AddOperation(&mt.Operation{
 		Description: "",
-		TypeID:      mt.OpTypeExpense,
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Later,
@@ -302,7 +299,7 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
@@ -322,7 +319,6 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 
 	err = store.AddOperation(&mt.Operation{
 		Description: "",
-		TypeID:      mt.OpTypeExpense,
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.Now.Plus(tt.Epsilon),
@@ -350,7 +346,6 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 	// Let us add a past transaction
 	err = store.AddOperation(&mt.Operation{
 		Description: "",
-		TypeID:      mt.OpTypeExpense,
 		Transactions: []mt.Transaction{
 			{
 				Timestamp: tt.BEFORE,
@@ -391,7 +386,7 @@ func TestAccountBalanceDelete(t *testing.T) {
 		Name:        "acc",
 		DisplayName: "Acc",
 		Owner:       mt.Entity{ID: null.IntFrom(0)},
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)

@@ -4,7 +4,7 @@
     import { getOperationsByEntity } from "../api";
     import { entityID } from "../store";
     import CircularProgress from "@smui/circular-progress";
-    import Operation from "../lib/Operation/Operation.svelte";
+    import OperationPreview from "../lib/Operation/OperationPreview.svelte";
 
     const operationsQuery = useQuery(
         ["operations", "entity", $entityID, "all"],
@@ -26,7 +26,7 @@
             {#each $operationsQuery.data as op (op.id)}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <li on:click={() => (expanded = !expanded)} class:expanded>
-                    <Operation {op} />
+                    <OperationPreview {op} />
                 </li>{/each}
         </ol>
     {/if}

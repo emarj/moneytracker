@@ -1,16 +1,15 @@
-package sqlite
+package moneytracker
 
 import (
 	"fmt"
 
-	mt "github.com/emarj/moneytracker"
 	tt "github.com/emarj/moneytracker/datetime/test"
 	"github.com/shopspring/decimal"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
 )
 
-func (s *SQLiteStore) Seed() error {
+func Populate(s Store) error {
 	fmt.Print("Seeding...")
 	var err error
 
@@ -41,7 +40,7 @@ func (s *SQLiteStore) Seed() error {
 		}
 	}
 
-	entUser1 := mt.Entity{
+	entUser1 := Entity{
 		ID:         null.IntFrom(1),
 		Name:       "arianna",
 		IsSystem:   false,
@@ -53,7 +52,7 @@ func (s *SQLiteStore) Seed() error {
 		return err
 	}
 
-	entUser2 := mt.Entity{
+	entUser2 := Entity{
 		ID:         null.IntFrom(2),
 		Name:       "marco",
 		IsSystem:   false,
@@ -64,7 +63,7 @@ func (s *SQLiteStore) Seed() error {
 	if err != nil {
 		return err
 	}
-	entUser3 := mt.Entity{
+	entUser3 := Entity{
 		ID:         null.IntFrom(3),
 		Name:       "am",
 		IsSystem:   false,
@@ -76,47 +75,47 @@ func (s *SQLiteStore) Seed() error {
 		return err
 	}
 
-	accounts := orderedmap.New[string, mt.Account]()
+	accounts := orderedmap.New[string, Account]()
 
-	accounts.Store("user1:cash", mt.Account{
+	accounts.Store("user1:cash", Account{
 		Name:        "contanti",
 		DisplayName: "Contanti",
 		OwnerID:     entUser1.ID.Int64,
 	})
 
-	accounts.Store("user1:cc1", mt.Account{
+	accounts.Store("user1:cc1", Account{
 		Name:        "conto_corrente",
 		DisplayName: "Conto Corrente",
 		OwnerID:     entUser1.ID.Int64,
 	})
-	accounts.Store("user1:cc2", mt.Account{
+	accounts.Store("user1:cc2", Account{
 		Name:        "conto_corrente_posta",
 		DisplayName: "Conto Banco Posta",
 		OwnerID:     entUser1.ID.Int64,
 	})
-	accounts.Store("user2:cc", mt.Account{
+	accounts.Store("user2:cc", Account{
 		Name:        "conto_corrente",
 		DisplayName: "Conto Corrente",
 		OwnerID:     entUser2.ID.Int64,
 	})
-	accounts.Store("user2:cash", mt.Account{
+	accounts.Store("user2:cash", Account{
 		Name:        "contanti",
 		DisplayName: "Contanti",
 		OwnerID:     entUser2.ID.Int64,
 	})
-	accounts.Store("user1:credits", mt.Account{
+	accounts.Store("user1:credits", Account{
 		Name:        "credits",
 		DisplayName: "Crediti",
 		OwnerID:     entUser1.ID.Int64,
-		TypeID:      mt.AccountCredit,
+		TypeID:      AccTypeCredit,
 	})
-	accounts.Store("user2:credits", mt.Account{
+	accounts.Store("user2:credits", Account{
 		Name:        "credits",
 		DisplayName: "Crediti",
 		OwnerID:     entUser2.ID.Int64,
-		TypeID:      mt.AccountCredit,
+		TypeID:      AccTypeCredit,
 	})
-	accounts.Store("user3:comune", mt.Account{
+	accounts.Store("user3:comune", Account{
 		Name:        "cassa_comune",
 		DisplayName: "Cassa Comune",
 		OwnerID:     entUser3.ID.Int64,
@@ -129,7 +128,7 @@ func (s *SQLiteStore) Seed() error {
 		}
 	}
 
-	err = s.SetBalance(&mt.Balance{
+	err = s.SetBalance(&Balance{
 		AccountID: accounts.Value("user1:cc1").ID,
 		Timestamp: tt.BEFORE,
 		Value:     decimal.NewFromInt(4000),
@@ -139,7 +138,7 @@ func (s *SQLiteStore) Seed() error {
 		return err
 	}
 
-	err = s.SetBalance(&mt.Balance{
+	err = s.SetBalance(&Balance{
 		AccountID: accounts.Value("user1:cc1").ID,
 		Timestamp: tt.Now,
 		Value:     decimal.NewFromInt(5000),
@@ -148,10 +147,10 @@ func (s *SQLiteStore) Seed() error {
 		return err
 	}
 
-	operations := []mt.Operation{
+	operations := []Operation{
 		{
 			Description: "Cena Fuori in 2",
-			Transactions: []mt.Transaction{
+			Transactions: []Transaction{
 				{
 					Timestamp: tt.Before,
 					FromID:    accounts.Value("user1:cc1").ID.Int64,
@@ -165,12 +164,12 @@ func (s *SQLiteStore) Seed() error {
 					Amount:    decimal.New(40, 0),
 				},
 			},
-			TypeID:     mt.OpTypeExpense,
+			TypeID:     OpTypeExpense,
 			CategoryID: 0,
 		},
 		{
 			Description: "Giroconto",
-			Transactions: []mt.Transaction{
+			Transactions: []Transaction{
 				{
 					Timestamp: tt.Before,
 					FromID:    accounts.Value("user1:cc1").ID.Int64,
@@ -182,7 +181,7 @@ func (s *SQLiteStore) Seed() error {
 		},
 		{
 			Description: "Prestito per acquisto",
-			Transactions: []mt.Transaction{
+			Transactions: []Transaction{
 				{
 					Timestamp: tt.Before,
 					FromID:    accounts.Value("user1:cash").ID.Int64,

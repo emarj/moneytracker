@@ -29,7 +29,7 @@ func TestAccountCRUD(t *testing.T) {
 		Name:        "testacc",
 		DisplayName: "Test Acc",
 		OwnerID:     e.ID.Int64,
-		TypeID:      mt.AccountMoney,
+		TypeID:      mt.AccTypeMoney,
 	}
 
 	err = store.AddAccount(&a)

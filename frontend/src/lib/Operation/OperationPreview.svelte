@@ -42,7 +42,7 @@
 </script>
 
 <div class:expense={total < 0} class:income={total > 0}>
-    <span class="date">{DateFMT(op.modified_on)}</span>
+    <!-- <span class="date">{DateFMT(op.modified_on)}</span> -->
     <span class="desc">
         {op.description}
     </span>
@@ -64,6 +64,14 @@
             hide_plus={true}
         />
     {/if}
+    <button
+        on:click={() => {
+            push(`/operation/${op.id}`);
+        }}
+        class="more"
+    >
+        Details
+    </button>
     <div class="transactions">
         <OperationTransactions transactions={op.transactions} />
     </div>
@@ -74,18 +82,7 @@
             {/each}
         </div>
     {/if}
-    <Button
-        class="delete"
-        on:click={(event) => {
-            event.preventDefault();
-            $mutation.mutate(op.id);
-        }}
-        disabled={$mutation.isLoading}>Delete</Button
-    >
 </div>
-<pre>
-    {JSON.stringify(op, null, 4)}
-</pre>
 
 <style lang="scss">
     div {

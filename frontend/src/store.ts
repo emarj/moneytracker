@@ -5,10 +5,14 @@ import { writable as lsWritable } from 'svelte-local-storage-store'
 // Persistent stores
 export const authStore = lsWritable("auth", null)
 export const entityID = lsWritable("entity_id", 1);
+export const showBalances = lsWritable("showBalances", true);
 
 // In-memory stores
 export const messageStore = writable(null);
-export const showBalances = lsWritable("showBalances", true);
+
+// TODO: Type store
+//export const typesStore = writable(null);
+
 
 
 // History Store

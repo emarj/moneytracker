@@ -17,8 +17,9 @@ type accountTypeTable struct {
 	sqlite.Table
 
 	//Columns
-	ID   sqlite.ColumnInteger
-	Name sqlite.ColumnString
+	ID     sqlite.ColumnInteger
+	Name   sqlite.ColumnString
+	System sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
@@ -61,16 +62,18 @@ func newAccountTypeTableImpl(schemaName, tableName, alias string) accountTypeTab
 	var (
 		IDColumn       = sqlite.IntegerColumn("id")
 		NameColumn     = sqlite.StringColumn("name")
-		allColumns     = sqlite.ColumnList{IDColumn, NameColumn}
-		mutableColumns = sqlite.ColumnList{NameColumn}
+		SystemColumn   = sqlite.IntegerColumn("system")
+		allColumns     = sqlite.ColumnList{IDColumn, NameColumn, SystemColumn}
+		mutableColumns = sqlite.ColumnList{NameColumn, SystemColumn}
 	)
 
 	return accountTypeTable{
 		Table: sqlite.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:   IDColumn,
-		Name: NameColumn,
+		ID:     IDColumn,
+		Name:   NameColumn,
+		System: SystemColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

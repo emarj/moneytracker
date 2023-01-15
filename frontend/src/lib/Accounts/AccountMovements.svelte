@@ -2,7 +2,7 @@
     import CircularProgress from "@smui/circular-progress";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getAccountBalances, getTransactionsByAccount } from "../../api";
-    import { DateFMT } from "../../util/utils";
+    import { TimestampFMT } from "../../util/utils";
     import Amount from "../Amount.svelte";
 
     export let id;
@@ -35,7 +35,7 @@
         <table>
             {#each $transactionsQuery.data as t (t.id)}
                 <tr>
-                    <td>{DateFMT(t.timestamp).substring(0, 5)}</td>
+                    <td>{TimestampFMT(t.timestamp).substring(0, 5)}</td>
                     <td><strong>{t.operation.description}</strong></td>
                     <td>
                         <Amount
@@ -56,7 +56,7 @@
         <table>
             {#each $balancesQuery.data as b (b.id + b.timestamp)}
                 <tr class="balance">
-                    <td>{DateFMT(b.timestamp).substring(0, 5)}</td>
+                    <td>{TimestampFMT(b.timestamp).substring(0, 5)}</td>
                     <td>
                         <strong>
                             {#if b.operation}

@@ -14,7 +14,7 @@ type Record struct {
 	ID          null.Int          `json:"id" sql:"primary_key"`
 	CreatedOn   datetime.DateTime `json:"created_on"`
 	ModifiedOn  datetime.DateTime `json:"modified_on"`
-	CreatedByID int               `json:"created_by_id"`
+	CreatedByID int64             `json:"created_by_id"`
 }
 
 type User struct {
@@ -32,9 +32,12 @@ type Entity struct {
 	IsExternal bool     `json:"is_external"` // For example a friend that owes me
 }
 
-type AccountType struct {
-	ID   null.Int `json:"id" sql:"primary_key"`
-	Name string   `json:"name"`
+const EntSystemID int64 = 0
+
+func SystemEntities() []Entity {
+	return []Entity{
+		{ID: null.IntFrom(EntSystemID), Name: "system", IsSystem: true, IsExternal: false},
+	}
 }
 
 type Account struct {
@@ -44,22 +47,52 @@ type Account struct {
 	OwnerID     int64        `json:"owner_id"`
 	Owner       Entity       `json:"owner" alias:"owner"` // TODO: Allow for shared accounts
 	IsSystem    bool         `json:"is_system"`           // This can't be deleted by the user
-	IsWorld     bool         `json:"is_world"`
-	IsGroup     bool         `json:"is_group"` // This should not be type inside type
-	TypeID      int          `json:"type_id"`
+	IsGroup     bool         `json:"is_group"`            // This should not be type inside type
+	TypeID      int64        `json:"type_id"`
 	Type        *AccountType `json:"type"`
 	GroupID     null.Int     `json:"group_id"`
 }
 
-// These must the same as in schema.sql
+const AccWorldID int64 = 0
+
+func SystemAccounts() []Account {
+	return []Account{
+		{
+			ID:          null.IntFrom(AccWorldID),
+			Name:        "world",
+			DisplayName: "World",
+			OwnerID:     EntSystemID,
+			IsSystem:    true,
+			TypeID:      AccTypeWorld,
+		},
+	}
+}
+
+type AccountType struct {
+	ID     int64  `json:"id" sql:"primary_key"`
+	Name   string `json:"name"`
+	System bool   `json:"system"` //System reserved
+}
+
 const (
-	AccountMoney int = iota
-	AccountCredit
-	AccountInvestment
+	AccTypeWorld int64 = iota
+	AccTypeMoney
+	AccTypeCredit
+	AccTypeInvestment
 )
+
+func AccountTypes() []AccountType {
+	return []AccountType{
+		{ID: AccTypeWorld, Name: "world", System: true},
+		{ID: AccTypeMoney, Name: "money"},
+		{ID: AccTypeCredit, Name: "credit"},
+		{ID: AccTypeInvestment, Name: "investment"},
+	}
+}
 
 type Balance struct {
 	AccountID   null.Int            `json:"account_id" sql:"primary_key"`
+	Account     *Account            `json:"account"`
 	Timestamp   datetime.DateTime   `json:"timestamp" sql:"primary_key"`
 	Value       decimal.Decimal     `json:"value"`
 	Delta       decimal.NullDecimal `json:"delta"`
@@ -86,32 +119,42 @@ type Operation struct {
 	ID          null.Int          `json:"id" sql:"primary_key"`
 	CreatedOn   datetime.DateTime `json:"created_on"`
 	ModifiedOn  datetime.DateTime `json:"modified_on"`
-	CreatedByID int               `json:"created_by_id"`
+	CreatedByID int64             `json:"created_by_id"`
 	//Shares []Entity
 	Description  string         `json:"description"`
-	TypeID       int            `json:"type_id"`
+	TypeID       int64          `json:"type_id"`
 	Type         *OperationType `json:"type"`
 	Transactions []Transaction  `json:"transactions"`
 	Balances     []Balance      `json:"balances"`
 	//////////////////////////////////////////////
-	CategoryID int             `json:"category_id"`
+	CategoryID int64           `json:"category_id"`
 	Details    json.RawMessage `json:"details"`
 	//Parent       *Operation    `json:"parent"`
 }
 
 type OperationType struct {
-	ID   int    `json:"id" sql:"primary_key"`
+	ID   int64  `json:"id" sql:"primary_key"`
 	Name string `json:"name"`
 }
 
 // This must be the same as in schema.sql
 const (
-	OpTypeOther         int = iota
-	OpTypeBalanceAdjust     // A balance adjust
-	OpTypeExpense           // Something that enters the system?
-	OpTypeIncome            // Something that exits the system?
-	OpTypeTransfer          // Just a transfer
+	OpTypeOther         int64 = iota
+	OpTypeBalanceAdjust       // A balance adjust
+	OpTypeExpense             // Something that enters the system?
+	OpTypeIncome              // Something that exits the system?
+	OpTypeTransfer            // Just a transfer
 )
+
+func OperationTypes() []OperationType {
+	return []OperationType{
+		{OpTypeOther, "other"},
+		{OpTypeBalanceAdjust, "balance"},
+		{OpTypeExpense, "expense"},
+		{OpTypeIncome, "income"},
+		{OpTypeTransfer, "transfer"},
+	}
+}
 
 type Category struct {
 	ID       null.Int        `json:"id" sql:"primary_key"`
@@ -121,3 +164,11 @@ type Category struct {
 }
 
 type ParentCategory Category
+
+const CatUncategorized int64 = 0
+
+func SystemCategories() []Category {
+	return []Category{
+		{ID: null.IntFrom(CatUncategorized), Name: "Uncategorized"},
+	}
+}

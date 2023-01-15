@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS entity (
 ---
 CREATE TABLE IF NOT EXISTS account_type (
 	id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL
+	name TEXT NOT NULL,
+	system INTEGER NOT NULL CHECK (system IN (0, 1))
 );
 
 CREATE TABLE IF NOT EXISTS account (
@@ -34,7 +35,6 @@ CREATE TABLE IF NOT EXISTS account (
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
-	is_world INTEGER NOT NULL DEFAULT FALSE CHECK (is_world IN (0, 1)),
 	is_group INTEGER NOT NULL DEFAULT FALSE CHECK (is_group IN (0, 1)),
 	type_id INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT 0 REFERENCES account_type(id),
 	group_id INTEGER REFERENCES account(id)
@@ -86,10 +86,10 @@ CREATE TABLE IF NOT EXISTS category (
 ---
 
 --- Insert Types and Base Categories
-INSERT INTO account_type (id,name) VALUES (0,"money"),(1,"credit"),(2,"investment") ON CONFLICT DO NOTHING;
+/* INSERT INTO account_type (id,name) VALUES (0,"money"),(1,"credit"),(2,"investment") ON CONFLICT DO NOTHING;
 INSERT INTO operation_type (id,name) VALUES (0,"other"),(1,"balance"),(2,"expense"),(3,"income"),(4,"transfer") ON CONFLICT DO NOTHING;
-INSERT INTO category (id,name) VALUES (0,"Uncategorized") ON CONFLICT DO NOTHING;
+INSERT INTO category (id,name) VALUES (0,"Uncategorized") ON CONFLICT DO NOTHING; */
 
 --- Insert System Entity and Account
-INSERT INTO entity (id,name,is_system,is_external) VALUES (0,"_system",TRUE,FALSE) ON CONFLICT DO NOTHING;
-INSERT INTO account (id,owner_id,name,display_name,is_system,is_world) VALUES (0,0,"_world","World",TRUE,TRUE) ON CONFLICT DO NOTHING;
+/* INSERT INTO entity (id,name,is_system,is_external) VALUES (0,"_system",TRUE,FALSE) ON CONFLICT DO NOTHING;
+INSERT INTO account (id,owner_id,name,display_name,is_system,is_world) VALUES (0,0,"_world","World",TRUE,TRUE) ON CONFLICT DO NOTHING; */

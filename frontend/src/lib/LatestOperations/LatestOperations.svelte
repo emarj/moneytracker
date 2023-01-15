@@ -4,8 +4,8 @@
     import { getOperationsByEntity } from "../../api";
     import { entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
-    import Operation from "../Operation/Operation.svelte";
     import { link } from "svelte-spa-router";
+    import OperationPreview from "../Operation/OperationPreview.svelte";
 
     const operationsQuery = useQuery(
         ["operations", "entity", $entityID, "latest"],
@@ -16,7 +16,7 @@
 </script>
 
 <div>
-    <h2>Lastest transactions</h2>
+    <h2>Lastest Operations</h2>
     <!--<button
         on:click={() => {
             console.log(`Invalidating Transactions of Entity ${eID}`);
@@ -28,20 +28,19 @@
     {:else if $operationsQuery.error}
         Error: {$operationsQuery.error?.message}
     {:else if $operationsQuery.data}
-        <ol>
+        <ul>
             {#each $operationsQuery.data as op (op.id)}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <li on:click={() => (expanded = !expanded)} class:expanded>
-                    <Operation {op} />
+                <li class:expanded>
+                    <OperationPreview {op} />
                 </li>
             {/each}
-        </ol>
+        </ul>
     {/if}
     <a href="/operations" use:link>More</a>
 </div>
 
 <style lang="scss">
-    ol {
+    ul {
         list-style: none;
         width: 100%;
         padding: 0;

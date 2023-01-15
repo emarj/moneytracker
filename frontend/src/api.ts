@@ -17,6 +17,12 @@ export const login = (l) =>
 export const logout = () =>
     fetcher(`${baseURL}/logout`, { method: "POST" })
 
+/////
+
+export const getTypes = () =>
+    fetcher(`${baseURL}/types`)
+/////
+
 export const getEntities = () =>
     fetcher(`${baseURL}/entities`)
 

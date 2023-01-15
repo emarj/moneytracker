@@ -11,7 +11,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/emarj/moneytracker"
+	mt "github.com/emarj/moneytracker"
 	"github.com/emarj/moneytracker/store/sqlite"
 )
 
@@ -58,13 +58,13 @@ func main() {
 	}()
 
 	if *populate {
-		err := s.Seed()
+		err := mt.Populate(s)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	srv := moneytracker.NewServer(s)
+	srv := mt.NewServer(s)
 
 	go func() {
 		if err := srv.Start(url); err != nil && err != http.ErrServerClosed {
