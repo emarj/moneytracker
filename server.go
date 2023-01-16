@@ -5,7 +5,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -32,6 +31,7 @@ type jwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
+// FIXME: change this
 var secret_key = []byte("super_secret_key")
 
 type Server struct {
@@ -48,10 +48,9 @@ func NewServer(store Store) *Server {
 	s.router.HideBanner = true
 
 	// Middlewares
-	//s.router.Pre(middleware.AddTrailingSlash()) Be ware this is a mess
-	/* s.router.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}\t error=${err} \n",
-	})) */
+
+	//s.router.Pre(middleware.AddTrailingSlash()) This causes a mess with nested routes
+
 	s.router.Use(middleware.Recover())
 
 	s.router.Use(middleware.CORS())
@@ -60,7 +59,7 @@ func NewServer(store Store) *Server {
 
 	proxyURL := os.Getenv("MT_FRONTEND_URL")
 	if proxyURL != "" {
-		fmt.Printf("\nFrontend in proxy mode %s\n", proxyURL)
+		fmt.Printf("\nFrontend proxy mode %s\n", proxyURL)
 		frontendURL, err := url.Parse(proxyURL)
 		if err != nil {
 			s.router.Logger.Fatal(err)
@@ -74,7 +73,6 @@ func NewServer(store Store) *Server {
 			Balancer: middleware.NewRoundRobinBalancer([]*middleware.ProxyTarget{{URL: frontendURL}}),
 		}))
 	} else {
-		log.Println("frontend: embedded mode")
 		var contentHandler = echo.WrapHandler(http.FileServer(http.FS(content)))
 		// The embedded files will all be in the '/frontend/dist/' folder so need to rewrite the request (could also do this with fs.Sub)
 		var contentRewrite = middleware.Rewrite(map[string]string{"/*": "/frontend/dist/$1"})
