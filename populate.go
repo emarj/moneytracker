@@ -10,7 +10,7 @@ import (
 )
 
 func Populate(s Store) error {
-	fmt.Print("Seeding...")
+	fmt.Print("Populating...")
 	var err error
 
 	tt.Init()
@@ -205,6 +205,26 @@ func Populate(s Store) error {
 			return err
 		}
 		operations[k] = op
+	}
+
+	user1 := User{
+		Name:        "arianna",
+		DisplayName: "Arianna",
+		IsAdmin:     false,
+	}
+	err = s.Register(&user1, "prova")
+	if err != nil {
+		return err
+	}
+
+	user2 := User{
+		Name:        "marco",
+		DisplayName: "Marco",
+		IsAdmin:     false,
+	}
+	err = s.Register(&user2, "pippo")
+	if err != nil {
+		return err
 	}
 
 	fmt.Println("OK")

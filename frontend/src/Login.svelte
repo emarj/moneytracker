@@ -17,12 +17,18 @@
 <div>
     <h1>Login</h1>
     <form>
-        <Textfield variant="outlined" bind:value={l.user} label="User" />
+        <Textfield
+            variant="outlined"
+            bind:value={l.user}
+            label="User"
+            autocomplete="username"
+        />
         <Textfield
             variant="outlined"
             bind:value={l.password}
             label="Password"
             type="password"
+            autocomplete="current-password"
         />
         <div>
             <Button type="reset" variant="outlined">Cancel</Button>

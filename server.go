@@ -15,8 +15,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/shopspring/decimal"
-	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/guregu/null.v4"
 )
 
 //go:embed frontend/dist/*
@@ -106,27 +104,28 @@ func NewServer(store Store) *Server {
 
 	apiGroup.GET("/types", s.getTypes)
 
-	apiGroup.GET("/entity/:eid", s.getEntity)
 	apiGroup.GET("/entities", s.getEntities)
+	apiGroup.GET("/entity/:eid", s.getEntity)
 
-	apiGroup.GET("/account/:aid", s.getAccount)
-	apiGroup.DELETE("/account/:aid", s.deleteAccount)
 	apiGroup.GET("/accounts", s.getAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
+	apiGroup.GET("/account/:aid", s.getAccount)
 	apiGroup.POST("/account", s.addAccount)
+	apiGroup.DELETE("/account/:aid", s.deleteAccount)
 
 	apiGroup.GET("/balance/:aid", s.getBalance)
 	apiGroup.GET("/balance/history/:aid", s.getBalanceHistory)
 	apiGroup.POST("/balance", s.setBalance)
 
-	//apiGroup.GET("/transactions", s.getTransactions)
-	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/transactions/account/:aid", s.getTransactionsByAccount)
+
+	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/operation/:opid", s.getOperation)
-	apiGroup.DELETE("/operation/:opid", s.deleteOperation)
 	apiGroup.POST("/operation", s.addOperation)
+	apiGroup.DELETE("/operation/:opid", s.deleteOperation)
 
 	apiGroup.GET("/categories", s.getCategories)
+	apiGroup.POST("/category", s.addCategory)
 
 	return s
 }
@@ -162,24 +161,15 @@ func (s *Server) Login(c echo.Context) error {
 		return err
 	}
 
-	passHash, err := bcrypt.GenerateFromPassword([]byte(login.Password), 14)
+	user, err := s.store.Login(login.User, login.Password)
 	if err != nil {
+		//FIXME look for error
 		return err
 	}
-
-	ok, err := s.store.Login(login.User, passHash)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return echo.ErrUnauthorized
-	}
-
-	user := User{ID: null.IntFrom(99), Name: login.User, IsAdmin: true} // This should be returned by the store.Login function
 
 	// Valid login
 
-	expiration := time.Now().Add(time.Hour * 720)
+	expiration := time.Now().Add(time.Hour * 72)
 
 	// Set custom claims
 	claims := &jwtCustomClaims{
@@ -238,12 +228,21 @@ func extractClaims(c echo.Context) (*jwtCustomClaims, error) {
 	return claims, nil
 }
 
+func getUser(c echo.Context) (User, error) {
+	claims, err := extractClaims(c)
+	if err != nil {
+		return User{}, err
+	}
+
+	return claims.User, nil
+}
+
 func (s *Server) Greet(c echo.Context) error {
 
-	claims, err := extractClaims(c)
+	u, err := getUser(c)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, claims.User)
+	return c.JSON(http.StatusOK, u)
 }

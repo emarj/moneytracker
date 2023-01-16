@@ -33,5 +33,6 @@ type Store interface {
 	GetOperationTypes() []OperationType
 	GetAccountTypes() []AccountType
 
-	Login(user string, passwordHash []byte) (bool, error)
+	Login(user string, password string) (User, error)
+	Register(user *User, password string) error
 }

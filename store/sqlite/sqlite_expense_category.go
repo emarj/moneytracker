@@ -25,7 +25,6 @@ func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
 			),
 		).ORDER_BY(jt.Category.Name)
 
-	//println(stmt.DebugSql())
 	categories := []mt.Category{}
 	err := stmt.Query(s.db, &categories)
 	if err != nil {
@@ -51,7 +50,7 @@ func insertCategory(db TXDB, c *mt.Category) error {
 	stmt := jt.Category.INSERT(jt.Category.AllColumns).MODEL(c).RETURNING(jt.Category.AllColumns)
 	err := stmt.Query(db, c)
 	if err != nil {
-		return fmt.Errorf("insert category: %w", err)
+		return err
 	}
 
 	return nil
@@ -61,9 +60,14 @@ const MaxSubCategoryDepth int = 2
 
 func (s *SQLiteStore) AddCategory(fullName string) (cat mt.Category, err error) {
 
+	if fullName == "" {
+		err = errors.New("category name cannot be empty")
+		return
+	}
 	names := strings.Split(fullName, "/")
 	if len(names) > MaxSubCategoryDepth {
-		return cat, fmt.Errorf("sub-categories can have at max depth %d, got %d: %q", MaxSubCategoryDepth, len(names), fullName)
+		err = fmt.Errorf("sub-categories can have at max depth %d, got %d: %q", MaxSubCategoryDepth, len(names), fullName)
+		return
 	}
 
 	var parentCat mt.Category

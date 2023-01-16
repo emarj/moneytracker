@@ -245,7 +245,7 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 	}
 
 	// the insert is successful, update external operation
-	op = &newOp
+	*op = newOp
 
 	return nil
 

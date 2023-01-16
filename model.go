@@ -22,7 +22,6 @@ type User struct {
 	Name        string   `json:"name"`
 	DisplayName string   `json:"display_name"`
 	IsAdmin     bool     `json:"is_admin"`
-	Password    string   `json:"password"`
 }
 
 type Entity struct {
@@ -159,6 +158,7 @@ func OperationTypes() []OperationType {
 type Category struct {
 	ID       null.Int        `json:"id" sql:"primary_key"`
 	Name     string          `json:"name"`
+	FullName string          `json:"full_name"`
 	ParentID null.Int        `json:"parent_id"`
 	Parent   *ParentCategory `json:"parent" alias:"parent"`
 }

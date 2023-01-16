@@ -10,13 +10,11 @@ import (
 
 // ************* Handlers *****************
 func (s *Server) getTypes(c echo.Context) error {
-	return c.JSON(http.StatusOK, struct {
-		Operation []OperationType `json:"operation"`
-		Account   []AccountType   `json:"account"`
-	}{
-		s.store.GetOperationTypes(),
-		s.store.GetAccountTypes(),
+	return c.JSON(http.StatusOK, echo.Map{
+		"operation": s.store.GetOperationTypes(),
+		"account":   s.store.GetAccountTypes(),
 	})
+
 }
 
 // Entities
@@ -251,12 +249,12 @@ func (s *Server) addOperation(c echo.Context) error {
 		return err
 	}
 
-	claims, err := extractClaims(c)
+	u, err := getUser(c)
 	if err != nil {
 		return err
 	}
 
-	op.CreatedByID = claims.User.ID.Int64
+	op.CreatedByID = u.ID.Int64
 
 	err = s.store.AddOperation(&op)
 	if err != nil {
@@ -264,14 +262,6 @@ func (s *Server) addOperation(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, op)
-}
-
-func (s *Server) getCategories(c echo.Context) error {
-	cl, err := s.store.GetCategories()
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, cl)
 }
 
 func (s *Server) deleteOperation(c echo.Context) error {
@@ -286,4 +276,29 @@ func (s *Server) deleteOperation(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, nil)
+}
+
+func (s *Server) getCategories(c echo.Context) error {
+	cl, err := s.store.GetCategories()
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, cl)
+}
+
+func (s *Server) addCategory(c echo.Context) error {
+
+	cat := Category{}
+
+	err := json.NewDecoder(c.Request().Body).Decode(&cat)
+	if err != nil {
+		return err
+	}
+
+	cat, err = s.store.AddCategory(cat.FullName)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, cat)
 }
