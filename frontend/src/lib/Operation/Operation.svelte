@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DateFMT } from "../../util/utils";
+    import { DateFMT, JSONPretty } from "../../util/utils";
     import type { Operation } from "../../model";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";
@@ -84,7 +84,7 @@
     >
 </div>
 <pre>
-    {JSON.stringify(op, null, 4)}
+    {JSONPretty(op)}
 </pre>
 
 <style lang="scss">

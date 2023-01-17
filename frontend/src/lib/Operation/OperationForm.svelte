@@ -13,6 +13,7 @@
     import { useMutation } from "@sveltestack/svelte-query";
     import { addOperation } from "../../api";
     import { push } from "svelte-spa-router";
+    import { JSONPretty } from "../../util/utils";
 
     export let op: Operation = structuredClone(emptyOperation);
 
@@ -76,7 +77,7 @@
 </div>
 
 <h3>Preview</h3>
-<pre>{JSON.stringify(op, null, 4)}</pre>
+<pre>{JSONPretty(op)}</pre>
 
 <style lang="scss">
     ul,

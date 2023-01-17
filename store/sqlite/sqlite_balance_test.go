@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
-	"gopkg.in/guregu/null.v4"
 )
 
 type Point struct {
@@ -72,12 +71,13 @@ func TestAccountNoBalance(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
 	require.NoError(t, err)
 	assert.True(t, acc.ID.Valid)
+	assert.Equal(t, acc.OwnerID, mt.EntSystemID)
 
 	// With no balances the balance should be zero for all times
 	m := NewValueMap(acc, PointList(decimal.Zero, tt.Times...))
@@ -97,7 +97,7 @@ func TestAccountZeroBalance(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
@@ -130,7 +130,7 @@ func TestAccountBalance(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
@@ -165,7 +165,7 @@ func TestAccountBalanceWithTransactions(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
@@ -206,7 +206,7 @@ func TestAccountBalanceWithBalanceAndTransactions(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
@@ -298,7 +298,7 @@ func TestAccountBalancePastTransactionDeltas(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)
@@ -385,7 +385,7 @@ func TestAccountBalanceDelete(t *testing.T) {
 	acc := mt.Account{
 		Name:        "acc",
 		DisplayName: "Acc",
-		Owner:       mt.Entity{ID: null.IntFrom(0)},
+		OwnerID:     mt.EntSystemID,
 		TypeID:      mt.AccTypeMoney,
 	}
 	err = store.AddAccount(&acc)

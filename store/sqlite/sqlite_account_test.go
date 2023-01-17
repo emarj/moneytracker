@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	mt "github.com/emarj/moneytracker"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,11 +35,15 @@ func TestAccountCRUD(t *testing.T) {
 
 	err = store.AddAccount(&a)
 	require.NoError(t, err)
-	require.True(t, a.ID.Valid)
+	assert.True(t, a.ID.Valid)
+	assert.Nil(t, a.Owner)
 
 	b, err := store.GetAccount(a.ID.Int64)
 	require.NoError(t, err)
-	require.Equal(t, &a, b)
+	//We need to do this since AddAccount does not return the entity
+	assert.Equal(t, e, *b.Owner)
+	b.Owner = nil
+	assert.Equal(t, &a, b)
 
 	b.Name = "newname"
 	b.DisplayName = "NewName"
@@ -49,7 +54,8 @@ func TestAccountCRUD(t *testing.T) {
 
 	c, err := store.GetAccount(a.ID.Int64)
 	require.NoError(t, err)
-	require.Equal(t, b, c)
+	c.Owner = nil
+	assert.Equal(t, b, c)
 
 	err = store.DeleteAccount(a.ID.Int64)
 	require.NoError(t, err)

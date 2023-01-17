@@ -44,11 +44,11 @@ type Account struct {
 	Name        string       `json:"name"`
 	DisplayName string       `json:"display_name"`
 	OwnerID     int64        `json:"owner_id"`
-	Owner       Entity       `json:"owner" alias:"owner"` // TODO: Allow for shared accounts
-	IsSystem    bool         `json:"is_system"`           // This can't be deleted by the user
-	IsGroup     bool         `json:"is_group"`            // This should not be type inside type
+	Owner       *Entity      `json:"owner,omitempty" alias:"owner"` // TODO: Allow for shared accounts
+	IsSystem    bool         `json:"is_system"`                     // This can't be deleted by the user
+	IsGroup     bool         `json:"is_group"`                      // This should not be type inside type
 	TypeID      int64        `json:"type_id"`
-	Type        *AccountType `json:"type"`
+	Type        *AccountType `json:"type,omitempty"`
 	GroupID     null.Int     `json:"group_id"`
 }
 
@@ -91,14 +91,14 @@ func AccountTypes() []AccountType {
 
 type Balance struct {
 	AccountID   null.Int            `json:"account_id" sql:"primary_key"`
-	Account     *Account            `json:"account"`
+	Account     *Account            `json:"account,omitempty"`
 	Timestamp   datetime.DateTime   `json:"timestamp" sql:"primary_key"`
 	Value       decimal.Decimal     `json:"value"`
 	Delta       decimal.NullDecimal `json:"delta"`
 	IsComputed  bool                `json:"is_computed"`
 	Comment     string              `json:"comment"`
 	OperationID null.Int            `json:"operation_id"`
-	Operation   *Operation          `json:"operation"`
+	Operation   *Operation          `json:"operation,omitempty"`
 }
 
 type Transaction struct {
@@ -122,13 +122,14 @@ type Operation struct {
 	//Shares []Entity
 	Description  string         `json:"description"`
 	TypeID       int64          `json:"type_id"`
-	Type         *OperationType `json:"type"`
-	Transactions []Transaction  `json:"transactions"`
-	Balances     []Balance      `json:"balances"`
+	Type         *OperationType `json:"type,omitempty"`
+	Transactions []Transaction  `json:"transactions,omitempty"`
+	Balances     []Balance      `json:"balances,omitempty"`
 	//////////////////////////////////////////////
 	CategoryID int64           `json:"category_id"`
-	Details    json.RawMessage `json:"details"`
-	//Parent       *Operation    `json:"parent"`
+	Details    json.RawMessage `json:"details,omitempty"`
+	ParentID   null.Int
+	//Parent       *Operation    `json:"parent,omitempty"`
 }
 
 type OperationType struct {
@@ -158,7 +159,7 @@ func OperationTypes() []OperationType {
 type Category struct {
 	ID       null.Int        `json:"id" sql:"primary_key"`
 	Name     string          `json:"name"`
-	FullName string          `json:"full_name"`
+	FullName string          `json:"full_name,omitempty"`
 	ParentID null.Int        `json:"parent_id"`
 	Parent   *ParentCategory `json:"parent" alias:"parent"`
 }

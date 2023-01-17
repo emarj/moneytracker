@@ -19,6 +19,7 @@
     import ShareForm from "./ShareForm.svelte";
     import DatePicker from "../DatePicker.svelte";
     import CategorySelect from "../CategorySelect.svelte";
+    import { JSONPretty } from "../../util/utils";
 
     const mutation = useMutation((op) => addOperation(op), {
         onSuccess: (data: number) => {
@@ -98,10 +99,10 @@
 
     <h3>Preview</h3>
     <pre>Expense:
-{JSON.stringify(e, null, 4)}
+{JSONPretty(e)}
     </pre>
     <pre>Operation:
-{JSON.stringify(op, null, 4)}
+{JSONPretty(op)}
     </pre>
 </div>
 

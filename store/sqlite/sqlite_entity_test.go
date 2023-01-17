@@ -26,7 +26,7 @@ func TestEntity(t *testing.T) {
 	require.EqualValues(1, len(ents))
 	assert.True(ents[0].ID.Valid, "system id must be valid")
 	assert.True(ents[0].ID.Int64 == 0, "system id must be zero")
-	assert.True(ents[0].Name == "_system")
+	assert.True(ents[0].Name == "system")
 	assert.True(ents[0].IsSystem)
 
 	ent, err := store.GetEntity(ents[0].ID.Int64)

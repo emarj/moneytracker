@@ -9,6 +9,7 @@
     import { push } from "svelte-spa-router";
     import { useMutation } from "@sveltestack/svelte-query";
     import { adjustBalance } from "../../api";
+    import { JSONPretty } from "../../util/utils";
 
     const mutation = useMutation((b) => adjustBalance(b), {
         onSuccess: (data: number) => {
@@ -55,7 +56,7 @@
 </div>
 
 <h3>Preview</h3>
-<pre>{JSON.stringify(balance, null, 4)}</pre>
+<pre>{JSONPretty(balance)}</pre>
 
 <style>
     div > :global(*) {

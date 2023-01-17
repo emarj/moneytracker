@@ -14,3 +14,5 @@ export const DateFMT = (dt: Date) => {
 
 export const capitalize = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1)
+
+export const JSONPretty = (obj: any) => JSON.stringify(obj, null, 4)

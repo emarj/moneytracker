@@ -6,6 +6,7 @@
     import { useMutation } from "@sveltestack/svelte-query";
     import { deleteAccount } from "../../api";
     import IconButton from "@smui/icon-button/src/IconButton.svelte";
+    import { JSONPretty } from "../../util/utils";
 
     export let account;
 
@@ -24,8 +25,9 @@
 </script>
 
 <div>
-    <h1>{account.display_name}{account.type == 1 ? "*" : ""}</h1>
-    type_id: {account.type_id}, name: {account.name}
+    <h1 contenteditable="true" bind:innerHTML={account.display_name} />
+    <p contenteditable="true" bind:innerHTML={account.name} />
+    type_id: {account.type_id}
     <AccountBalance id={account.id} bind:this={balance} />
     <div class="movements">
         <AccountMovements id={account.id} bind:this={transactions} />
@@ -44,6 +46,10 @@
 {#if error}
     {error}
 {/if}
+
+<pre>
+    {JSONPretty(account)}
+</pre>
 
 <style lang="scss">
     div.card {

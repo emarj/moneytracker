@@ -56,11 +56,13 @@ func (s *SQLiteStore) GetAccountsByEntity(eID int64) ([]mt.Account, error) {
 
 func (s *SQLiteStore) GetAccount(aID int64) (*mt.Account, error) {
 
+	Owner := jt.Entity.AS("owner")
+
 	stmt := jet.SELECT(
 		jt.Account.AllColumns,
-		jt.Entity.AllColumns,
+		Owner.AllColumns,
 	).FROM(jt.Account.
-		INNER_JOIN(jt.Entity, jt.Entity.ID.EQ(jt.Account.OwnerID))).
+		INNER_JOIN(Owner, Owner.ID.EQ(jt.Account.OwnerID))).
 		WHERE(jt.Account.ID.EQ(jet.Int(int64(aID))))
 
 	var a mt.Account
