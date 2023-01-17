@@ -1,16 +1,38 @@
-<script>
+<script lang="ts">
     import AccountBalance from "./AccountBalance.svelte";
     import AccountMovements from "./AccountMovements.svelte";
 
     import { push } from "svelte-spa-router";
+    import { getTypes } from "../../api";
 
     export let account;
 
     let balance;
     let transactions;
+
+    function getType(tID: number): string {
+        let t = "";
+        switch (tID) {
+            case 0:
+                t = "money";
+                break;
+            case 2:
+                t = "credit";
+                break;
+            case 3:
+                t = "investment";
+                break;
+        }
+        return t;
+    }
+
+    function getClass(tID: number): string {
+        const c = getType(tID);
+        return c == "" ? "" : `type-${c}`;
+    }
 </script>
 
-<div class="card" class:credit={account.type_id == 1}>
+<div class="card {getClass(account.type_id)}">
     <h3>{account.display_name}</h3>
     <button
         class="more"
@@ -78,19 +100,27 @@
     div.card {
         position: relative;
         padding: 1em;
-        background: rgba(253, 187, 45, 1);
-        background: linear-gradient(
+        background: rgb(127, 127, 127);
+        /*  background: linear-gradient(
             24deg,
             rgb(196, 56, 196) 0%,
             rgba(253, 187, 45, 1) 100%
-        );
+        ); */
         height: auto;
         width: 300px;
         border-radius: 15px;
         transition: all 0.5s ease-in;
 
-        &.credit {
-            background: rgb(52, 226, 136);
+        &.type-credit {
+            background: rgb(231, 138, 9);
+        }
+
+        &.type-money {
+            background: rgb(3, 163, 81);
+        }
+
+        &.type-investment {
+            background: rgb(44, 112, 207);
         }
 
         h3 {

@@ -109,11 +109,29 @@ func Populate(s Store) error {
 		OwnerID:     entUser1.ID.Int64,
 		TypeID:      AccTypeCredit,
 	})
+	accounts.Store("user1:credits2", Account{
+		Name:        "credits2",
+		DisplayName: "Crediti2",
+		OwnerID:     entUser1.ID.Int64,
+		TypeID:      AccTypeCredit,
+	})
 	accounts.Store("user2:credits", Account{
 		Name:        "credits",
 		DisplayName: "Crediti",
 		OwnerID:     entUser2.ID.Int64,
 		TypeID:      AccTypeCredit,
+	})
+	accounts.Store("user1:investments", Account{
+		Name:        "investments",
+		DisplayName: "Investments",
+		OwnerID:     entUser1.ID.Int64,
+		TypeID:      AccTypeInvestment,
+	})
+	accounts.Store("user2:investments", Account{
+		Name:        "investments",
+		DisplayName: "Investments",
+		OwnerID:     entUser2.ID.Int64,
+		TypeID:      AccTypeInvestment,
 	})
 	accounts.Store("user3:comune", Account{
 		Name:        "cassa_comune",

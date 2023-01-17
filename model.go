@@ -74,8 +74,8 @@ type AccountType struct {
 }
 
 const (
-	AccTypeWorld int64 = iota
-	AccTypeMoney
+	AccTypeMoney int64 = iota // This is first since must be the default
+	AccTypeWorld
 	AccTypeCredit
 	AccTypeInvestment
 )
