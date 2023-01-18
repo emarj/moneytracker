@@ -16,15 +16,10 @@
 
     const computeTotal = (op: Operation): number => {
         if (op.transactions) {
-            return op.transactions.reduce((sum: number, t) => {
-                if (isExpense(t, $entityID)) {
-                    return sum - t.amount;
-                } else if (isIncome(t, $entityID)) {
-                    return sum + t.amount;
-                } else {
-                    return sum;
-                }
-            }, 0);
+            return op.transactions.reduce(
+                (sum: number, t) => sum + t.amount * t.sign,
+                0
+            );
         }
     };
 

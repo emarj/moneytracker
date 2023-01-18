@@ -17,22 +17,16 @@
     } from "@smui/list";
     import Switch from "@smui/switch";
     import { authStore, showBalances } from "../store";
-    import EntitySwitcher from "./EntitySwitcher.svelte";
     import Logout from "../Logout.svelte";
+    import EntitySelect from "./EntitySelect.svelte";
+
+    import { entityID } from "../store";
 
     export let open = false;
-    let active = "Inbox";
-
-    function setActive(value: string) {
-        active = value;
-        open = false;
-    }
 </script>
 
 <div class="drawer-container">
-    <!-- Don't include fixed={false} if this is a page wide drawer.
-          It adds a style for absolute positioning. -->
-    <Drawer variant="modal" fixed={false} bind:open>
+    <Drawer variant="modal" fixed={true} bind:open>
         <Header>
             <Title>MoneyTracker</Title>
             <Subtitle />
@@ -47,9 +41,10 @@
                     <Switch bind:checked={$showBalances} /> Show balances
                 </Item>
                 <Separator />
-                <Item>
-                    <EntitySwitcher style="simple" />
-                </Item>
+                <Subheader tag="h3">Entities</Subheader>
+                <EntitySelect bind:value={$entityID} style="menu" />
+                <Separator />
+                <Item on:click={() => location.reload()}>Panic Reload</Item>
             </List>
         </Content>
     </Drawer>
@@ -78,12 +73,5 @@
         overflow: auto;
         position: relative;
         flex-grow: 1;
-    }
-
-    .main-content {
-        overflow: auto;
-        padding: 16px;
-        height: 100%;
-        box-sizing: border-box;
     }
 </style>

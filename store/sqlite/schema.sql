@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS entity_share (
 CREATE TABLE IF NOT EXISTS entity (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
+	display_name TEXT NOT NULL,
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
 	is_external INTEGER NOT NULL DEFAULT FALSE CHECK (is_external IN (0, 1))
 ); --STRICT;
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS account (
 ); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS balance (
-	timestamp TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	timestamp TEXT NOT NULL,
 	account_id INTEGER REFERENCES account(id),
 	value TEXT NOT NULL,
 	delta TEXT,
@@ -74,8 +75,8 @@ CREATE TABLE IF NOT EXISTS operation_type (
 
 CREATE TABLE IF NOT EXISTS operation (
 	id INTEGER PRIMARY KEY,
-	created_on TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
-	modified_on TEXT NOT NULL DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
+	created_on TEXT NOT NULL,
+	modified_on TEXT NOT NULL,
 	created_by_id INTEGER NOT NULL,
 	---
 	description TEXT NOT NULL,

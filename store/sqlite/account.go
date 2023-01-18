@@ -33,16 +33,47 @@ func (s *SQLiteStore) GetAccounts() ([]mt.Account, error) {
 }
 
 func (s *SQLiteStore) GetAccountsByEntity(eID int64) ([]mt.Account, error) {
+	Owner := jt.Entity.AS("owner")
 
 	stmt := jet.SELECT(
 		jt.Account.AllColumns,
-		jt.Entity.AllColumns,
+		Owner.AllColumns,
 	).FROM(
 		jt.Account.
-			INNER_JOIN(jt.Entity,
-				jt.Entity.ID.EQ(jt.Account.OwnerID),
+			INNER_JOIN(Owner,
+				Owner.ID.EQ(jt.Account.OwnerID),
 			)).
-		WHERE(jt.Entity.ID.EQ(jet.Int(int64(eID))))
+		WHERE(Owner.ID.EQ(jet.Int(int64(eID))))
+
+	accounts := []mt.Account{}
+
+	err := stmt.Query(s.db, &accounts)
+	if err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+func (s *SQLiteStore) GetUserAccounts(uID int64) ([]mt.Account, error) {
+	Owner := jt.Entity.AS("owner")
+
+	stmt := jet.SELECT(
+		jt.Account.AllColumns,
+		Owner.AllColumns,
+		jt.EntityShare.AllColumns,
+	).FROM(
+		jt.Account.
+			INNER_JOIN(Owner,
+				Owner.ID.EQ(jt.Account.OwnerID),
+			).
+			INNER_JOIN(jt.EntityShare,
+				jt.EntityShare.EntityID.EQ(Owner.ID),
+			)).
+		WHERE(Owner.ID.IN(
+			jt.EntityShare.SELECT(jt.EntityShare.EntityID).
+				WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID))),
+		)).ORDER_BY(jt.EntityShare.Quota.DESC())
 
 	accounts := []mt.Account{}
 

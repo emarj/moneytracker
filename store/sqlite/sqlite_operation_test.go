@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	mt "github.com/emarj/moneytracker"
-	"github.com/emarj/moneytracker/datetime"
+	"github.com/emarj/moneytracker/timestamp"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +32,7 @@ func TestOperationCRUD(t *testing.T) {
 		Description: "Desc",
 		TypeID:      mt.OpTypeExpense,
 		Transactions: []mt.Transaction{{
-			Timestamp: datetime.Now(),
+			Timestamp: timestamp.Now(),
 			FromID:    a.ID.Int64,
 			ToID:      mt.AccWorldID,
 			Amount:    decimal.NewFromInt(50),

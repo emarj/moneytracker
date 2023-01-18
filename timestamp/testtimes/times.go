@@ -3,22 +3,22 @@ package datetime
 import (
 	"time"
 
-	dt "github.com/emarj/moneytracker/datetime"
+	dt "github.com/emarj/moneytracker/timestamp"
 )
 
 const Epsilon = time.Millisecond
 
-var BeginningOfTime dt.DateTime
-var BEFORE dt.DateTime
-var Before dt.DateTime
-var Now dt.DateTime
-var Later dt.DateTime
-var LATER dt.DateTime
-var EndOfTime dt.DateTime
+var BeginningOfTime dt.Timestamp
+var BEFORE dt.Timestamp
+var Before dt.Timestamp
+var Now dt.Timestamp
+var Later dt.Timestamp
+var LATER dt.Timestamp
+var EndOfTime dt.Timestamp
 
-var Times []dt.DateTime
-var Past []dt.DateTime
-var Future []dt.DateTime
+var Times []dt.Timestamp
+var Past []dt.Timestamp
+var Future []dt.Timestamp
 
 func Init() {
 	timeNow := time.Now()
@@ -33,11 +33,11 @@ func Init() {
 	LATER = dt.FromTime(timeNow.AddDate(0, 1, 0))
 	EndOfTime = dt.FromTime(timeNow.AddDate(1000, 0, 0))
 
-	Past = []dt.DateTime{
+	Past = []dt.Timestamp{
 		BeginningOfTime, BEFORE, Before,
 	}
 
-	Future = []dt.DateTime{
+	Future = []dt.Timestamp{
 		Later, LATER, EndOfTime,
 	}
 

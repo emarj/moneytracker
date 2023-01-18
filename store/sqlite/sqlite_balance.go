@@ -9,7 +9,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 
 	jt "github.com/emarj/moneytracker/.gen/table"
-	"github.com/emarj/moneytracker/datetime"
+	"github.com/emarj/moneytracker/timestamp"
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
@@ -59,7 +59,7 @@ func (s *SQLiteStore) GetLastBalance(aID int64) (mt.Balance, error) {
 	return b, nil
 }
 
-func getBalanceAt(db TXDB, aID int64, timestamp datetime.DateTime) (mt.Balance, error) {
+func getBalanceAt(db TXDB, aID int64, timestamp timestamp.Timestamp) (mt.Balance, error) {
 
 	var cb mt.Balance
 	var err error
@@ -117,12 +117,12 @@ func getBalanceAt(db TXDB, aID int64, timestamp datetime.DateTime) (mt.Balance, 
 	return cb, nil
 }
 
-func (s *SQLiteStore) GetBalanceAt(aID int64, timestamp datetime.DateTime) (mt.Balance, error) {
+func (s *SQLiteStore) GetBalanceAt(aID int64, timestamp timestamp.Timestamp) (mt.Balance, error) {
 	return getBalanceAt(s.db, aID, timestamp)
 }
 
 func (s *SQLiteStore) GetBalanceNow(aID int64) (mt.Balance, error) {
-	return s.GetBalanceAt(aID, datetime.Now())
+	return s.GetBalanceAt(aID, timestamp.Now())
 }
 
 func (s *SQLiteStore) SetBalance(b *mt.Balance) error {
@@ -271,7 +271,7 @@ func insertBalance(tx TXDB, balance *mt.Balance) error {
 
 }
 
-func updateBalances(txdb TXDB, timestamp datetime.DateTime, aIDs ...int64) error {
+func updateBalances(txdb TXDB, timestamp timestamp.Timestamp, aIDs ...int64) error {
 	var err error
 	for _, aID := range aIDs {
 		err = deleteComputedBalances(txdb, aID, timestamp)
@@ -283,7 +283,7 @@ func updateBalances(txdb TXDB, timestamp datetime.DateTime, aIDs ...int64) error
 	return nil
 }
 
-func deleteComputedBalances(txdb TXDB, aID int64, timestamp datetime.DateTime) error {
+func deleteComputedBalances(txdb TXDB, aID int64, timestamp timestamp.Timestamp) error {
 	_, err := txdb.Exec(`
 						DELETE FROM balance
 						WHERE account_id = :aID
@@ -308,7 +308,7 @@ func deleteComputedBalances(txdb TXDB, aID int64, timestamp datetime.DateTime) e
 
 }
 
-func (s *SQLiteStore) DeleteBalance(aID int64, timestamp datetime.DateTime) error {
+func (s *SQLiteStore) DeleteBalance(aID int64, timestamp timestamp.Timestamp) error {
 	stmt := jt.Balance.DELETE().
 		WHERE(
 			jt.Balance.AccountID.EQ(jet.Int(aID)).

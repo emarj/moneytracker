@@ -32,14 +32,14 @@ export const getCategories = () =>
 export const getAccounts = () =>
     fetcher(`${baseURL}/accounts`)
 
+export const getAccountsByEntity = (eID: number) =>
+    fetcher(`${baseURL}/accounts/${eID}`)
+
 export const getAccount = (aID: number) =>
     fetcher(`${baseURL}/account/${aID}`)
 
 export const deleteAccount = (aID: number) =>
     fetcher(`${baseURL}/account/${aID}`, { method: "DELETE" })
-
-export const getAccountsByEntity = (eID: number) =>
-    fetcher(`${baseURL}/accounts/${eID}`)
 
 export const addAccount = (a) =>
     fetcher(`${baseURL}/account`, { method: "POST", body: JSON.stringify(a) })
@@ -56,6 +56,11 @@ export const adjustBalance = (bal) =>
 
 export const getTransactionsByAccount = (aID: number) =>
     fetcher(`${baseURL}/transactions/account/${aID}`)
+
+export const getOperations = (limit?: number) => {
+    const limitStr = (limit) ? `?limit=${limit}` : ""
+    return fetcher(`${baseURL}/operations${limitStr}`) as Promise<Operation[]>
+}
 
 export const getOperationsByEntity = (eID: number, limit?: number) => {
     const limitStr = (limit) ? `?limit=${limit}` : ""

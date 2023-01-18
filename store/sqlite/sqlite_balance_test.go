@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	mt "github.com/emarj/moneytracker"
-	"github.com/emarj/moneytracker/datetime"
-	tt "github.com/emarj/moneytracker/datetime/test"
+	"github.com/emarj/moneytracker/timestamp"
+	tt "github.com/emarj/moneytracker/timestamp/testtimes"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,13 +14,13 @@ import (
 )
 
 type Point struct {
-	T datetime.DateTime
+	T timestamp.Timestamp
 	V decimal.Decimal
 }
 
 type ValueMap struct {
 	account mt.Account
-	*orderedmap.OrderedMap[datetime.DateTime, decimal.Decimal]
+	*orderedmap.OrderedMap[timestamp.Timestamp, decimal.Decimal]
 }
 
 func (m ValueMap) Test(t *testing.T, store *SQLiteStore) {
@@ -41,7 +41,7 @@ func (m ValueMap) MultiSet(lists ...[]Point) {
 
 func NewValueMap(acc mt.Account, lists ...[]Point) ValueMap {
 	vm := ValueMap{
-		OrderedMap: orderedmap.New[datetime.DateTime, decimal.Decimal](),
+		OrderedMap: orderedmap.New[timestamp.Timestamp, decimal.Decimal](),
 		account:    acc,
 	}
 
@@ -50,7 +50,7 @@ func NewValueMap(acc mt.Account, lists ...[]Point) ValueMap {
 	return vm
 }
 
-func PointList(v decimal.Decimal, times ...datetime.DateTime) []Point {
+func PointList(v decimal.Decimal, times ...timestamp.Timestamp) []Point {
 	list := make([]Point, len(times))
 	for i := 0; i < len(times); i++ {
 		list[i] = Point{times[i], v}

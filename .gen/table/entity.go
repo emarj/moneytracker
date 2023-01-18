@@ -17,10 +17,11 @@ type entityTable struct {
 	sqlite.Table
 
 	//Columns
-	ID         sqlite.ColumnInteger
-	Name       sqlite.ColumnString
-	IsSystem   sqlite.ColumnInteger
-	IsExternal sqlite.ColumnInteger
+	ID          sqlite.ColumnInteger
+	Name        sqlite.ColumnString
+	DisplayName sqlite.ColumnString
+	IsSystem    sqlite.ColumnInteger
+	IsExternal  sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
@@ -61,22 +62,24 @@ func newEntityTable(schemaName, tableName, alias string) *EntityTable {
 
 func newEntityTableImpl(schemaName, tableName, alias string) entityTable {
 	var (
-		IDColumn         = sqlite.IntegerColumn("id")
-		NameColumn       = sqlite.StringColumn("name")
-		IsSystemColumn   = sqlite.IntegerColumn("is_system")
-		IsExternalColumn = sqlite.IntegerColumn("is_external")
-		allColumns       = sqlite.ColumnList{IDColumn, NameColumn, IsSystemColumn, IsExternalColumn}
-		mutableColumns   = sqlite.ColumnList{NameColumn, IsSystemColumn, IsExternalColumn}
+		IDColumn          = sqlite.IntegerColumn("id")
+		NameColumn        = sqlite.StringColumn("name")
+		DisplayNameColumn = sqlite.StringColumn("display_name")
+		IsSystemColumn    = sqlite.IntegerColumn("is_system")
+		IsExternalColumn  = sqlite.IntegerColumn("is_external")
+		allColumns        = sqlite.ColumnList{IDColumn, NameColumn, DisplayNameColumn, IsSystemColumn, IsExternalColumn}
+		mutableColumns    = sqlite.ColumnList{NameColumn, DisplayNameColumn, IsSystemColumn, IsExternalColumn}
 	)
 
 	return entityTable{
 		Table: sqlite.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:         IDColumn,
-		Name:       NameColumn,
-		IsSystem:   IsSystemColumn,
-		IsExternal: IsExternalColumn,
+		ID:          IDColumn,
+		Name:        NameColumn,
+		DisplayName: DisplayNameColumn,
+		IsSystem:    IsSystemColumn,
+		IsExternal:  IsExternalColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

@@ -22,6 +22,7 @@ export type Transaction = {
     to?: Account;
     operation_id?: number;
     operation?: Operation;
+    sign?: number;
 };
 
 export type Operation = {

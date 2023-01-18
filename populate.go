@@ -3,7 +3,7 @@ package moneytracker
 import (
 	"fmt"
 
-	tt "github.com/emarj/moneytracker/datetime/test"
+	tt "github.com/emarj/moneytracker/timestamp/testtimes"
 	"github.com/shopspring/decimal"
 	orderedmap "github.com/wk8/go-ordered-map/v2"
 	"gopkg.in/guregu/null.v4"
@@ -14,31 +14,6 @@ func Populate(s Store) error {
 	var err error
 
 	tt.Init()
-
-	// Add Categories
-	categories := []string{
-		"Spesa",
-		"Utenze",
-		"Utenze/Energia",
-		"Utenze/Internet",
-		"Utenze/Telefonia",
-		"Salute",
-		"Ristoranti - Bar",
-		"Sport",
-		"Sport/Tennis",
-		"Trasporti",
-		"Tasse",
-		"Tasse/Rifiuti",
-		"Regali",
-		"Viaggi",
-	}
-
-	for _, n := range categories {
-		_, err = s.AddCategory(n)
-		if err != nil {
-			return err
-		}
-	}
 
 	user1 := User{
 		Name:        "arianna",
@@ -61,10 +36,11 @@ func Populate(s Store) error {
 	}
 
 	entUser1 := Entity{
-		ID:         null.IntFrom(1),
-		Name:       "arianna",
-		IsSystem:   false,
-		IsExternal: false,
+		ID:          null.IntFrom(1),
+		Name:        "arianna",
+		DisplayName: "Arianna",
+		IsSystem:    false,
+		IsExternal:  false,
 	}
 
 	err = s.AddEntity(&entUser1)
@@ -82,10 +58,11 @@ func Populate(s Store) error {
 	}
 
 	entUser2 := Entity{
-		ID:         null.IntFrom(2),
-		Name:       "marco",
-		IsSystem:   false,
-		IsExternal: false,
+		ID:          null.IntFrom(2),
+		Name:        "marco",
+		DisplayName: "Marco",
+		IsSystem:    false,
+		IsExternal:  false,
 	}
 
 	err = s.AddEntity(&entUser2)
@@ -102,10 +79,11 @@ func Populate(s Store) error {
 	}
 
 	entUser3 := Entity{
-		ID:         null.IntFrom(3),
-		Name:       "am",
-		IsSystem:   false,
-		IsExternal: false,
+		ID:          null.IntFrom(3),
+		Name:        "family",
+		DisplayName: "Family",
+		IsSystem:    false,
+		IsExternal:  false,
 	}
 
 	err = s.AddEntity(&entUser3)
@@ -215,6 +193,31 @@ func Populate(s Store) error {
 		return err
 	}
 
+	// Add Categories
+	categories := []string{
+		"Spesa",
+		"Utenze",
+		"Utenze/Energia",
+		"Utenze/Internet",
+		"Utenze/Telefonia",
+		"Salute",
+		"Ristoranti - Bar",
+		"Sport",
+		"Sport/Tennis",
+		"Trasporti",
+		"Tasse",
+		"Tasse/Rifiuti",
+		"Regali",
+		"Viaggi",
+	}
+
+	for _, n := range categories {
+		_, err = s.AddCategory(n)
+		if err != nil {
+			return err
+		}
+	}
+
 	operations := []Operation{
 		{
 			Description: "Cena Fuori in 2",
@@ -260,6 +263,18 @@ func Populate(s Store) error {
 					Timestamp: tt.Before,
 					FromID:    accounts.Value("user2:credits").ID.Int64,
 					ToID:      accounts.Value("user1:credits").ID.Int64,
+					Amount:    decimal.New(100, 0),
+				},
+			},
+			CategoryID: 1,
+		},
+		{
+			Description: "Spesa comune",
+			Transactions: []Transaction{
+				{
+					Timestamp: tt.Before,
+					FromID:    accounts.Value("user3:comune").ID.Int64,
+					ToID:      AccWorldID,
 					Amount:    decimal.New(100, 0),
 				},
 			},

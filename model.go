@@ -3,7 +3,7 @@ package moneytracker
 import (
 	"encoding/json"
 
-	"github.com/emarj/moneytracker/datetime"
+	"github.com/emarj/moneytracker/timestamp"
 	"github.com/shopspring/decimal"
 	"gopkg.in/guregu/null.v4"
 )
@@ -11,10 +11,10 @@ import (
 //go:generate easytags $GOFILE json
 
 type Record struct {
-	ID          null.Int          `json:"id" sql:"primary_key"`
-	CreatedOn   datetime.DateTime `json:"created_on"`
-	ModifiedOn  datetime.DateTime `json:"modified_on"`
-	CreatedByID int64             `json:"created_by_id"`
+	ID          null.Int            `json:"id" sql:"primary_key"`
+	CreatedOn   timestamp.Timestamp `json:"created_on"`
+	ModifiedOn  timestamp.Timestamp `json:"modified_on"`
+	CreatedByID int64               `json:"created_by_id"`
 }
 
 type User struct {
@@ -32,11 +32,12 @@ type EntityShare struct {
 }
 
 type Entity struct {
-	ID         null.Int      `json:"id" sql:"primary_key"`
-	Name       string        `json:"name"`
-	IsSystem   bool          `json:"is_system"`
-	IsExternal bool          `json:"is_external"` // For example a friend that owes me
-	Shares     []EntityShare `json:"shares"`
+	ID          null.Int      `json:"id" sql:"primary_key"`
+	Name        string        `json:"name"`
+	DisplayName string        `json:"display_name"`
+	IsSystem    bool          `json:"is_system"`
+	IsExternal  bool          `json:"is_external"` // For example a friend that owes me
+	Shares      []EntityShare `json:"shares"`
 }
 
 const EntSystemID int64 = 0
@@ -52,9 +53,9 @@ type Account struct {
 	Name        string       `json:"name"`
 	DisplayName string       `json:"display_name"`
 	OwnerID     int64        `json:"owner_id"`
-	Owner       *Entity      `json:"owner,omitempty" alias:"owner"` // TODO: Allow for shared accounts
-	IsSystem    bool         `json:"is_system"`                     // This can't be deleted by the user
-	IsGroup     bool         `json:"is_group"`                      // This should not be type inside type
+	Owner       *Entity      `json:"owner,omitempty" alias:"owner"`
+	IsSystem    bool         `json:"is_system"` // These can't be deleted by the user
+	IsGroup     bool         `json:"is_group"`  // This should not be type inside type
 	TypeID      int64        `json:"type_id"`
 	Type        *AccountType `json:"type,omitempty"`
 	GroupID     null.Int     `json:"group_id"`
@@ -100,7 +101,7 @@ func AccountTypes() []AccountType {
 type Balance struct {
 	AccountID   null.Int            `json:"account_id" sql:"primary_key"`
 	Account     *Account            `json:"account,omitempty"`
-	Timestamp   datetime.DateTime   `json:"timestamp" sql:"primary_key"`
+	Timestamp   timestamp.Timestamp `json:"timestamp" sql:"primary_key"`
 	Value       decimal.Decimal     `json:"value"`
 	Delta       decimal.NullDecimal `json:"delta"`
 	IsComputed  bool                `json:"is_computed"`
@@ -110,23 +111,24 @@ type Balance struct {
 }
 
 type Transaction struct {
-	ID          null.Int          `json:"id" sql:"primary_key"`
-	Timestamp   datetime.DateTime `json:"timestamp"`
-	FromID      int64             `json:"from_id"`
-	From        *Account          `json:"from" alias:"from"`
-	ToID        int64             `json:"to_id"`
-	To          *Account          `json:"to" alias:"to"`
-	Amount      decimal.Decimal   `json:"amount"`
-	Comment     string            `json:"comment"`
-	OperationID int64             `json:"operation_id"`
-	Operation   *Operation        `json:"operation"`
+	ID          null.Int            `json:"id" sql:"primary_key"`
+	Timestamp   timestamp.Timestamp `json:"timestamp"`
+	FromID      int64               `json:"from_id"`
+	From        *Account            `json:"from" alias:"from"`
+	ToID        int64               `json:"to_id"`
+	To          *Account            `json:"to" alias:"to"`
+	Amount      decimal.Decimal     `json:"amount"`
+	Comment     string              `json:"comment"`
+	OperationID int64               `json:"operation_id"`
+	Operation   *Operation          `json:"operation"`
+	Sign        int64               `json:"sign"`
 }
 
 type Operation struct {
-	ID          null.Int          `json:"id" sql:"primary_key"`
-	CreatedOn   datetime.DateTime `json:"created_on"`
-	ModifiedOn  datetime.DateTime `json:"modified_on"`
-	CreatedByID int64             `json:"created_by_id"`
+	ID          null.Int            `json:"id" sql:"primary_key"`
+	CreatedOn   timestamp.Timestamp `json:"created_on"`
+	ModifiedOn  timestamp.Timestamp `json:"modified_on"`
+	CreatedByID int64               `json:"created_by_id"`
 	//Shares []Entity
 	Description  string         `json:"description"`
 	TypeID       int64          `json:"type_id"`

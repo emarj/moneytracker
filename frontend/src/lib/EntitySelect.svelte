@@ -3,11 +3,14 @@
     import { useQuery } from "@sveltestack/svelte-query";
     import { getEntities } from "../api";
     import CircularProgress from "@smui/circular-progress";
+    import { entityID } from "../store";
+    import { Item } from "@smui/list";
 
     export let label = "Entity";
     export let helperText = "";
     export let value = null;
     export let not = null;
+
     const entitiesQuery = useQuery("entities", () => getEntities());
 
     let entities = [];
@@ -27,16 +30,26 @@
         {#if style == "material"}
             <Select variant="outlined" bind:value {label}>
                 {#each entities as entity (entity.id)}
-                    <Option value={entity.id}>{entity.name}</Option>
+                    <Option value={entity.id}>{entity.display_name}</Option>
                 {/each}
                 <!--  <svelte:fragment slot="helperText">{helperText}</svelte:fragment> -->
             </Select>
-        {:else}
+        {:else if style == "simple"}
             <select bind:value>
                 {#each entities as entity (entity.id)}
-                    <option value={entity.id}>{entity.name}</option>
+                    <option value={entity.id}>{entity.display_name}</option>
                 {/each}
             </select>
+        {:else if style == "menu"}
+            {#each entities as entity (entity.id)}
+                <Item
+                    href="javascript:void(0)"
+                    on:click={() => (value = entity.id)}
+                    activated={$entityID === entity.id}
+                >
+                    {entity.display_name}
+                </Item>
+            {/each}
         {/if}
     {/if}
 </div>

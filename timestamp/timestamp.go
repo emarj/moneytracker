@@ -1,4 +1,4 @@
-package datetime
+package timestamp
 
 import (
 	"bytes"
@@ -9,36 +9,38 @@ import (
 	"time"
 )
 
-const DateTimeFormat = "2006-01-02T15:04:05.999Z"
+// Trailing zeros are essential otherwise Go will remove them
+// const TimestampFormat = "2006-01-02T15:04:05.999Z"
+const TimestampFormat = "2006-01-02T15:04:05.000Z"
 
 var nullBytes = []byte("null")
 
-type DateTime struct {
+type Timestamp struct {
 	sql.NullTime
 }
 
-func Now() DateTime {
+func Now() Timestamp {
 	return FromTime(time.Now())
 }
 
-func FromTime(t time.Time) DateTime {
-	return DateTime{sql.NullTime{
+func FromTime(t time.Time) Timestamp {
+	return Timestamp{sql.NullTime{
 		Time:  t,
 		Valid: true,
 	}}
 }
 
-func (t DateTime) Plus(d time.Duration) DateTime {
+func (t Timestamp) Plus(d time.Duration) Timestamp {
 	return FromTime(t.Time.Add(d))
 }
 
-func (t DateTime) Minus(d time.Duration) DateTime {
+func (t Timestamp) Minus(d time.Duration) Timestamp {
 	return t.Plus(-1 * d)
 }
 
 //JSON and SQL methods
 
-func (t *DateTime) Scan(v interface{}) error {
+func (t *Timestamp) Scan(v interface{}) error {
 
 	var s string
 	switch z := v.(type) {
@@ -50,7 +52,7 @@ func (t *DateTime) Scan(v interface{}) error {
 		return errors.New("cannot convert time to string")
 	}
 
-	vt, err := time.Parse(DateTimeFormat, s)
+	vt, err := time.Parse(TimestampFormat, s)
 	if err != nil {
 		return err
 	}
@@ -59,21 +61,21 @@ func (t *DateTime) Scan(v interface{}) error {
 	return nil
 }
 
-func (t DateTime) Value() (driver.Value, error) {
+func (t Timestamp) Value() (driver.Value, error) {
 	if !t.Valid {
 		return nil, nil
 	}
 	return driver.Value(t.String()), nil
 }
 
-func (t DateTime) String() string {
+func (t Timestamp) String() string {
 	if !t.Valid {
 		return ""
 	}
-	return t.Time.UTC().Format(DateTimeFormat)
+	return t.Time.UTC().Format(TimestampFormat)
 }
 
-func (t *DateTime) UnmarshalJSON(data []byte) error {
+func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	t.Valid = false
 	if bytes.Equal(data, nullBytes) {
 		return nil
@@ -84,7 +86,7 @@ func (t *DateTime) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	vt, err := time.Parse(DateTimeFormat, str)
+	vt, err := time.Parse(TimestampFormat, str)
 	if err != nil {
 		return err
 	}
@@ -94,7 +96,7 @@ func (t *DateTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t DateTime) MarshalJSON() ([]byte, error) {
+func (t Timestamp) MarshalJSON() ([]byte, error) {
 	if !t.Valid {
 		return nullBytes, nil
 	}

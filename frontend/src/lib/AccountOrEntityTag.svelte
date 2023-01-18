@@ -14,11 +14,14 @@
 <span class:account={!isExternal} class:entity={isExternal && !isWorld}>
     {#if isWorld}
         🌐
-    {:else if !isExternal}
+    {:else}
+        {account.owner.name}:{account.display_name.toLowerCase()}
+
+        <!-- {:else if !isExternal}
         {account.display_name.toLowerCase()}
     {:else}
         {#if hideExternal}@{/if}{account.owner
-            .name}{#if !hideExternal}:{account.name}{/if}
+            .name}{#if !hideExternal}:{account.name}{/if} -->
     {/if}
 </span>
 

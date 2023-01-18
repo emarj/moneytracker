@@ -1,15 +1,15 @@
 <script lang="ts">
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
-    import { getOperationsByEntity } from "../../api";
-    import { entityID } from "../../store";
+    import { getOperations } from "../../api";
+    import { authStore, entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
     import { link } from "svelte-spa-router";
     import OperationPreview from "../Operation/OperationPreview.svelte";
 
     const operationsQuery = useQuery(
-        ["operations", "entity", $entityID, "latest"],
-        () => getOperationsByEntity($entityID)
+        ["operations", "user", $authStore.user.id, "latest"],
+        () => getOperations()
     );
 
     let expanded = false;

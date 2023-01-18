@@ -2,21 +2,19 @@
   import CircularProgress from "@smui/circular-progress";
   import MdAddCircleOutline from "svelte-icons/md/MdAddCircleOutline.svelte";
 
-  import { getAccountsByEntity } from "../../api";
+  import { getAccounts } from "../../api";
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
-  import { entityID } from "../../store";
+  import { authStore, entityID } from "../../store";
   import { push } from "svelte-spa-router";
 
-  const queryResult = useQuery(["accounts", $entityID], () =>
-    getAccountsByEntity($entityID)
+  const queryResult = useQuery(["accounts", $authStore.user.id], () =>
+    getAccounts()
   );
 </script>
 
 <div class="container">
-  <h2>My Accounts</h2>
-
   <button
     class="add-account"
     title="New Account"
@@ -33,11 +31,14 @@
   {:else if $queryResult.error}
     <span>An error has occurred: {$queryResult.error.message}</span>
   {:else}
-    <ul>
-      {#each $queryResult.data as account}
-        <li><AccountCard {account} /></li>
-      {/each}
-    </ul>
+    {#each [...Object.entries($queryResult.data)] as [entity, list]}
+      <h2>{entity}</h2>
+      <ul>
+        {#each list as account}
+          <li><AccountCard {account} /></li>
+        {/each}
+      </ul>
+    {/each}
   {/if}
 </div>
 

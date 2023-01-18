@@ -4,50 +4,121 @@ import (
 	"fmt"
 
 	mt "github.com/emarj/moneytracker"
+	"github.com/emarj/moneytracker/timestamp"
 
 	jt "github.com/emarj/moneytracker/.gen/table"
-	"github.com/emarj/moneytracker/datetime"
 
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
-func (s *SQLiteStore) GetTransactionsByAccount(aID int64, limit int64) ([]mt.Transaction, error) {
+func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operation, error) {
+
+	//userEntities := jt.EntityShare.SELECT(jt.EntityShare.EntityID).WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID)))
+
+	operationTable := jt.Operation.SELECT(jet.STAR).
+		ORDER_BY(jt.Operation.ModifiedOn.DESC()).
+		LIMIT(limit).
+		AsTable("operation")
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
+	Balance := jt.Account.AS("account")
+
+	OwnerFrom := jt.Entity.AS("from.owner")
+	OwnerTo := jt.Entity.AS("to.owner")
+	OwnerBalance := jt.Entity.AS("account.owner")
+
+	UserFrom := jt.EntityShare.AS("from.user")
+	UserTo := jt.EntityShare.AS("to.user")
+	UserBalance := jt.EntityShare.AS("account.user")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
 		jt.Transaction.AllColumns,
+		(jet.CASE().
+			WHEN(UserTo.UserID.EQ(UserFrom.UserID)).
+			THEN(jet.Int(0)).
+			WHEN(UserFrom.UserID.EQ(jet.Int(uID))).
+			THEN(jet.Int(-1)).
+			WHEN(UserTo.UserID.EQ(jet.Int(uID))).
+			THEN(jet.Int(1)).
+			ELSE(jet.NULL)).
+			AS("transaction.sign"),
 		From.AllColumns,
 		To.AllColumns,
-	).FROM(
-		jt.Transaction.INNER_JOIN(
-			jt.Operation,
-			jt.Operation.ID.EQ(jt.Transaction.OperationID),
-		).INNER_JOIN(From, From.ID.EQ(jt.Transaction.FromID)).INNER_JOIN(To, To.ID.EQ(jt.Transaction.ToID)),
+		OwnerFrom.AllColumns,
+		OwnerTo.AllColumns,
+		jt.Balance.AllColumns,
+		Balance.AllColumns,
+		OwnerBalance.AllColumns,
+		/* UserFrom.UserID,
+		UserTo.UserID,
+		UserBalance.UserID, */
+	).FROM(operationTable.LEFT_JOIN(
+		jt.Transaction,
+		jt.Transaction.OperationID.EQ(jt.Operation.ID),
+	).LEFT_JOIN(
+		From,
+		From.ID.EQ(jt.Transaction.FromID),
+	).LEFT_JOIN(
+		To,
+		To.ID.EQ(jt.Transaction.ToID),
+	).LEFT_JOIN(
+		OwnerFrom,
+		OwnerFrom.ID.EQ(From.OwnerID),
+	).LEFT_JOIN(
+		OwnerTo,
+		OwnerTo.ID.EQ(To.OwnerID),
+	).LEFT_JOIN(
+		jt.Balance,
+		jt.Balance.OperationID.EQ(jt.Operation.ID),
+	).LEFT_JOIN(
+		Balance,
+		Balance.ID.EQ(jt.Balance.AccountID),
+	).LEFT_JOIN(
+		OwnerBalance,
+		OwnerBalance.ID.EQ(Balance.OwnerID),
+	).LEFT_JOIN(
+		UserFrom,
+		UserFrom.EntityID.EQ(From.OwnerID),
+	).LEFT_JOIN(
+		UserTo,
+		UserTo.EntityID.EQ(To.OwnerID),
+	).LEFT_JOIN(
+		UserBalance,
+		UserBalance.EntityID.EQ(Balance.OwnerID),
+	),
 	).WHERE(
-		jt.Transaction.FromID.EQ(jet.Int(aID)).OR(jt.Transaction.ToID.EQ(jet.Int(aID))),
-	).ORDER_BY(jt.Transaction.Timestamp.DESC()).LIMIT(limit)
+		(UserFrom.UserID.EQ(jet.Int(uID)).
+			OR(UserTo.UserID.EQ(jet.Int(uID)))).
+			OR(UserBalance.UserID.EQ(jet.Int(uID))),
+	).ORDER_BY(
+		jt.Operation.ModifiedOn.DESC(),
+		jt.Transaction.Timestamp.DESC(),
+		jt.Balance.Timestamp.DESC(),
+	)
 
-	transactions := []mt.Transaction{}
+	fmt.Println(stmt.DebugSql())
 
-	err := stmt.Query(s.db, &transactions)
+	operations := []mt.Operation{}
+
+	err := stmt.Query(s.db, &operations)
 	if err != nil {
 		return nil, err
 	}
-	return transactions, nil
+
+	return operations, nil
 }
 
 func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operation, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
-	BalanceAcc := jt.Account.AS("account")
+	Balance := jt.Account.AS("account")
 
 	OwnerFrom := jt.Entity.AS("from.owner")
 	OwnerTo := jt.Entity.AS("to.owner")
-	OwnerBalanceAcc := jt.Entity.AS("account.owner")
+	OwnerBalance := jt.Entity.AS("account.owner")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
@@ -57,7 +128,8 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 		OwnerFrom.AllColumns,
 		OwnerTo.AllColumns,
 		jt.Balance.AllColumns,
-		BalanceAcc.AllColumns,
+		Balance.AllColumns,
+		OwnerBalance.AllColumns,
 	).FROM(
 		(jt.Operation.SELECT(jet.STAR).ORDER_BY(jt.Operation.ModifiedOn.DESC()).LIMIT(limit)).AsTable("operation").LEFT_JOIN(
 			jt.Transaction,
@@ -78,14 +150,14 @@ func (s *SQLiteStore) GetOperationsByEntity(eID int64, limit int64) ([]mt.Operat
 			jt.Balance,
 			jt.Balance.OperationID.EQ(jt.Operation.ID),
 		).LEFT_JOIN(
-			BalanceAcc,
-			BalanceAcc.ID.EQ(jt.Balance.AccountID),
+			Balance,
+			Balance.ID.EQ(jt.Balance.AccountID),
 		).LEFT_JOIN(
-			OwnerBalanceAcc,
-			OwnerBalanceAcc.ID.EQ(BalanceAcc.OwnerID),
+			OwnerBalance,
+			OwnerBalance.ID.EQ(Balance.OwnerID),
 		),
 	).WHERE(
-		(To.OwnerID.EQ(jet.Int(eID)).OR(From.OwnerID.EQ(jet.Int(eID)))).OR(OwnerBalanceAcc.ID.EQ(jet.Int(eID))),
+		(To.OwnerID.EQ(jet.Int(eID)).OR(From.OwnerID.EQ(jet.Int(eID)))).OR(OwnerBalance.ID.EQ(jet.Int(eID))),
 	).ORDER_BY(
 		jt.Operation.ModifiedOn.DESC(),
 		jt.Transaction.Timestamp.DESC(),
@@ -108,11 +180,11 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
-	BalanceAcc := jt.Account.AS("account")
+	Balance := jt.Account.AS("account")
 
 	OwnerFrom := jt.Entity.AS("from.owner")
 	OwnerTo := jt.Entity.AS("to.owner")
-	OwnerBalanceAcc := jt.Entity.AS("account.owner")
+	OwnerBalance := jt.Entity.AS("account.owner")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
@@ -122,7 +194,7 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 		OwnerFrom.AllColumns,
 		OwnerTo.AllColumns,
 		jt.Balance.AllColumns,
-		BalanceAcc.AllColumns,
+		Balance.AllColumns,
 	).FROM(
 		jt.Operation.LEFT_JOIN(
 			jt.Transaction,
@@ -143,11 +215,11 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 			jt.Balance,
 			jt.Balance.OperationID.EQ(jt.Operation.ID),
 		).LEFT_JOIN(
-			BalanceAcc,
-			BalanceAcc.ID.EQ(jt.Balance.AccountID),
+			Balance,
+			Balance.ID.EQ(jt.Balance.AccountID),
 		).LEFT_JOIN(
-			OwnerBalanceAcc,
-			OwnerBalanceAcc.ID.EQ(BalanceAcc.OwnerID),
+			OwnerBalance,
+			OwnerBalance.ID.EQ(Balance.OwnerID),
 		),
 	).WHERE(
 		jt.Operation.ID.EQ(jet.Int(opID)),
@@ -163,7 +235,7 @@ func (s *SQLiteStore) GetOperation(opID int64) (*mt.Operation, error) {
 }
 
 func insertOperation(txdb TXDB, op *mt.Operation) error {
-	now := datetime.Now()
+	now := timestamp.Now()
 
 	op.CreatedOn = now
 	op.ModifiedOn = now
@@ -249,28 +321,6 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 	return nil
 
-}
-
-func insertTransaction(txdb TXDB, tx *mt.Transaction) error {
-
-	if tx.FromID == tx.ToID {
-		return fmt.Errorf("a transaction cannot be from and to the same account")
-	}
-
-	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODEL(tx).RETURNING(jt.Transaction.AllColumns)
-
-	err := stmt.Query(txdb, tx)
-	if err != nil {
-		return fmt.Errorf("insert transactions: %w", err)
-	}
-
-	//TODO: Here we should fix future balances and deltas until the first user inserted one
-	/* err = updateBalances(txdb, tx.Timestamp, tx.From.ID.Int64, tx.To.ID.Int64)
-	if err != nil {
-		return fmt.Errorf("insert transactions: %w", err)
-	} */
-
-	return nil
 }
 
 func (s *SQLiteStore) DeleteOperation(opID int64) error {

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	tt "github.com/emarj/moneytracker/datetime/test"
+	tt "github.com/emarj/moneytracker/timestamp/testtimes"
 )
 
 func TestMain(m *testing.M) {

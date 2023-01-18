@@ -105,9 +105,10 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/types", s.getTypes)
 
 	apiGroup.GET("/entities", s.getEntities)
+	apiGroup.GET("/entities/all", s.getAllEntities)
 	apiGroup.GET("/entity/:eid", s.getEntity)
 
-	apiGroup.GET("/accounts", s.getAccounts)
+	apiGroup.GET("/accounts", s.getUserAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
 	apiGroup.GET("/account/:aid", s.getAccount)
 	apiGroup.POST("/account", s.addAccount)
@@ -119,6 +120,7 @@ func NewServer(store Store) *Server {
 
 	apiGroup.GET("/transactions/account/:aid", s.getTransactionsByAccount)
 
+	apiGroup.GET("/operations", s.getOperationsOfUser)
 	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/operation/:opid", s.getOperation)
 	apiGroup.POST("/operation", s.addOperation)
@@ -163,7 +165,7 @@ func (s *Server) Login(c echo.Context) error {
 
 	user, err := s.store.Login(login.User, login.Password)
 	if err != nil {
-		//FIXME look for error
+		//FIXME look for error type
 		return err
 	}
 
@@ -228,21 +230,12 @@ func extractClaims(c echo.Context) (*jwtCustomClaims, error) {
 	return claims, nil
 }
 
-func getUser(c echo.Context) (User, error) {
-	claims, err := extractClaims(c)
-	if err != nil {
-		return User{}, err
-	}
-
-	return claims.User, nil
-}
-
 func (s *Server) Greet(c echo.Context) error {
 
-	u, err := getUser(c)
+	cl, err := extractClaims(c)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, u)
+	return c.JSON(http.StatusOK, cl.User)
 }

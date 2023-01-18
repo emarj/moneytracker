@@ -36,7 +36,8 @@ func (s *SQLiteStore) GetEntitiesOfUser(uID int64) ([]mt.Entity, error) {
 		jt.EntityShare.AllColumns,
 	).FROM(jt.Entity.
 		LEFT_JOIN(jt.EntityShare, jt.Entity.ID.EQ(jt.EntityShare.EntityID)),
-	).WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID)))
+	).WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID))).
+		ORDER_BY(jt.EntityShare.Quota.DESC())
 
 	entities := []mt.Entity{}
 	err := stmt.Query(s.db, &entities)

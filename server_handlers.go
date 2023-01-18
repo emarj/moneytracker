@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 // ************* Handlers *****************
@@ -38,12 +39,21 @@ func (s *Server) getEntity(c echo.Context) error {
 
 func (s *Server) getEntities(c echo.Context) error {
 
-	u, err := getUser(c)
+	cl, err := extractClaims(c)
 	if err != nil {
 		return err
 	}
 
-	el, err := s.store.GetEntitiesOfUser(u.ID.Int64)
+	el, err := s.store.GetEntitiesOfUser(cl.User.ID.Int64)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, el)
+}
+
+func (s *Server) getAllEntities(c echo.Context) error {
+
+	el, err := s.store.GetEntities()
 	if err != nil {
 		return err
 	}
@@ -71,6 +81,12 @@ func (s *Server) getAccount(c echo.Context) error {
 
 func (s *Server) getAccounts(c echo.Context) error {
 
+	cl, err := extractClaims(c)
+	if err != nil {
+		return err
+	}
+
+	_ = cl.User.ID.Int64 //TODO pass this to GetAccounts to check if it is admin
 	el, err := s.store.GetAccounts()
 	if err != nil {
 		return err
@@ -78,12 +94,53 @@ func (s *Server) getAccounts(c echo.Context) error {
 	return c.JSON(http.StatusOK, el)
 }
 
+func (s *Server) getUserAccounts(c echo.Context) error {
+
+	cl, err := extractClaims(c)
+	if err != nil {
+		return err
+	}
+
+	el, err := s.store.GetUserAccounts(cl.User.ID.Int64)
+	if err != nil {
+		return err
+	}
+	om := orderedmap.New[string, []Account]()
+	/* entities := make(map[int64]string)
+	shares := []EntityShare{}
+	for _, a := range el {
+		entities[a.OwnerID] = a.Owner.DisplayName
+		for _, s := range a.Owner.Shares {
+			if s.UserID == cl.User.ID.Int64 {
+				shares = append(shares, s)
+			}
+		}
+	}
+
+	sort.Slice(shares, func(i int, j int) bool {
+		return shares[i].Quota <= shares[j].Quota
+	})
+
+
+	for _, s := range shares {
+		om.Set(entities[s.EntityID], []Account{})
+	}
+	*/
+	for _, a := range el {
+		list, _ := om.Get(a.Owner.DisplayName)
+		list = append(list, a)
+		om.Set(a.Owner.DisplayName, list)
+	}
+
+	return c.JSON(http.StatusOK, om)
+}
+
 func (s *Server) getAccountsByEntity(c echo.Context) error {
 	eID, err := Atoi64(c.Param("eid"))
 	if err != nil {
 		return err
 	}
-	el, err := s.store.GetAccountsByEntity(int64(eID))
+	el, err := s.store.GetAccountsByEntity(eID)
 	if err != nil {
 		return err
 	}
@@ -208,6 +265,27 @@ func (s *Server) getTransactionsByAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, tl)
 }
 
+func (s *Server) getOperationsOfUser(c echo.Context) error {
+	cl, err := extractClaims(c)
+	if err != nil {
+		return err
+	}
+
+	limit := int64(5)
+	limitStr := c.QueryParam("limit")
+	if limitStr != "" {
+		limit, err = Atoi64(limitStr)
+		if err != nil {
+			return err
+		}
+	}
+
+	list, err := s.store.GetOperationsOfUser(cl.User.ID.Int64, limit)
+	if err != nil {
+		return err
+	}
+	return c.JSONPretty(http.StatusOK, list, "\t")
+}
 func (s *Server) getOperationsByEntity(c echo.Context) error {
 	aID, err := Atoi64(c.Param("eid"))
 	if err != nil {
@@ -255,12 +333,12 @@ func (s *Server) addOperation(c echo.Context) error {
 		return err
 	}
 
-	u, err := getUser(c)
+	cl, err := extractClaims(c)
 	if err != nil {
 		return err
 	}
 
-	op.CreatedByID = u.ID.Int64
+	op.CreatedByID = cl.User.ID.Int64
 
 	err = s.store.AddOperation(&op)
 	if err != nil {
