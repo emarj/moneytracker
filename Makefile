@@ -37,5 +37,5 @@ gen:
 		rm -rf .gen/model
 schema:
 		rm data/moneytracker.sqlite* || true
-		sqlite3 data/moneytracker.sqlite < store/sqlite/queries/schema.sql
+		sqlite3 data/moneytracker.sqlite < store/sqlite/schema.sql
 

@@ -13,21 +13,28 @@ CREATE TABLE IF NOT EXISTS user (
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
 	is_admin INTEGER NOT NULL DEFAULT FALSE CHECK (is_admin IN (0, 1)),
-	password TEXT NOT NULL
-);
+	password BLOB NOT NULL
+); --STRICT;
+---
+CREATE TABLE IF NOT EXISTS entity_share (
+	user_id INTEGER REFERENCES user(id),
+	entity_id INTEGER REFERENCES entity(id),
+	quota INTEGER NOT NULL DEFAULT 100 CHECK (quota BETWEEN 0 AND 100),
+	PRIMARY KEY(user_id, entity_id)
+); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS entity (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
 	is_external INTEGER NOT NULL DEFAULT FALSE CHECK (is_external IN (0, 1))
-);
+); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS account_type (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
 	system INTEGER NOT NULL CHECK (system IN (0, 1))
-);
+); --STRICT;
 
 CREATE TABLE IF NOT EXISTS account (
 	id INTEGER PRIMARY KEY,
@@ -38,7 +45,7 @@ CREATE TABLE IF NOT EXISTS account (
 	is_group INTEGER NOT NULL DEFAULT FALSE CHECK (is_group IN (0, 1)),
 	type_id INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT 0 REFERENCES account_type(id),
 	group_id INTEGER REFERENCES account(id)
-);
+); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS balance (
 	timestamp TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -49,7 +56,7 @@ CREATE TABLE IF NOT EXISTS balance (
 	is_computed INTEGER NOT NULL CHECK (is_computed IN (0, 1)),
 	operation_id INTEGER REFERENCES operation(id),
 	PRIMARY KEY(account_id, timestamp)
-);
+); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS 'transaction' (
 	id INTEGER PRIMARY KEY,
@@ -58,12 +65,12 @@ CREATE TABLE IF NOT EXISTS 'transaction' (
 	to_id INTEGER NOT NULL,
 	amount TEXT NOT NULL,
 	operation_id INTEGER NOT NULL REFERENCES operation(id)
-);
+); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS operation_type (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL
-);
+); --STRICT;
 
 CREATE TABLE IF NOT EXISTS operation (
 	id INTEGER PRIMARY KEY,
@@ -76,13 +83,13 @@ CREATE TABLE IF NOT EXISTS operation (
 	---
 	details TEXT,
 	category_id INTEGER DEFAULT 0 REFERENCES category(id)
-);
+); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS category (
 	id INTEGER PRIMARY KEY,
 	parent_id INTEGER,
 	name TEXT NOT NULL
-);
+); --STRICT;
 ---
 
 --- Insert Types and Base Categories

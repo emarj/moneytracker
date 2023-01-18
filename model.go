@@ -18,17 +18,25 @@ type Record struct {
 }
 
 type User struct {
-	ID          null.Int `json:"id" sql:"primary_key"`
-	Name        string   `json:"name"`
-	DisplayName string   `json:"display_name"`
-	IsAdmin     bool     `json:"is_admin"`
+	ID          null.Int      `json:"id" sql:"primary_key"`
+	Name        string        `json:"name"`
+	DisplayName string        `json:"display_name"`
+	IsAdmin     bool          `json:"is_admin"`
+	Shares      []EntityShare `json:"shares"`
+}
+
+type EntityShare struct {
+	UserID   int64 `json:"user_id"`
+	EntityID int64 `json:"entity_id"`
+	Quota    int64 `json:"quota"`
 }
 
 type Entity struct {
-	ID         null.Int `json:"id" sql:"primary_key"`
-	Name       string   `json:"name"`
-	IsSystem   bool     `json:"is_system"`
-	IsExternal bool     `json:"is_external"` // For example a friend that owes me
+	ID         null.Int      `json:"id" sql:"primary_key"`
+	Name       string        `json:"name"`
+	IsSystem   bool          `json:"is_system"`
+	IsExternal bool          `json:"is_external"` // For example a friend that owes me
+	Shares     []EntityShare `json:"shares"`
 }
 
 const EntSystemID int64 = 0
@@ -128,7 +136,7 @@ type Operation struct {
 	//////////////////////////////////////////////
 	CategoryID int64           `json:"category_id"`
 	Details    json.RawMessage `json:"details,omitempty"`
-	ParentID   null.Int
+	ParentID   null.Int        `json:"parent_id"`
 	//Parent       *Operation    `json:"parent,omitempty"`
 }
 

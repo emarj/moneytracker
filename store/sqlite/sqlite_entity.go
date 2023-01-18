@@ -15,7 +15,28 @@ func (s *SQLiteStore) GetEntities() ([]mt.Entity, error) {
 
 	stmt := jet.SELECT(
 		jt.Entity.AllColumns,
-	).FROM(jt.Entity)
+		jt.EntityShare.AllColumns,
+	).FROM(jt.Entity.
+		LEFT_JOIN(jt.EntityShare, jt.Entity.ID.EQ(jt.EntityShare.EntityID)),
+	)
+
+	entities := []mt.Entity{}
+	err := stmt.Query(s.db, &entities)
+	if err != nil {
+		return nil, err
+	}
+
+	return entities, nil
+}
+
+func (s *SQLiteStore) GetEntitiesOfUser(uID int64) ([]mt.Entity, error) {
+
+	stmt := jet.SELECT(
+		jt.Entity.AllColumns,
+		jt.EntityShare.AllColumns,
+	).FROM(jt.Entity.
+		LEFT_JOIN(jt.EntityShare, jt.Entity.ID.EQ(jt.EntityShare.EntityID)),
+	).WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID)))
 
 	entities := []mt.Entity{}
 	err := stmt.Query(s.db, &entities)
@@ -30,7 +51,10 @@ func (s *SQLiteStore) GetEntity(eID int64) (*mt.Entity, error) {
 
 	stmt := jet.SELECT(
 		jt.Entity.AllColumns,
-	).FROM(jt.Entity).WHERE(
+		jt.EntityShare.AllColumns,
+	).FROM(jt.Entity.
+		LEFT_JOIN(jt.EntityShare, jt.Entity.ID.EQ(jt.EntityShare.EntityID)),
+	).WHERE(
 		jt.Entity.ID.EQ(jet.Int(eID)),
 	)
 

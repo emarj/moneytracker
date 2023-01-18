@@ -12,7 +12,7 @@ import (
 	mt "github.com/emarj/moneytracker"
 )
 
-//go:embed queries/schema.sql
+//go:embed schema.sql
 var schema string
 
 type TXDB interface {

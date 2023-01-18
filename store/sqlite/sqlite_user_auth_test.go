@@ -24,7 +24,7 @@ func TestUserRegister(t *testing.T) {
 	user1Copy := user1
 
 	password1 := "password1"
-	err = store.Register(&user1, password1)
+	err = store.RegisterUser(&user1, password1)
 	require.NoError(t, err)
 	assert.True(t, user1.ID.Valid)
 	user1Copy.ID = user1.ID
@@ -59,7 +59,7 @@ func TestUserLoginWithExistingUser(t *testing.T) {
 		IsAdmin:     false,
 	}
 	password1 := "password1"
-	err = store.Register(&user1, password1)
+	err = store.RegisterUser(&user1, password1)
 	require.NoError(t, err)
 
 	user1Returned, err := store.Login(user1.Name, password1)

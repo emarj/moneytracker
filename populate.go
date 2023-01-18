@@ -40,6 +40,26 @@ func Populate(s Store) error {
 		}
 	}
 
+	user1 := User{
+		Name:        "arianna",
+		DisplayName: "Arianna",
+		IsAdmin:     false,
+	}
+	err = s.RegisterUser(&user1, "prova")
+	if err != nil {
+		return err
+	}
+
+	user2 := User{
+		Name:        "marco",
+		DisplayName: "Marco",
+		IsAdmin:     false,
+	}
+	err = s.RegisterUser(&user2, "pippo")
+	if err != nil {
+		return err
+	}
+
 	entUser1 := Entity{
 		ID:         null.IntFrom(1),
 		Name:       "arianna",
@@ -48,6 +68,15 @@ func Populate(s Store) error {
 	}
 
 	err = s.AddEntity(&entUser1)
+	if err != nil {
+		return err
+	}
+
+	err = s.AddSharesForEntity(EntityShare{
+		UserID:   user1.ID.Int64,
+		EntityID: entUser1.ID.Int64,
+		Quota:    100,
+	})
 	if err != nil {
 		return err
 	}
@@ -63,6 +92,15 @@ func Populate(s Store) error {
 	if err != nil {
 		return err
 	}
+	err = s.AddSharesForEntity(EntityShare{
+		UserID:   user2.ID.Int64,
+		EntityID: entUser2.ID.Int64,
+		Quota:    100,
+	})
+	if err != nil {
+		return err
+	}
+
 	entUser3 := Entity{
 		ID:         null.IntFrom(3),
 		Name:       "am",
@@ -71,6 +109,18 @@ func Populate(s Store) error {
 	}
 
 	err = s.AddEntity(&entUser3)
+	if err != nil {
+		return err
+	}
+	err = s.AddSharesForEntity(EntityShare{
+		UserID:   user1.ID.Int64,
+		EntityID: entUser3.ID.Int64,
+		Quota:    50,
+	}, EntityShare{
+		UserID:   user2.ID.Int64,
+		EntityID: entUser3.ID.Int64,
+		Quota:    50,
+	})
 	if err != nil {
 		return err
 	}
@@ -173,7 +223,7 @@ func Populate(s Store) error {
 					Timestamp: tt.Before,
 					FromID:    accounts.Value("user1:cc1").ID.Int64,
 					ToID:      0,
-					Amount:    decimal.New(80, 0),
+					Amount:    decimal.New(801, -1),
 				},
 				{
 					Timestamp: tt.Before,
@@ -223,26 +273,6 @@ func Populate(s Store) error {
 			return err
 		}
 		operations[k] = op
-	}
-
-	user1 := User{
-		Name:        "arianna",
-		DisplayName: "Arianna",
-		IsAdmin:     false,
-	}
-	err = s.Register(&user1, "prova")
-	if err != nil {
-		return err
-	}
-
-	user2 := User{
-		Name:        "marco",
-		DisplayName: "Marco",
-		IsAdmin:     false,
-	}
-	err = s.Register(&user2, "pippo")
-	if err != nil {
-		return err
 	}
 
 	fmt.Println("OK")

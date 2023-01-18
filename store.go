@@ -4,8 +4,10 @@ import "github.com/emarj/moneytracker/datetime"
 
 type Store interface {
 	GetEntities() ([]Entity, error)
+	GetEntitiesOfUser(int64) ([]Entity, error)
 	GetEntity(eID int64) (*Entity, error)
 	AddEntity(e *Entity) error
+	AddSharesForEntity(...EntityShare) error
 
 	GetAccounts() ([]Account, error)
 	GetAccountsByEntity(eID int64) ([]Account, error)
@@ -34,5 +36,5 @@ type Store interface {
 	GetAccountTypes() []AccountType
 
 	Login(user string, password string) (User, error)
-	Register(user *User, password string) error
+	RegisterUser(user *User, password string) error
 }

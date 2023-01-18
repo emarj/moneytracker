@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserWithHashedPassword struct {
+type userWithHashedPassword struct {
 	mt.User
 	Password []byte
 }
@@ -26,7 +26,7 @@ func (s *SQLiteStore) Login(user string, password string) (mt.User, error) {
 		jt.User.Name.EQ(jet.String(user)),
 	)
 
-	result := UserWithHashedPassword{}
+	result := userWithHashedPassword{}
 	err = stmt.Query(s.db, &result)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
@@ -47,7 +47,7 @@ func (s *SQLiteStore) Login(user string, password string) (mt.User, error) {
 	return u, nil
 }
 
-func (s *SQLiteStore) Register(user *mt.User, password string) error {
+func (s *SQLiteStore) RegisterUser(user *mt.User, password string) error {
 	var err error
 	u := *user
 
@@ -56,7 +56,7 @@ func (s *SQLiteStore) Register(user *mt.User, password string) error {
 		return err
 	}
 
-	payload := UserWithHashedPassword{u, hashedPassword}
+	payload := userWithHashedPassword{u, hashedPassword}
 
 	err = jt.User.INSERT(jt.User.AllColumns).MODEL(&payload).RETURNING(jt.User.AllColumns).
 		Query(s.db, &u)

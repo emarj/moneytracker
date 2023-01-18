@@ -37,7 +37,13 @@ func (s *Server) getEntity(c echo.Context) error {
 }
 
 func (s *Server) getEntities(c echo.Context) error {
-	el, err := s.store.GetEntities()
+
+	u, err := getUser(c)
+	if err != nil {
+		return err
+	}
+
+	el, err := s.store.GetEntitiesOfUser(u.ID.Int64)
 	if err != nil {
 		return err
 	}
