@@ -26,9 +26,10 @@ type User struct {
 }
 
 type EntityShare struct {
-	UserID   int64 `json:"user_id"`
-	EntityID int64 `json:"entity_id"`
-	Quota    int64 `json:"quota"`
+	UserID   int64    `json:"user_id"`
+	EntityID int64    `json:"entity_id"`
+	Quota    int64    `json:"quota"`
+	Priority null.Int `json:"priority"`
 }
 
 type Entity struct {

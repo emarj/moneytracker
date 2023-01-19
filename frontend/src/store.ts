@@ -7,6 +7,16 @@ export const authStore = lsWritable("auth", null)
 export const entityID = lsWritable("entity_id", 1);
 export const showBalances = lsWritable("showBalances", true);
 
+export const user = derived(
+    authStore,
+    $authStore => $authStore?.user
+);
+
+export const userShares = derived(
+    user,
+    $user => $user?.shares
+);
+
 // In-memory stores
 export const messageStore = writable(null);
 

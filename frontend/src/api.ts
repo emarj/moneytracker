@@ -1,4 +1,5 @@
 import type { Operation } from "./model"
+import { JSONString } from "./util/utils"
 
 
 const baseURL = '/api'
@@ -12,7 +13,7 @@ const fetcher = async (url: string, init?) => {
 }
 
 export const login = (l) =>
-    fetcher(`${baseURL}/login`, { method: "POST", body: JSON.stringify(l) })
+    fetcher(`${baseURL}/login`, { method: "POST", body: JSONString(l) })
 
 export const logout = () =>
     fetcher(`${baseURL}/logout`, { method: "POST" })
@@ -42,7 +43,7 @@ export const deleteAccount = (aID: number) =>
     fetcher(`${baseURL}/account/${aID}`, { method: "DELETE" })
 
 export const addAccount = (a) =>
-    fetcher(`${baseURL}/account`, { method: "POST", body: JSON.stringify(a) })
+    fetcher(`${baseURL}/account`, { method: "POST", body: JSONString(a) })
 
 
 export const getAccountBalance = (aID: number) =>
@@ -52,7 +53,7 @@ export const getAccountBalances = (aID: number) =>
     fetcher(`${baseURL}/balance/history/${aID}`)
 
 export const adjustBalance = (bal) =>
-    fetcher(`${baseURL}/balance`, { method: "POST", body: JSON.stringify(bal) })
+    fetcher(`${baseURL}/balance`, { method: "POST", body: JSONString(bal) })
 
 export const getTransactionsByAccount = (aID: number) =>
     fetcher(`${baseURL}/transactions/account/${aID}`)
@@ -71,7 +72,10 @@ export const getOperation = (oID: number) =>
     fetcher(`${baseURL}/operation/${oID}`)
 
 export const addOperation = (op) =>
-    fetcher(`${baseURL}/operation`, { method: "POST", body: JSON.stringify(op) })
+    fetcher(`${baseURL}/operation`, { method: "POST", body: JSONString(op) })
 
 export const deleteOperation = (opID: number) =>
     fetcher(`${baseURL}/operation/${opID}`, { method: "DELETE" })
+
+export const addExpense = (e) =>
+    fetcher(`${baseURL}/expense`, { method: "POST", body: JSONString(e) })

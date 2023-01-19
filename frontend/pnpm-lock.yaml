@@ -1,6 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@fontsource/material-icons': ^4.5.4
+  '@fontsource/roboto': ^4.5.8
+  '@fontsource/roboto-mono': ^4.5.10
   '@smui-extra/bottom-app-bar': 7.0.0-beta.0
   '@smui/button': 7.0.0-beta.0
   '@smui/circular-progress': 7.0.0-beta.0
@@ -34,6 +37,9 @@ specifiers:
   vite-plugin-mkcert: ^1.10.1
 
 dependencies:
+  '@fontsource/material-icons': 4.5.4
+  '@fontsource/roboto': 4.5.8
+  '@fontsource/roboto-mono': 4.5.10
   '@sveltestack/svelte-query': 1.6.0
   svelte-icons: 2.1.0
   svelte-local-storage-store: 0.3.1_svelte@3.53.1
@@ -87,6 +93,18 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@fontsource/material-icons/4.5.4:
+    resolution: {integrity: sha512-YGmXkkEdu6EIgpFKNmB/nIXzZocwSmbI01Ninpmml8x8BT0M6RR++V1KqOfpzZ6Cw/FQ2/KYonQ3x4IY/4VRRA==}
+    dev: false
+
+  /@fontsource/roboto-mono/4.5.10:
+    resolution: {integrity: sha512-KrJdmkqz6DszT2wV/bbhXef4r0hV3B0vw2mAqei8A2kRnvq+gcJLmmIeQ94vu9VEXrUQzos5M9lH1TAAXpRphw==}
+    dev: false
+
+  /@fontsource/roboto/4.5.8:
+    resolution: {integrity: sha512-CnD7zLItIzt86q4Sj3kZUiLcBk1dSk81qcqgMGaZe7SQ1P8hFNxhMl5AZthK1zrDM5m74VVhaOpuMGIL4gagaA==}
+    dev: false
 
   /@jridgewell/resolve-uri/3.1.0:
     resolution: {integrity: sha512-F2msla3tad+Mfht5cJq7LSXcdudKTWCVYUgw6pLFOOHSTtZlj6SWNYAp+AhuqLmWdBO2X5hPrLcu8cVP8fy28w==}

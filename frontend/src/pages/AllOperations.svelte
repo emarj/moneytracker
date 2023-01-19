@@ -1,13 +1,12 @@
 <script lang="ts">
-    import { isExpense, isIncome, isInternal } from "../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getOperations } from "../api";
-    import { authStore, entityID } from "../store";
+    import { user, entityID } from "../store";
     import CircularProgress from "@smui/circular-progress";
     import OperationPreview from "../lib/Operation/OperationPreview.svelte";
 
     const operationsQuery = useQuery(
-        ["operations", "user", $authStore.user.id, "all"],
+        ["operations", "user", $user?.id, "all"],
         () => getOperations(1000)
     );
 

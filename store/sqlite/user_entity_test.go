@@ -6,6 +6,7 @@ import (
 	mt "github.com/emarj/moneytracker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/guregu/null.v4"
 )
 
 func TestEntityShare(t *testing.T) {
@@ -33,6 +34,7 @@ func TestEntityShare(t *testing.T) {
 		UserID:   u.ID.Int64,
 		EntityID: e1.ID.Int64,
 		Quota:    100,
+		Priority: null.IntFrom(23),
 	})
 	require.NoError(t, err)
 
@@ -40,6 +42,7 @@ func TestEntityShare(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(e1b.Shares))
 	assert.EqualValues(t, 100, e1b.Shares[0].Quota)
+	assert.EqualValues(t, 23, e1b.Shares[0].Priority.Int64)
 
 	uws, err := store.GetUserWithShares(u.ID.Int64)
 	require.NoError(t, err)

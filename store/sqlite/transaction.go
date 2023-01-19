@@ -41,7 +41,7 @@ func (s *SQLiteStore) GetTransactionsByAccount(aID int64, limit int64) ([]mt.Tra
 func insertTransaction(txdb TXDB, tx *mt.Transaction) error {
 
 	if tx.FromID == tx.ToID {
-		return fmt.Errorf("a transaction cannot be from and to the same account")
+		return fmt.Errorf("a transaction cannot be from and to the same account: %d to %d", tx.FromID, tx.ToID)
 	}
 
 	stmt := jt.Transaction.INSERT(jt.Transaction.AllColumns).MODEL(tx).RETURNING(jt.Transaction.AllColumns)
@@ -63,7 +63,7 @@ func insertTransaction(txdb TXDB, tx *mt.Transaction) error {
 func updateTransaction(txdb TXDB, tx *mt.Transaction) error {
 
 	if tx.FromID == tx.ToID {
-		return fmt.Errorf("a transaction cannot be from and to the same account")
+		return fmt.Errorf("a transaction cannot be from and to the same account: %d to %d", tx.FromID, tx.ToID)
 	}
 
 	stmt := jt.Transaction.UPDATE(jt.Transaction.AllColumns).

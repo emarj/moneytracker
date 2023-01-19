@@ -38,6 +38,9 @@
     "vite-plugin-mkcert": "^1.10.1"
   },
   "dependencies": {
+    "@fontsource/material-icons": "^4.5.4",
+    "@fontsource/roboto": "^4.5.8",
+    "@fontsource/roboto-mono": "^4.5.10",
     "@sveltestack/svelte-query": "^1.6.0",
     "svelte-icons": "^2.1.0",
     "svelte-local-storage-store": "^0.3.1",

@@ -70,10 +70,11 @@ func (s *SQLiteStore) GetUserAccounts(uID int64) ([]mt.Account, error) {
 			INNER_JOIN(jt.EntityShare,
 				jt.EntityShare.EntityID.EQ(Owner.ID),
 			)).
+		// With this nested query we obtain also the shares of other users
 		WHERE(Owner.ID.IN(
 			jt.EntityShare.SELECT(jt.EntityShare.EntityID).
 				WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID))),
-		)).ORDER_BY(jt.EntityShare.Quota.DESC())
+		)).ORDER_BY(jet.COALESCE(jt.EntityShare.Priority, jet.Int(999)).ASC())
 
 	accounts := []mt.Account{}
 

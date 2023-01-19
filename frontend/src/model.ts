@@ -1,3 +1,4 @@
+import { removeUnderscore } from "./util/utils";
 
 
 
@@ -40,9 +41,9 @@ export type Tag = {
 
 export class Expense {
     timestamp: Date = new Date();
-    private _amount: number = 0;
+    private _amount: number = null;
     description: string = "";
-    account: number;
+    account_id: number;
     shares: Share[] = [];
     category_id: number;
     tags: Tag[] = [];
@@ -55,6 +56,7 @@ export class Expense {
         return (this.shares.length > 0)
     }
 
+
     set amount(amount: number) {
         this._amount = amount;
         if (this.isShared) {
@@ -66,44 +68,20 @@ export class Expense {
 
     get amount(): number { return this._amount }
 
-    toOperation(): Operation {
-        let op = {
-            description: this.description,
-            category_id: this.category_id,
-            transactions: [
-                {
-                    timestamp: this.timestamp,
-                    amount: this.amount,
-                    from_id: this.account,
-                    to_id: 0,
-                },
-
-            ],
-        };
-
-        if (this.isShared) {
-            for (const s of this.shares) {
-                op.transactions.push({
-                    timestamp: this.timestamp,
-                    amount: s.amount,
-                    to_id: s.credAccount,
-                    from_id: s.debAccount,
-                })
-            }
-        }
-        return op;
-    }
+    toJSON() {
+        return removeUnderscore(this)
+    };
 
 };
 
 export class Share {
-    private _amount: number = 0;
+    private _amount: number = null;
     private _quota: number = 50;
-    private _total: number = 0;
-    with: number;
-    credAccount: number;
-    debAccount: number;
-    isCredit: boolean = true;
+    private _total: number = null;
+    with_id: number;
+    cred_account_id: number;
+    deb_account_id: number;
+    is_credit: boolean = true;
 
     constructor(total?: number) {
         if (total) {
@@ -113,6 +91,7 @@ export class Share {
     }
 
     set quota(quota: number) {
+        console.log("set quota", quota)
         this._quota = quota;
         this.computeAmount();
     }
@@ -120,6 +99,7 @@ export class Share {
     get quota(): number { return this._quota }
 
     set total(total: number) {
+        console.log("set total", total)
         this._total = total;
         this.computeAmount();
     }
@@ -127,6 +107,7 @@ export class Share {
     get total(): number { return this._total }
 
     set amount(amount: number) {
+        console.log("set amount", amount)
         this._amount = amount;
         this.computeQuota();
     }
@@ -134,8 +115,11 @@ export class Share {
     get amount(): number { return this._amount }
 
     private computeAmount() {
-
-        this._amount = (this._total * this._quota) / 100;
+        if (this._total === null) {
+            this._amount = null
+        } else {
+            this._amount = (this._total * this._quota) / 100;
+        }
     }
 
     private computeQuota() {
@@ -143,7 +127,13 @@ export class Share {
             this._quota = (this._amount / this._total) * 100;
         }
     }
+
+    toJSON() {
+        return removeUnderscore(this)
+    };
 };
+
+
 
 export const emptyTransaction: Transaction = {
     amount: 0, to_id: 0, from_id: 0

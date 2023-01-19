@@ -20,6 +20,7 @@ type entityShareTable struct {
 	UserID   sqlite.ColumnInteger
 	EntityID sqlite.ColumnInteger
 	Quota    sqlite.ColumnInteger
+	Priority sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
@@ -63,8 +64,9 @@ func newEntityShareTableImpl(schemaName, tableName, alias string) entityShareTab
 		UserIDColumn   = sqlite.IntegerColumn("user_id")
 		EntityIDColumn = sqlite.IntegerColumn("entity_id")
 		QuotaColumn    = sqlite.IntegerColumn("quota")
-		allColumns     = sqlite.ColumnList{UserIDColumn, EntityIDColumn, QuotaColumn}
-		mutableColumns = sqlite.ColumnList{QuotaColumn}
+		PriorityColumn = sqlite.IntegerColumn("priority")
+		allColumns     = sqlite.ColumnList{UserIDColumn, EntityIDColumn, QuotaColumn, PriorityColumn}
+		mutableColumns = sqlite.ColumnList{QuotaColumn, PriorityColumn}
 	)
 
 	return entityShareTable{
@@ -74,6 +76,7 @@ func newEntityShareTableImpl(schemaName, tableName, alias string) entityShareTab
 		UserID:   UserIDColumn,
 		EntityID: EntityIDColumn,
 		Quota:    QuotaColumn,
+		Priority: PriorityColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

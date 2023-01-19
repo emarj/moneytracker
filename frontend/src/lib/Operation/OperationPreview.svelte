@@ -3,14 +3,10 @@
     import type { Operation } from "../../model";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";
-    import { isExpense, isIncome, isInternal } from "../../transactions";
     import { entityID } from "../../store";
-    import { deleteOperation } from "../../api";
-    import { useMutation, useQueryClient } from "@sveltestack/svelte-query";
-    import { messageStore } from "../../store";
-    import Button from "@smui/button/src/Button.svelte";
     import { push } from "svelte-spa-router";
     import AccountOrEntityTag from "../AccountOrEntityTag.svelte";
+    import IconButton from "@smui/icon-button";
 
     export let op: Operation;
 
@@ -25,15 +21,6 @@
 
     let total: number;
     $: total = computeTotal(op);
-
-    const queryClient = useQueryClient();
-
-    const mutation = useMutation((opID: number) => deleteOperation(opID), {
-        onSuccess: (data: number) => {
-            $messageStore = { text: `Operation delete successfully!` };
-            queryClient.invalidateQueries();
-        },
-    });
 </script>
 
 <div class:expense={total < 0} class:income={total > 0}>
@@ -59,14 +46,13 @@
             hide_plus={true}
         />
     {/if}
-    <button
+
+    <IconButton
         on:click={() => {
             push(`/operation/${op.id}`);
         }}
-        class="more"
+        class="more material-icons">more_horiz</IconButton
     >
-        Details
-    </button>
     <div class="transactions">
         <OperationTransactions transactions={op.transactions} />
     </div>
@@ -82,9 +68,10 @@
 <style lang="scss">
     div {
         position: relative;
-        button.more {
+
+        :global(button.more) {
             position: absolute;
-            top: 1rem;
+            top: -1rem;
             right: 1rem;
         }
     }

@@ -16,7 +16,7 @@
         Subheader,
     } from "@smui/list";
     import Switch from "@smui/switch";
-    import { authStore, showBalances } from "../store";
+    import { user, showBalances } from "../store";
     import Logout from "../Logout.svelte";
     import EntitySelect from "./EntitySelect.svelte";
 
@@ -34,17 +34,27 @@
         <Content>
             <List>
                 <Item>
-                    Logged in as {$authStore.user.name}
+                    <strong>{$user?.display_name}</strong>
                     <Logout />
                 </Item>
-                <Item>
-                    <Switch bind:checked={$showBalances} /> Show balances
+                <Separator />
+                <Item on:click={() => ($showBalances = !$showBalances)}>
+                    <Graphic class="material-icons" aria-hidden="true"
+                        >{#if $showBalances}money_off{:else}attach_money{/if}</Graphic
+                    >
+                    <Text
+                        >{#if $showBalances}Hide{:else}Show{/if} balances
+                    </Text>
                 </Item>
-                <Separator />
+                <!-- <Separator />
                 <Subheader tag="h3">Entities</Subheader>
-                <EntitySelect bind:value={$entityID} style="menu" />
-                <Separator />
-                <Item on:click={() => location.reload()}>Panic Reload</Item>
+                <EntitySelect bind:value={$entityID} style="menu" /> -->
+                <Item on:click={() => location.reload()}>
+                    <Graphic class="material-icons" aria-hidden="true"
+                        >refresh</Graphic
+                    >
+                    <Text>Panic Reload</Text>
+                </Item>
             </List>
         </Content>
     </Drawer>

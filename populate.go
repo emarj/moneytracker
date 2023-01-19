@@ -52,6 +52,7 @@ func Populate(s Store) error {
 		UserID:   user1.ID.Int64,
 		EntityID: entUser1.ID.Int64,
 		Quota:    100,
+		Priority: null.IntFrom(0),
 	})
 	if err != nil {
 		return err
@@ -73,6 +74,7 @@ func Populate(s Store) error {
 		UserID:   user2.ID.Int64,
 		EntityID: entUser2.ID.Int64,
 		Quota:    100,
+		Priority: null.IntFrom(0),
 	})
 	if err != nil {
 		return err

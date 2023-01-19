@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS entity_share (
 	user_id INTEGER REFERENCES user(id),
 	entity_id INTEGER REFERENCES entity(id),
 	quota INTEGER NOT NULL DEFAULT 100 CHECK (quota BETWEEN 0 AND 100),
-	PRIMARY KEY(user_id, entity_id)
+	priority INTEGER,
+	PRIMARY KEY(user_id, entity_id),
+	UNIQUE(user_id,priority)
 ); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS entity (

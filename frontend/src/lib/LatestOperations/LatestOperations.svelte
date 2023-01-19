@@ -2,13 +2,13 @@
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getOperations } from "../../api";
-    import { authStore, entityID } from "../../store";
+    import { user, entityID } from "../../store";
     import CircularProgress from "@smui/circular-progress";
     import { link } from "svelte-spa-router";
     import OperationPreview from "../Operation/OperationPreview.svelte";
 
     const operationsQuery = useQuery(
-        ["operations", "user", $authStore.user.id, "latest"],
+        ["operations", "user", $user?.id, "latest"],
         () => getOperations()
     );
 

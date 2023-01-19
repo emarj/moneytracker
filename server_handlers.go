@@ -159,6 +159,20 @@ func (s *Server) getBalanceHistory(c echo.Context) error {
 	return c.JSON(http.StatusOK, bl)
 }
 
+func (s *Server) getUserBalance(c echo.Context) error {
+
+	/* cl, err := extractClaims(c)
+	if err != nil {
+		return err
+	}
+
+	b, err := s.store.GetUserBalanceNow(cl.User.ID.Int64)
+	if err != nil {
+		return err
+	} */
+	return c.JSON(http.StatusOK, "not implemented")
+}
+
 func (s *Server) getBalance(c echo.Context) error {
 
 	aID, err := Atoi64(c.Param("aid"))
@@ -385,4 +399,23 @@ func (s *Server) addCategory(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, cat)
+}
+
+func (s *Server) addExpense(c echo.Context) error {
+
+	e := Expense{}
+
+	err := json.NewDecoder(c.Request().Body).Decode(&e)
+	if err != nil {
+		return err
+	}
+
+	op := e.ToOperation()
+
+	err = s.store.AddOperation(&op)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, e)
 }

@@ -8,25 +8,22 @@
 
     const accountsQuery = useQuery(["accounts"], () => getAccounts());
 
-    export let neg = false;
     export let type_id = null;
     export let firstSelected = true;
     export let disabled = false;
 
-    export let owner_id = null;
-
     export let value;
     export let label = "Account";
 
-    let accounts = [];
-
-    $: accounts = $accountsQuery?.data?.filter(
+    const filter = (list) =>
+        list.filter((a) => type_id === null || a.type_id == type_id);
+    /* $: accounts = $accountsQuery?.data?.filter(
         (a) =>
             owner_id === null ||
             (((a.owner.id == owner_id && !neg) ||
                 (a.owner.id != owner_id && neg)) &&
                 (type_id === null || a.type_id == type_id || a.is_world))
-    );
+    ); */
 </script>
 
 <div>
@@ -44,8 +41,11 @@
             {#if !firstSelected}
                 <Option value={null} />
             {/if}
-            {#each accounts as account (account.id)}
-                <Option value={account.id}><AccountName {account} /></Option>
+            {#each [...Object.entries($accountsQuery.data)] as [entity, accounts] (entity)}
+                {#each filter(accounts) as account (account.id)}
+                    <Option value={account.id}><AccountName {account} /></Option
+                    >
+                {/each}
             {/each}
             <!-- <svelte:fragment slot="helperText">{helperText}</svelte:fragment> -->
         </Select>

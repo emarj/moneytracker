@@ -3,28 +3,22 @@
     import type { Operation } from "../../model";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";
-    import { isExpense, isIncome, isInternal } from "../../transactions";
     import { entityID } from "../../store";
     import { deleteOperation } from "../../api";
     import { useMutation, useQueryClient } from "@sveltestack/svelte-query";
     import { messageStore } from "../../store";
-    import Button from "@smui/button/src/Button.svelte";
-    import { push } from "svelte-spa-router";
+    import { pop, push } from "svelte-spa-router";
     import AccountOrEntityTag from "../AccountOrEntityTag.svelte";
+    import IconButton from "@smui/icon-button";
 
     export let op: Operation;
 
     const computeTotal = (op: Operation): number => {
         if (op.transactions) {
-            return op.transactions.reduce((sum: number, t) => {
-                if (isExpense(t, $entityID)) {
-                    return sum - t.amount;
-                } else if (isIncome(t, $entityID)) {
-                    return sum + t.amount;
-                } else {
-                    return sum;
-                }
-            }, 0);
+            return op.transactions.reduce(
+                (sum: number, t) => sum + t.amount * t.sign,
+                0
+            );
         }
     };
 
@@ -34,6 +28,9 @@
     const queryClient = useQueryClient();
 
     const mutation = useMutation((opID: number) => deleteOperation(opID), {
+        onMutate: () => {
+            pop();
+        },
         onSuccess: (data: number) => {
             $messageStore = { text: `Operation delete successfully!` };
             queryClient.invalidateQueries();
@@ -74,13 +71,13 @@
             {/each}
         </div>
     {/if}
-    <Button
-        class="delete"
+    <IconButton
+        class="material-icons"
         on:click={(event) => {
             event.preventDefault();
             $mutation.mutate(op.id);
         }}
-        disabled={$mutation.isLoading}>Delete</Button
+        disabled={$mutation.isLoading}>delete</IconButton
     >
 </div>
 <pre>

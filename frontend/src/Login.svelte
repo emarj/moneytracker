@@ -43,7 +43,7 @@
         </div>
     </form>
     {#if $mutation.isLoading}
-        Loading
+        Loading...
     {:else if $mutation.isError}
         Error
     {/if}

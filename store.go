@@ -1,6 +1,8 @@
 package moneytracker
 
-import "github.com/emarj/moneytracker/timestamp"
+import (
+	"github.com/emarj/moneytracker/timestamp"
+)
 
 type Store interface {
 	GetEntities() ([]Entity, error)

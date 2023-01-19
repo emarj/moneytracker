@@ -114,6 +114,7 @@ func NewServer(store Store) *Server {
 	apiGroup.POST("/account", s.addAccount)
 	apiGroup.DELETE("/account/:aid", s.deleteAccount)
 
+	apiGroup.GET("/balance", s.getUserBalance)
 	apiGroup.GET("/balance/:aid", s.getBalance)
 	apiGroup.GET("/balance/history/:aid", s.getBalanceHistory)
 	apiGroup.POST("/balance", s.setBalance)
@@ -125,6 +126,8 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/operation/:opid", s.getOperation)
 	apiGroup.POST("/operation", s.addOperation)
 	apiGroup.DELETE("/operation/:opid", s.deleteOperation)
+
+	apiGroup.POST("/expense", s.addExpense)
 
 	apiGroup.GET("/categories", s.getCategories)
 	apiGroup.POST("/category", s.addCategory)

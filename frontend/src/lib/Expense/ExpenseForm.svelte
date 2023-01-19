@@ -12,7 +12,7 @@
     import { entityID } from "../../store";
     import { Share, Expense } from "../../model";
     import Operation from "../Operation/Operation.svelte";
-    import { addOperation } from "../../api";
+    import { addExpense } from "../../api";
     import { useMutation } from "@sveltestack/svelte-query";
     import { push } from "svelte-spa-router";
     import TagInput from "../TagInput.svelte";
@@ -21,9 +21,9 @@
     import CategorySelect from "../CategorySelect.svelte";
     import { JSONPretty } from "../../util/utils";
 
-    const mutation = useMutation((op) => addOperation(op), {
-        onSuccess: (data: number) => {
-            $messageStore = { text: `Operation added successfully!` };
+    const mutation = useMutation((e) => addExpense(e), {
+        onSuccess: (data) => {
+            $messageStore = { text: `Expense added successfully!` };
             push("/");
         },
     });
@@ -38,10 +38,6 @@
         event.preventDefault();
         init();
     };
-
-    let op;
-
-    $: op = e.toOperation();
 </script>
 
 <div>
@@ -52,9 +48,10 @@
         label="Description"
         style="width: 100%;"
     />
-    <AccountSelect owner_id={$entityID} type_id={0} bind:value={e.account} />
+    <AccountSelect type_id={0} bind:value={e.account_id} />
 
     <Textfield
+        type="number"
         variant="outlined"
         bind:value={e.amount}
         label="Amount"
@@ -88,7 +85,7 @@
             color="primary"
             on:click={(event) => {
                 event.preventDefault();
-                $mutation.mutate(op);
+                $mutation.mutate(e);
             }}
             variant="outlined"
             disabled={$mutation.isLoading}
@@ -100,9 +97,6 @@
     <h3>Preview</h3>
     <pre>Expense:
 {JSONPretty(e)}
-    </pre>
-    <pre>Operation:
-{JSONPretty(op)}
     </pre>
 </div>
 
