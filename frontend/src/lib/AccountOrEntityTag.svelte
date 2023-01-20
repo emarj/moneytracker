@@ -15,7 +15,7 @@
     {#if isWorld}
         🌐
     {:else}
-        {account.owner?.name}:{account.display_name.toLowerCase()}
+        {account.owner?.name}:{account.name.toLowerCase()}
 
         <!-- {:else if !isExternal}
         {account.display_name.toLowerCase()}

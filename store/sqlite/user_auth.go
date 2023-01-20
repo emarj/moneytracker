@@ -22,10 +22,14 @@ func (s *SQLiteStore) Login(user string, password string) (mt.User, error) {
 	stmt := jt.User.LEFT_JOIN(
 		jt.EntityShare,
 		jt.EntityShare.UserID.EQ(jt.User.ID)).
+		LEFT_JOIN(
+			jt.Entity,
+			jt.Entity.ID.EQ(jt.EntityShare.EntityID)).
 		SELECT(
 			jt.User.AllColumns.Except(jt.User.Password),
 			jt.User.Password.AS("password"),
 			jt.EntityShare.AllColumns,
+			jt.Entity.AllColumns,
 		).WHERE(
 		jt.User.Name.EQ(jet.String(user)),
 	)

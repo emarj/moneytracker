@@ -104,11 +104,11 @@ func NewServer(store Store) *Server {
 
 	apiGroup.GET("/types", s.getTypes)
 
-	apiGroup.GET("/entities", s.getEntities)
+	apiGroup.GET("/entities", s.getUserEntities)
 	apiGroup.GET("/entities/all", s.getAllEntities)
 	apiGroup.GET("/entity/:eid", s.getEntity)
 
-	apiGroup.GET("/accounts", s.getUserAccounts)
+	apiGroup.GET("/accounts", s.getAccounts)
 	apiGroup.GET("/accounts/:eid", s.getAccountsByEntity)
 	apiGroup.GET("/account/:aid", s.getAccount)
 	apiGroup.POST("/account", s.addAccount)

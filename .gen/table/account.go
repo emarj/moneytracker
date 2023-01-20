@@ -21,6 +21,7 @@ type accountTable struct {
 	OwnerID     sqlite.ColumnInteger
 	Name        sqlite.ColumnString
 	DisplayName sqlite.ColumnString
+	IsDefault   sqlite.ColumnInteger
 	IsSystem    sqlite.ColumnInteger
 	IsGroup     sqlite.ColumnInteger
 	TypeID      sqlite.ColumnInteger
@@ -69,12 +70,13 @@ func newAccountTableImpl(schemaName, tableName, alias string) accountTable {
 		OwnerIDColumn     = sqlite.IntegerColumn("owner_id")
 		NameColumn        = sqlite.StringColumn("name")
 		DisplayNameColumn = sqlite.StringColumn("display_name")
+		IsDefaultColumn   = sqlite.IntegerColumn("is_default")
 		IsSystemColumn    = sqlite.IntegerColumn("is_system")
 		IsGroupColumn     = sqlite.IntegerColumn("is_group")
 		TypeIDColumn      = sqlite.IntegerColumn("type_id")
 		GroupIDColumn     = sqlite.IntegerColumn("group_id")
-		allColumns        = sqlite.ColumnList{IDColumn, OwnerIDColumn, NameColumn, DisplayNameColumn, IsSystemColumn, IsGroupColumn, TypeIDColumn, GroupIDColumn}
-		mutableColumns    = sqlite.ColumnList{OwnerIDColumn, NameColumn, DisplayNameColumn, IsSystemColumn, IsGroupColumn, TypeIDColumn, GroupIDColumn}
+		allColumns        = sqlite.ColumnList{IDColumn, OwnerIDColumn, NameColumn, DisplayNameColumn, IsDefaultColumn, IsSystemColumn, IsGroupColumn, TypeIDColumn, GroupIDColumn}
+		mutableColumns    = sqlite.ColumnList{OwnerIDColumn, NameColumn, DisplayNameColumn, IsDefaultColumn, IsSystemColumn, IsGroupColumn, TypeIDColumn, GroupIDColumn}
 	)
 
 	return accountTable{
@@ -85,6 +87,7 @@ func newAccountTableImpl(schemaName, tableName, alias string) accountTable {
 		OwnerID:     OwnerIDColumn,
 		Name:        NameColumn,
 		DisplayName: DisplayNameColumn,
+		IsDefault:   IsDefaultColumn,
 		IsSystem:    IsSystemColumn,
 		IsGroup:     IsGroupColumn,
 		TypeID:      TypeIDColumn,

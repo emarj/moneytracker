@@ -8,22 +8,40 @@
 
     const accountsQuery = useQuery(["accounts"], () => getAccounts());
 
+    export let label = "Account";
+
     export let type_id = null;
     export let firstSelected = true;
     export let disabled = false;
+    export let entity_ids = null;
+    export let invert = false;
 
-    export let value;
-    export let label = "Account";
+    let value;
+    export let account_id;
+    export let entity_id = null;
 
-    const filter = (list) =>
-        list.filter((a) => type_id === null || a.type_id == type_id);
-    /* $: accounts = $accountsQuery?.data?.filter(
-        (a) =>
-            owner_id === null ||
-            (((a.owner.id == owner_id && !neg) ||
-                (a.owner.id != owner_id && neg)) &&
-                (type_id === null || a.type_id == type_id || a.is_world))
-    ); */
+    $: account_id = value?.id;
+    $: entity_id = value?.owner_id;
+
+    const filterByOwner = (list) =>
+        list.filter((a) => {
+            const res = entity_ids.includes(a.owner_id);
+            return (res && !invert) || (res && invert);
+        });
+    const filterByType = (list) =>
+        list.filter((a) => a.type_id === type_id || a.type_id === 1);
+
+    const filter = (list) => {
+        if (entity_ids && entity_ids.length > 0) {
+            list = filterByOwner(list);
+        }
+
+        if (type_id !== null) {
+            list = filterByType(list);
+        }
+
+        return list;
+    };
 </script>
 
 <div>
@@ -38,16 +56,12 @@
         <span>An error has occurred: {$accountsQuery.error.message}</span>
     {:else}
         <Select variant="outlined" bind:value {label} {disabled}>
-            {#if !firstSelected}
+            <!--     {#if !firstSelected}
                 <Option value={null} />
-            {/if}
-            {#each [...Object.entries($accountsQuery.data)] as [entity, accounts] (entity)}
-                {#each filter(accounts) as account (account.id)}
-                    <Option value={account.id}><AccountName {account} /></Option
-                    >
-                {/each}
+            {/if} -->
+            {#each filter($accountsQuery.data) as account (account.id)}
+                <Option value={account}><AccountName {account} /></Option>
             {/each}
-            <!-- <svelte:fragment slot="helperText">{helperText}</svelte:fragment> -->
         </Select>
     {/if}
 </div>

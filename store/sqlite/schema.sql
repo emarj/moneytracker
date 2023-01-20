@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS account (
 	owner_id INTEGER NOT NULL REFERENCES entity(id),
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
+	is_default INTEGER NOT NULL DEFAULT FALSE CHECK (is_default IN (0, 1)),
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
 	is_group INTEGER NOT NULL DEFAULT FALSE CHECK (is_group IN (0, 1)),
 	type_id INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT 0 REFERENCES account_type(id),
@@ -67,7 +68,8 @@ CREATE TABLE IF NOT EXISTS 'transaction' (
 	from_id INTEGER NOT NULL,
 	to_id INTEGER NOT NULL,
 	amount TEXT NOT NULL,
-	operation_id INTEGER NOT NULL REFERENCES operation(id)
+	operation_id INTEGER NOT NULL REFERENCES operation(id),
+	is_confirmed INTEGER NOT NULL CHECK (is_confirmed IN (0, 1))
 ); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS operation_type (

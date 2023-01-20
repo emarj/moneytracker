@@ -34,7 +34,14 @@
 </script>
 
 <div class="card {getClass(account.type_id)}">
-    <h3>{account.display_name}</h3>
+    <h3>
+        {#if account.is_default}
+            [{account.display_name}]
+        {:else}
+            {account.display_name}
+        {/if}
+    </h3>
+
     <IconButton
         class="btn-more material-icons"
         aria-label="More"

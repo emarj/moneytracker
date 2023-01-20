@@ -40,10 +40,11 @@
                 <div>
                     <AccountSelect
                         label="From"
-                        bind:value={t.from_id}
-                    /><AccountSelect label="To" bind:value={t.to_id} />
+                        bind:account_id={t.from_id}
+                    /><AccountSelect label="To" bind:account_id={t.to_id} />
                 </div>
                 <Textfield
+                    type="number"
                     label="Amount"
                     bind:value={t.amount}
                     suffix="€"

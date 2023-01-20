@@ -37,7 +37,7 @@ func (s *Server) getEntity(c echo.Context) error {
 	return c.JSON(http.StatusOK, e)
 }
 
-func (s *Server) getEntities(c echo.Context) error {
+func (s *Server) getUserEntities(c echo.Context) error {
 
 	cl, err := extractClaims(c)
 	if err != nil {

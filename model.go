@@ -30,6 +30,7 @@ type EntityShare struct {
 	EntityID int64    `json:"entity_id"`
 	Quota    int64    `json:"quota"`
 	Priority null.Int `json:"priority"`
+	Entity   *Entity  `json:"entity"`
 }
 
 type Entity struct {
@@ -39,6 +40,12 @@ type Entity struct {
 	IsSystem    bool          `json:"is_system"`
 	IsExternal  bool          `json:"is_external"` // For example a friend that owes me
 	Shares      []EntityShare `json:"shares"`
+	//DefaultAccounts []EntityDefaultAccount `json:"default_accounts"`
+}
+
+type EntityDefaultAccount struct {
+	AccountID     int64 `json:"account_id"`
+	AccountTypeID int64 `json:"account_type_id"`
 }
 
 const EntSystemID int64 = 0
@@ -55,6 +62,7 @@ type Account struct {
 	DisplayName string       `json:"display_name"`
 	OwnerID     int64        `json:"owner_id"`
 	Owner       *Entity      `json:"owner,omitempty" alias:"owner"`
+	IsDefault   bool         `json:"is_default"`
 	IsSystem    bool         `json:"is_system"` // These can't be deleted by the user
 	IsGroup     bool         `json:"is_group"`  // This should not be type inside type
 	TypeID      int64        `json:"type_id"`
@@ -122,7 +130,9 @@ type Transaction struct {
 	Comment     string              `json:"comment"`
 	OperationID int64               `json:"operation_id"`
 	Operation   *Operation          `json:"operation"`
-	Sign        int64               `json:"sign"`
+	IsConfirmed bool                `json:"is_confirmed"`
+	// Generated fields
+	Sign int64 `json:"sign"`
 }
 
 type Operation struct {

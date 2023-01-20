@@ -78,7 +78,7 @@ export class Share {
     private _amount: number = null;
     private _quota: number = 50;
     private _total: number = null;
-    with_id: number;
+    with_id: number = null;
     cred_account_id: number;
     deb_account_id: number;
     is_credit: boolean = true;
@@ -136,7 +136,7 @@ export class Share {
 
 
 export const emptyTransaction: Transaction = {
-    amount: 0, to_id: 0, from_id: 0
+    amount: null, to_id: 0, from_id: 0
 };
 
 export const emptyOperation: Operation = {

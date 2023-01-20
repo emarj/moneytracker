@@ -24,8 +24,11 @@ export const getTypes = () =>
     fetcher(`${baseURL}/types`)
 /////
 
-export const getEntities = () =>
+export const getUserEntities = () =>
     fetcher(`${baseURL}/entities`)
+
+export const getAllEntities = () =>
+    fetcher(`${baseURL}/entities/all`)
 
 export const getCategories = () =>
     fetcher(`${baseURL}/categories`)

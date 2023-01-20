@@ -9,7 +9,6 @@
     import Button, { Label } from "@smui/button";
     import AccountSelect from "../AccountSelect.svelte";
     import EntitySelect from "../EntitySelect.svelte";
-    import { entityID } from "../../store";
     import { Share, Expense } from "../../model";
     import Operation from "../Operation/Operation.svelte";
     import { addExpense } from "../../api";
@@ -20,6 +19,7 @@
     import DatePicker from "../DatePicker.svelte";
     import CategorySelect from "../CategorySelect.svelte";
     import { JSONPretty } from "../../util/utils";
+    import { userEntitiesID } from "../../store";
 
     const mutation = useMutation((e) => addExpense(e), {
         onSuccess: (data) => {
@@ -27,6 +27,8 @@
             push("/");
         },
     });
+
+    let entity_id = null;
 
     export let e: Expense = new Expense();
 
@@ -48,7 +50,12 @@
         label="Description"
         style="width: 100%;"
     />
-    <AccountSelect type_id={0} bind:value={e.account_id} />
+    <AccountSelect
+        type_id={0}
+        entity_ids={$userEntitiesID}
+        bind:entity_id
+        bind:account_id={e.account_id}
+    />
 
     <Textfield
         type="number"
@@ -73,9 +80,11 @@
         <span slot="label">Shared</span>
     </FormField>
     {#if e.isShared}
-        {#each e.shares as s}
-            <ShareForm bind:share={s} />
-        {/each}
+        {#key entity_id}
+            {#each e.shares as s}
+                <ShareForm bind:share={s} {entity_id} />
+            {/each}
+        {/key}
     {/if}
     <div class="buttons">
         <Button color="secondary" on:click={reset} variant="raised">

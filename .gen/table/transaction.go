@@ -23,6 +23,7 @@ type transactionTable struct {
 	ToID        sqlite.ColumnInteger
 	Amount      sqlite.ColumnString
 	OperationID sqlite.ColumnInteger
+	IsConfirmed sqlite.ColumnInteger
 
 	AllColumns     sqlite.ColumnList
 	MutableColumns sqlite.ColumnList
@@ -69,8 +70,9 @@ func newTransactionTableImpl(schemaName, tableName, alias string) transactionTab
 		ToIDColumn        = sqlite.IntegerColumn("to_id")
 		AmountColumn      = sqlite.StringColumn("amount")
 		OperationIDColumn = sqlite.IntegerColumn("operation_id")
-		allColumns        = sqlite.ColumnList{IDColumn, TimestampColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn}
-		mutableColumns    = sqlite.ColumnList{TimestampColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn}
+		IsConfirmedColumn = sqlite.IntegerColumn("is_confirmed")
+		allColumns        = sqlite.ColumnList{IDColumn, TimestampColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn, IsConfirmedColumn}
+		mutableColumns    = sqlite.ColumnList{TimestampColumn, FromIDColumn, ToIDColumn, AmountColumn, OperationIDColumn, IsConfirmedColumn}
 	)
 
 	return transactionTable{
@@ -83,6 +85,7 @@ func newTransactionTableImpl(schemaName, tableName, alias string) transactionTab
 		ToID:        ToIDColumn,
 		Amount:      AmountColumn,
 		OperationID: OperationIDColumn,
+		IsConfirmed: IsConfirmedColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

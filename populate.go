@@ -111,6 +111,7 @@ func Populate(s Store) error {
 		Name:        "contanti",
 		DisplayName: "Contanti",
 		OwnerID:     entUser1.ID.Int64,
+		IsDefault:   true,
 	})
 
 	accounts.Store("user1:cc1", Account{
@@ -132,12 +133,14 @@ func Populate(s Store) error {
 		Name:        "contanti",
 		DisplayName: "Contanti",
 		OwnerID:     entUser2.ID.Int64,
+		IsDefault:   true,
 	})
 	accounts.Store("user1:credits", Account{
 		Name:        "credits",
 		DisplayName: "Crediti",
 		OwnerID:     entUser1.ID.Int64,
 		TypeID:      AccTypeCredit,
+		IsDefault:   true,
 	})
 	accounts.Store("user1:credits2", Account{
 		Name:        "credits2",
@@ -150,6 +153,7 @@ func Populate(s Store) error {
 		DisplayName: "Crediti",
 		OwnerID:     entUser2.ID.Int64,
 		TypeID:      AccTypeCredit,
+		IsDefault:   true,
 	})
 	accounts.Store("user1:investments", Account{
 		Name:        "investments",
@@ -167,6 +171,14 @@ func Populate(s Store) error {
 		Name:        "cassa_comune",
 		DisplayName: "Cassa Comune",
 		OwnerID:     entUser3.ID.Int64,
+		IsDefault:   true,
+	})
+	accounts.Store("user3:credits", Account{
+		Name:        "credits",
+		DisplayName: "Crediti",
+		OwnerID:     entUser3.ID.Int64,
+		TypeID:      AccTypeCredit,
+		IsDefault:   true,
 	})
 
 	for pair := accounts.Oldest(); pair != nil; pair = pair.Next() {

@@ -8,6 +8,8 @@
     import { entityID } from "../../store";
     import { Share } from "../../model";
 
+    export let entity_id = null;
+
     export let share: Share = new Share();
 
     let external = false;
@@ -22,9 +24,9 @@
 
 {#if !external}
     <EntitySelect
-        not={$entityID}
+        disabled={entity_id == null}
+        not={entity_id}
         bind:value={share.with_id}
-        helperText={"select an entity to share with"}
     />
 {/if}
 <div>
@@ -36,7 +38,7 @@
         max={share.total}
         suffix="€"
         input$pattern={"\\d+(\\.\\d{2})?"}
-        disabled={share.total === null}
+        disabled={share.total == null}
         bind:value={share.amount}
     />
 </div>
@@ -58,14 +60,17 @@
 </FormField>
 {#key share.is_credit}
     <AccountSelect
-        type_id={share.is_credit ? 1 : 0}
-        bind:value={share.cred_account_id}
+        entity_ids={[entity_id]}
+        type_id={share.is_credit ? 2 : 0}
+        bind:account_id={share.cred_account_id}
+        disabled={share.with_id == null}
         label="Credited Account"
     />
     {#key share.with_id}
         <AccountSelect
-            type_id={share.is_credit ? 1 : 0}
-            bind:value={share.deb_account_id}
+            entity_ids={[share.with_id]}
+            type_id={share.is_credit ? 2 : 0}
+            bind:account_id={share.deb_account_id}
             disabled={share.with_id == null}
             label="Debited Account"
         />

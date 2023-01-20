@@ -1,17 +1,17 @@
 <script>
     import Select, { Option } from "@smui/select";
     import { useQuery } from "@sveltestack/svelte-query";
-    import { getEntities } from "../api";
+    import { getAllEntities } from "../api";
     import CircularProgress from "@smui/circular-progress";
     import { entityID } from "../store";
     import { Item } from "@smui/list";
 
     export let label = "Entity";
-    export let helperText = "";
     export let value = null;
     export let not = null;
+    export let disabled = false;
 
-    const entitiesQuery = useQuery("entities", () => getEntities());
+    const entitiesQuery = useQuery("entities", () => getAllEntities());
 
     let entities = [];
     $: entities = $entitiesQuery?.data?.filter(
@@ -28,7 +28,7 @@
         Error: {$entitiesQuery.error?.message}
     {:else if $entitiesQuery.data}
         {#if style == "material"}
-            <Select variant="outlined" bind:value {label}>
+            <Select variant="outlined" bind:value {label} {disabled}>
                 {#each entities as entity (entity.id)}
                     <Option value={entity.id}>{entity.display_name}</Option>
                 {/each}

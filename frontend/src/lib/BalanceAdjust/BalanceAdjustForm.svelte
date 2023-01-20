@@ -33,7 +33,7 @@
         label="Description"
         style="width: 100%;"
     />
-    <AccountSelect bind:value={balance.account_id} />
+    <AccountSelect bind:account_id={balance.account_id} />
     {#key balance.account_id}
         {#if balance.account_id}
             <AccountBalance id={balance.account_id} />

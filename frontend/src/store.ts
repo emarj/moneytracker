@@ -14,8 +14,26 @@ export const user = derived(
 
 export const userShares = derived(
     user,
-    $user => $user?.shares
+    $user => $user?.shares.sort(cmp)
 );
+
+const cmp = (s, t) => fix(s.priority) - fix(t.priority)
+const fix = (p) => ((p === null) ? 999 : p)
+
+export const userEntities = derived(
+    userShares,
+    $userShares => $userShares?.map((s) => s.entity)
+);
+
+export const userEntitiesID = derived(
+    userShares,
+    $userShares => $userShares?.map((s) => s.entity_id)
+);
+
+export const userDefaultEntity = derived(
+    userShares,
+    $userShares => $userShares.find((s) => s?.priority === 0)
+)
 
 // In-memory stores
 export const messageStore = writable(null);

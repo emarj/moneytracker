@@ -2,7 +2,6 @@
   import { userShares } from "../store";
   export let account;
 
-  console.log($userShares);
   $: defaultEntity = $userShares.find((s) => s?.priority === 0);
 </script>
 
