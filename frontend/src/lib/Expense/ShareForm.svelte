@@ -7,6 +7,8 @@
     import EntitySelect from "../EntitySelect.svelte";
     import { entityID } from "../../store";
     import { Share } from "../../model";
+    import DecimalInput from "../DecimalInput.svelte";
+    import Button from "@smui/button/src/Button.svelte";
 
     export let entity_id = null;
 
@@ -30,29 +32,24 @@
     />
 {/if}
 <div>
-    <Textfield
-        variant="outlined"
-        label="Amount"
-        type="number"
-        min={0}
-        max={share.total}
-        suffix="€"
-        input$pattern={"\\d+(\\.\\d{2})?"}
+    <DecimalInput
+        decimalDigits={3}
         disabled={share.total == null}
         bind:value={share.amount}
     />
+
+    <Button
+        disabled={share.total == null}
+        variant="outlined"
+        on:click={() => (share.quota = 50)}>50%</Button
+    >
+    <Button
+        disabled={share.total == null}
+        variant="outlined"
+        on:click={() => (share.quota = 100)}>100%</Button
+    >
+    <div class="level" style={`--level: ${share.quota}%`} />
 </div>
-<FormField style="width:100%;">
-    <Slider
-        max={100}
-        min={5}
-        step={1}
-        style="width:100%;"
-        discrete
-        disabled={share.total === null}
-        bind:value={share.quota}
-    />
-</FormField>
 
 <FormField>
     <Switch bind:checked={share.is_credit} color="secondary" icons={false} />
@@ -76,3 +73,19 @@
         />
     {/key}
 {/key}
+
+<style>
+    .level {
+        --color: rgb(73, 36, 223);
+        margin: 1rem;
+        width: 90%;
+        height: 10px;
+        border-radius: 5px;
+        border: 2px solid rgb(205, 205, 205);
+        background: linear-gradient(
+            to right,
+            var(--color) var(--level),
+            transparent var(--level)
+        );
+    }
+</style>

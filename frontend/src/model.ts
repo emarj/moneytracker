@@ -91,7 +91,7 @@ export class Share {
     }
 
     set quota(quota: number) {
-        console.log("set quota", quota)
+        //console.log("set quota", quota)
         this._quota = quota;
         this.computeAmount();
     }
@@ -99,7 +99,7 @@ export class Share {
     get quota(): number { return this._quota }
 
     set total(total: number) {
-        console.log("set total", total)
+        //console.log("set total", total)
         this._total = total;
         this.computeAmount();
     }
@@ -107,7 +107,7 @@ export class Share {
     get total(): number { return this._total }
 
     set amount(amount: number) {
-        console.log("set amount", amount)
+        //console.log("set amount", amount)
         this._amount = amount;
         this.computeQuota();
     }

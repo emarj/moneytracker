@@ -4,7 +4,7 @@ SELECT category.id AS "category.id",
      parent.id AS "parent.id",
      parent.parent_id AS "parent.parent_id",
      parent.name AS "parent.name",
-     (IFNULL((parent.name || '/'),'') || category.name) AS "category.full_name"
+     COALESCE((parent.name || '/') || category.name, category.name) AS "category.full_name"
 FROM category
      LEFT JOIN category AS parent ON (parent.id = category.parent_id)
-ORDER BY category.name;
+ORDER BY "category.full_name";

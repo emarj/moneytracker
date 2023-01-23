@@ -20,6 +20,7 @@
     import CategorySelect from "../CategorySelect.svelte";
     import { JSONPretty } from "../../util/utils";
     import { userEntitiesID } from "../../store";
+    import DecimalInput from "../DecimalInput.svelte";
 
     const mutation = useMutation((e) => addExpense(e), {
         onSuccess: (data) => {
@@ -57,14 +58,7 @@
         bind:account_id={e.account_id}
     />
 
-    <Textfield
-        type="number"
-        variant="outlined"
-        bind:value={e.amount}
-        label="Amount"
-        suffix="€"
-        input$pattern={"\\d+(\\.\\d{2})?"}
-    />
+    <DecimalInput decimalDigits={2} bind:value={e.amount} />
 
     <CategorySelect bind:value={e.category_id} />
     <!-- <TagInput

@@ -11,6 +11,7 @@
   import MainMenu from "./lib/MainMenu.svelte";
   import Account from "./pages/Account.svelte";
   import OperationPage from "./pages/OperationPage.svelte";
+  import Blank from "./pages/Blank.svelte";
 
   const routes = {
     "/": Home,
@@ -19,6 +20,7 @@
     "/account/:id": Account,
     "/operation/:id": OperationPage,
     "/newaccount": AccountForm,
+    "/blank": Blank,
   };
 
   function routeLoaded(event) {

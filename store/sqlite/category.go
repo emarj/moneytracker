@@ -14,16 +14,19 @@ import (
 func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
 
 	Parent := jt.Category.AS("parent")
+
 	stmt := jet.SELECT(
 		jt.Category.AllColumns,
 		Parent.AllColumns,
-		Parent.Name.CONCAT(jet.String("/")).CONCAT(jt.Category.Name).AS("category.full_name"),
+		jet.COALESCE(Parent.Name.CONCAT(jet.String("/")).CONCAT(jt.Category.Name), jt.Category.Name).AS("category.full_name"),
 	).
 		FROM(
 			jt.Category.LEFT_JOIN(
 				Parent, Parent.ID.EQ(jt.Category.ParentID),
 			),
-		).ORDER_BY(jt.Category.Name)
+		).ORDER_BY(jet.Raw("\"category.full_name ASC\""))
+
+	//fmt.Println(stmt.DebugSql())
 
 	categories := []mt.Category{}
 	err := stmt.Query(s.db, &categories)

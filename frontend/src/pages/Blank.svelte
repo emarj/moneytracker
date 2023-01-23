@@ -1,3 +1,5 @@
 <script>
-    import ShareForm from "../lib/Expense/ShareForm.svelte";
+    import DecimalInput from "../lib/DecimalInput.svelte";
 </script>
+
+<DecimalInput />
