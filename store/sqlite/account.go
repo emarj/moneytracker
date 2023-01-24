@@ -86,7 +86,7 @@ func (s *SQLiteStore) GetUserAccounts(uID int64) ([]mt.Account, error) {
 	return accounts, nil
 }
 
-func (s *SQLiteStore) GetAccount(aID int64) (*mt.Account, error) {
+func (s *SQLiteStore) GetAccount(aID int64) (mt.Account, error) {
 
 	Owner := jt.Entity.AS("owner")
 
@@ -101,11 +101,11 @@ func (s *SQLiteStore) GetAccount(aID int64) (*mt.Account, error) {
 	err := stmt.Query(s.db, &a)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
-			return nil, mt.ErrNotFound
+			return a, mt.ErrNotFound
 		}
-		return nil, err
+		return a, err
 	}
-	return &a, nil
+	return a, nil
 }
 
 func (s *SQLiteStore) AddAccount(a *mt.Account) error {

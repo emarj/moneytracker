@@ -24,7 +24,7 @@ func TestUserRegister(t *testing.T) {
 	user1Copy := user1
 
 	password1 := "password1"
-	err = store.RegisterUser(&user1, password1)
+	err = store.AddUser(&user1, password1)
 	require.NoError(t, err)
 	assert.True(t, user1.ID.Valid)
 	user1Copy.ID = user1.ID
@@ -40,7 +40,7 @@ func TestUserLoginNonExistingUser(t *testing.T) {
 		store.Close()
 	}()
 
-	_, err = store.Login("nonexistinguser", "password")
+	_, err = store.LoginUser("nonexistinguser", "password")
 	require.ErrorIs(t, err, mt.ErrNotFound)
 
 }
@@ -59,15 +59,15 @@ func TestUserLoginWithExistingUser(t *testing.T) {
 		IsAdmin:     false,
 	}
 	password1 := "password1"
-	err = store.RegisterUser(&user1, password1)
+	err = store.AddUser(&user1, password1)
 	require.NoError(t, err)
 
-	user1Returned, err := store.Login(user1.Name, password1)
+	user1Returned, err := store.LoginUser(user1.Name, password1)
 	require.NoError(t, err)
 	assert.Equal(t, user1, user1Returned)
 
 	// Wrong password
-	_, err = store.Login(user1.Name, password1+password1)
+	_, err = store.LoginUser(user1.Name, password1+password1)
 	require.Error(t, err)
 	require.ErrorIs(t, err, mt.ErrUnauthorized)
 

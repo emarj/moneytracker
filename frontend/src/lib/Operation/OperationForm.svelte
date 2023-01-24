@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { entityID } from "../../store";
     import {
         emptyOperation,
         emptyTransaction,
@@ -14,6 +13,7 @@
     import { addOperation } from "../../api";
     import { push } from "svelte-spa-router";
     import { JSONPretty } from "../../util/utils";
+    import DecimalInput from "../DecimalInput.svelte";
 
     export let op: Operation = structuredClone(emptyOperation);
 
@@ -22,6 +22,11 @@
             push("/");
         },
     });
+
+    const removeTransaction = (i: number) => {
+        op.transactions.splice(i, 1);
+        op.transactions = op.transactions;
+    };
 </script>
 
 <Textfield
@@ -34,7 +39,7 @@
 
 <div class="transactions">
     <ul>
-        {#each op.transactions as t}
+        {#each op.transactions as t, i}
             <li>
                 <DatePicker bind:timestamp={t.timestamp} />
                 <div>
@@ -43,23 +48,11 @@
                         bind:account_id={t.from_id}
                     /><AccountSelect label="To" bind:account_id={t.to_id} />
                 </div>
-                <Textfield
-                    type="number"
-                    label="Amount"
-                    bind:value={t.amount}
-                    suffix="€"
-                    input$pattern={"\\d+(\\.\\d{2})?"}
-                />
+                <DecimalInput bind:value={t.amount} decimalDigits={3} />
+                <Button on:click={() => removeTransaction(i)}>Delete</Button>
             </li>
         {/each}
     </ul>
-    <Button
-        on:click={() =>
-            (op.transactions = op.transactions.slice(
-                0,
-                op.transactions.length - 1
-            ))}>Remove Last</Button
-    >
     <Button
         on:click={() =>
             (op.transactions = [

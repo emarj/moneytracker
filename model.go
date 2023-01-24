@@ -26,8 +26,8 @@ type User struct {
 }
 
 type EntityShare struct {
-	UserID   int64    `json:"user_id"`
-	EntityID int64    `json:"entity_id"`
+	UserID   int64    `json:"user_id" sql:"primary_key"`
+	EntityID null.Int `json:"entity_id" sql:"primary_key"`
 	Quota    int64    `json:"quota"`
 	Priority null.Int `json:"priority"`
 	Entity   *Entity  `json:"entity"`
@@ -64,9 +64,10 @@ type Account struct {
 	Owner       *Entity      `json:"owner,omitempty" alias:"owner"`
 	IsDefault   bool         `json:"is_default"`
 	IsSystem    bool         `json:"is_system"` // These can't be deleted by the user
-	IsGroup     bool         `json:"is_group"`  // This should not be type inside type
+	IsWorld     bool         `json:"is_world"`
 	TypeID      int64        `json:"type_id"`
 	Type        *AccountType `json:"type,omitempty"`
+	IsGroup     bool         `json:"is_group"` // This should not be type inside type
 	GroupID     null.Int     `json:"group_id"`
 }
 
@@ -80,27 +81,24 @@ func SystemAccounts() []Account {
 			DisplayName: "World",
 			OwnerID:     EntSystemID,
 			IsSystem:    true,
-			TypeID:      AccTypeWorld,
+			IsWorld:     true,
 		},
 	}
 }
 
 type AccountType struct {
-	ID     int64  `json:"id" sql:"primary_key"`
-	Name   string `json:"name"`
-	System bool   `json:"system"` //System reserved
+	ID   int64  `json:"id" sql:"primary_key"`
+	Name string `json:"name"`
 }
 
 const (
 	AccTypeMoney int64 = iota // This is first since must be the default
-	AccTypeWorld
 	AccTypeCredit
 	AccTypeInvestment
 )
 
 func AccountTypes() []AccountType {
 	return []AccountType{
-		{ID: AccTypeWorld, Name: "world", System: true},
 		{ID: AccTypeMoney, Name: "money"},
 		{ID: AccTypeCredit, Name: "credit"},
 		{ID: AccTypeInvestment, Name: "investment"},

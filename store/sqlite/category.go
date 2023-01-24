@@ -24,7 +24,7 @@ func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
 			jt.Category.LEFT_JOIN(
 				Parent, Parent.ID.EQ(jt.Category.ParentID),
 			),
-		).ORDER_BY(jet.Raw("\"category.full_name ASC\""))
+		).ORDER_BY(jet.Raw("\"category.full_name\" ASC"))
 
 	//fmt.Println(stmt.DebugSql())
 

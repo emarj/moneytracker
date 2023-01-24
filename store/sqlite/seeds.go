@@ -16,6 +16,7 @@ func (s *SQLiteStore) Seeding() error {
 	s.accountTypes = mt.AccountTypes()
 	_, err = jt.AccountType.INSERT(jt.AccountType.AllColumns).
 		MODELS(&s.accountTypes).
+		ON_CONFLICT().DO_NOTHING().
 		Exec(s.db)
 	if err != nil {
 		return err
@@ -24,6 +25,7 @@ func (s *SQLiteStore) Seeding() error {
 	s.operationTypes = mt.OperationTypes()
 	_, err = jt.OperationType.INSERT(jt.OperationType.AllColumns).
 		MODELS(&s.operationTypes).
+		ON_CONFLICT().DO_NOTHING().
 		Exec(s.db)
 	if err != nil {
 		return err
@@ -32,6 +34,7 @@ func (s *SQLiteStore) Seeding() error {
 	categories := mt.SystemCategories()
 	_, err = jt.Category.INSERT(jt.Category.AllColumns).
 		MODELS(&categories).
+		ON_CONFLICT().DO_NOTHING().
 		Exec(s.db)
 	if err != nil {
 		return err
@@ -40,6 +43,7 @@ func (s *SQLiteStore) Seeding() error {
 	ents := mt.SystemEntities()
 	_, err = jt.Entity.INSERT(jt.Entity.AllColumns).
 		MODELS(&ents).
+		ON_CONFLICT().DO_NOTHING().
 		Exec(s.db)
 	if err != nil {
 		return err
@@ -48,6 +52,7 @@ func (s *SQLiteStore) Seeding() error {
 	accs := mt.SystemAccounts()
 	_, err = jt.Account.INSERT(jt.Account.AllColumns).
 		MODELS(&accs).
+		ON_CONFLICT().DO_NOTHING().
 		Exec(s.db)
 	if err != nil {
 		return err

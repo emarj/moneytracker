@@ -4,7 +4,7 @@
   import Router from "svelte-spa-router";
   import New from "./pages/New.svelte";
   import TopBar from "./lib/TopBar.svelte";
-  import { entityID, authStore, historyStore } from "./store";
+  import { authStore } from "./store";
   import Login from "./Login.svelte";
   import AllOperations from "./pages/AllOperations.svelte";
   import AccountForm from "./lib/Accounts/AccountForm.svelte";
@@ -23,11 +23,6 @@
     "/blank": Blank,
   };
 
-  function routeLoaded(event) {
-    historyStore.push(event.detail.route);
-    window.scrollTo(0, 0);
-  }
-
   let menuOpen = false;
 </script>
 
@@ -36,9 +31,7 @@
     <TopBar bind:menuOpen />
 
     <main>
-      {#key $entityID}
-        <Router {routes} on:routeLoaded={routeLoaded} />
-      {/key}
+      <Router {routes} />
     </main>
 
     <BottomBar />

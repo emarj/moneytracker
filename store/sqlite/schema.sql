@@ -35,8 +35,7 @@ CREATE TABLE IF NOT EXISTS entity (
 ---
 CREATE TABLE IF NOT EXISTS account_type (
 	id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL,
-	system INTEGER NOT NULL CHECK (system IN (0, 1))
+	name TEXT NOT NULL
 ); --STRICT;
 
 CREATE TABLE IF NOT EXISTS account (
@@ -45,11 +44,15 @@ CREATE TABLE IF NOT EXISTS account (
 	name TEXT NOT NULL,
 	display_name TEXT NOT NULL,
 	is_default INTEGER NOT NULL DEFAULT FALSE CHECK (is_default IN (0, 1)),
+	is_world INTEGER NOT NULL DEFAULT FALSE CHECK (is_world IN (0, 1)),
 	is_system INTEGER NOT NULL DEFAULT FALSE CHECK (is_system IN (0, 1)),
 	is_group INTEGER NOT NULL DEFAULT FALSE CHECK (is_group IN (0, 1)),
 	type_id INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT 0 REFERENCES account_type(id),
 	group_id INTEGER REFERENCES account(id)
 ); --STRICT;
+
+-- //TODO: Should add a trigger to ensure "UNIQUE(is_default,type_id,owner_id)"
+-- (Does not work since is_default will be 0 in most cases)
 ---
 CREATE TABLE IF NOT EXISTS balance (
 	timestamp TEXT NOT NULL,

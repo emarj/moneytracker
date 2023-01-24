@@ -1,27 +1,22 @@
 <script>
-    import AccountName from "./AccountName.svelte";
-    import AccountBalance from "./Accounts/AccountBalance.svelte";
+    import { userEntitiesID } from "../store";
 
     export let account;
-    export let eID;
 
     export let hideExternal = true;
 
-    const isExternal = account.owner_id !== eID;
+    const isExternal = !$userEntitiesID.includes(account.owner_id);
     const isWorld = account.owner_id === 0;
 </script>
 
 <span class:account={!isExternal} class:entity={isExternal && !isWorld}>
     {#if isWorld}
         🌐
-    {:else}
-        {account.owner?.name}:{account.name.toLowerCase()}
-
-        <!-- {:else if !isExternal}
+    {:else if !isExternal}
         {account.display_name.toLowerCase()}
     {:else}
         {#if hideExternal}@{/if}{account.owner
-            .name}{#if !hideExternal}:{account.name}{/if} -->
+            .name}{#if !hideExternal}:{account.name}{/if}
     {/if}
 </span>
 

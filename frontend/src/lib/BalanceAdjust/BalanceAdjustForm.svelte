@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { entityID } from "../../store";
     import { emptyOperation, type Operation } from "../../model";
     import Textfield from "@smui/textfield";
     import DatePicker from "../DatePicker.svelte";

@@ -48,7 +48,7 @@ func (s *SQLiteStore) GetEntitiesOfUser(uID int64) ([]mt.Entity, error) {
 	return entities, nil
 }
 
-func (s *SQLiteStore) GetEntity(eID int64) (*mt.Entity, error) {
+func (s *SQLiteStore) GetEntity(eID int64) (mt.Entity, error) {
 
 	stmt := jet.SELECT(
 		jt.Entity.AllColumns,
@@ -59,24 +59,63 @@ func (s *SQLiteStore) GetEntity(eID int64) (*mt.Entity, error) {
 		jt.Entity.ID.EQ(jet.Int(eID)),
 	)
 
-	e := &mt.Entity{}
-	err := stmt.Query(s.db, e)
+	e := mt.Entity{}
+	err := stmt.Query(s.db, &e)
 	if err != nil {
 		if errors.Is(err, qrm.ErrNoRows) {
-			return nil, mt.ErrNotFound
+			return e, mt.ErrNotFound
 		}
-		return nil, err
+		return e, err
 	}
 	return e, nil
 }
 
 func (s *SQLiteStore) AddEntity(e *mt.Entity) error {
 
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	newEntity := *e
+	err = insertEntity(tx, &newEntity)
+	if err != nil {
+		return err
+	}
+
+	if len(e.Shares) > 0 {
+		// newEntity shares has been overwritten when inserting
+		newEntity.Shares = e.Shares
+
+		for _, s := range newEntity.Shares {
+			s.EntityID = newEntity.ID
+		}
+
+		err = insertEntityShares(tx, newEntity.Shares...)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Update external object
+	*e = newEntity
+
+	return nil
+}
+
+func insertEntity(txdb TXDB, e *mt.Entity) error {
+
 	stmt := jt.Entity.INSERT(jt.Entity.AllColumns).
 		MODEL(e).
 		RETURNING(jt.Entity.AllColumns)
 
-	err := stmt.Query(s.db, e)
+	err := stmt.Query(txdb, e)
 	if err != nil {
 		return err
 	}

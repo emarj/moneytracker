@@ -20,8 +20,6 @@
     import Logout from "../Logout.svelte";
     import EntitySelect from "./EntitySelect.svelte";
 
-    import { entityID } from "../store";
-
     export let open = false;
 </script>
 

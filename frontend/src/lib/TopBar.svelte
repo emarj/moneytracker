@@ -1,7 +1,7 @@
 <script>
     import { pop } from "svelte-spa-router";
     import { useQueryClient } from "@sveltestack/svelte-query";
-    import { historyStore, isFirstPage, showBalances } from "../store";
+    import { showBalances } from "../store";
     import Switch from "@smui/switch";
     import IconButton from "@smui/icon-button";
     const queryClient = useQueryClient();
@@ -13,10 +13,8 @@
     <button
         class="back"
         on:click={() => {
-            historyStore.pop();
-            pop(); //this will trigger routeLoaded but since we set aboutToPop to true we will ignore it
+            pop();
         }}
-        disabled={$isFirstPage}
         >← Back
     </button>
 

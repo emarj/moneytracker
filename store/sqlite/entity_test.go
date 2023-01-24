@@ -31,7 +31,7 @@ func TestEntity(t *testing.T) {
 
 	ent, err := store.GetEntity(ents[0].ID.Int64)
 	require.NoError(err)
-	assert.Equal(*ent, ents[0])
+	assert.Equal(ent, ents[0])
 
 	ent1 := mt.Entity{
 		Name: "Ent1",

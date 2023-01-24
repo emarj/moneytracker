@@ -11,7 +11,6 @@
     export let label = "Account";
 
     export let type_id = null;
-    export let firstSelected = true;
     export let disabled = false;
     export let entity_ids = null;
     export let invert = false;
@@ -29,7 +28,7 @@
             return (res && !invert) || (res && invert);
         });
     const filterByType = (list) =>
-        list.filter((a) => a.type_id === type_id || a.type_id === 1);
+        list.filter((a) => a.type_id === type_id || a.is_world);
 
     const filter = (list) => {
         if (entity_ids && entity_ids.length > 0) {

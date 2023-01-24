@@ -32,6 +32,7 @@ export type Operation = {
     description: string;
     category_id?: number;
     transactions?: Transaction[];
+    balances?: any[];
 };
 
 export type Tag = {

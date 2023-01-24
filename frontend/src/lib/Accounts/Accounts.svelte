@@ -5,7 +5,7 @@
 
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
-  import { user, entityID, userEntities } from "../../store";
+  import { user, userEntities } from "../../store";
   import { push } from "svelte-spa-router";
   import IconButton from "@smui/icon-button/src/IconButton.svelte";
   import AccountsForEntity from "./AccountsForEntity.svelte";

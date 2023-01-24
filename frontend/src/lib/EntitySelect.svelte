@@ -1,22 +1,29 @@
-<script>
+<script lang="ts">
     import Select, { Option } from "@smui/select";
     import { useQuery } from "@sveltestack/svelte-query";
     import { getAllEntities } from "../api";
     import CircularProgress from "@smui/circular-progress";
-    import { entityID } from "../store";
     import { Item } from "@smui/list";
 
     export let label = "Entity";
     export let value = null;
-    export let not = null;
+    export let entities = [];
+    export let invert = false;
     export let disabled = false;
 
     const entitiesQuery = useQuery("entities", () => getAllEntities());
 
-    let entities = [];
-    $: entities = $entitiesQuery?.data?.filter(
-        (e) => !e.is_system && (!not || (not && e.id != not))
-    );
+    const filterByID = (list) => {
+        if (!entities) return list;
+
+        return list.filter((e) => {
+            const includes = entities.includes(e.id);
+            return (!invert && includes) || (invert && !includes);
+        });
+    };
+
+    const filter = (list: any[]) =>
+        filterByID(list.filter((e) => !e.is_system));
 
     export let style = "material";
 </script>
@@ -29,18 +36,18 @@
     {:else if $entitiesQuery.data}
         {#if style == "material"}
             <Select variant="outlined" bind:value {label} {disabled}>
-                {#each entities as entity (entity.id)}
+                {#each filter($entitiesQuery.data) as entity (entity.id)}
                     <Option value={entity.id}>{entity.display_name}</Option>
                 {/each}
                 <!--  <svelte:fragment slot="helperText">{helperText}</svelte:fragment> -->
             </Select>
-        {:else if style == "simple"}
+            <!-- {:else if style == "simple"}
             <select bind:value>
                 {#each entities as entity (entity.id)}
                     <option value={entity.id}>{entity.display_name}</option>
                 {/each}
-            </select>
-        {:else if style == "menu"}
+            </select> -->
+            <!-- {:else if style == "menu"}
             {#each entities as entity (entity.id)}
                 <Item
                     href="javascript:void(0)"
@@ -49,7 +56,7 @@
                 >
                     {entity.display_name}
                 </Item>
-            {/each}
+            {/each} -->
         {/if}
     {/if}
 </div>

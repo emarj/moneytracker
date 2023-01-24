@@ -2,7 +2,7 @@
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getOperations } from "../../api";
-    import { user, entityID } from "../../store";
+    import { user } from "../../store";
     import CircularProgress from "@smui/circular-progress";
     import { link } from "svelte-spa-router";
     import OperationPreview from "../Operation/OperationPreview.svelte";

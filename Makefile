@@ -21,7 +21,7 @@ clean:
 		go clean
 		rm -f $(BINARY_NAME)
 dev:
-		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate
+		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local
 dev-temp:
 		MT_FRONTEND_URL=http://localhost:5173/ go run ./cmd/server/main.go --local --populate --tempDB
 dev-no-proxy:
@@ -38,4 +38,6 @@ gen:
 schema:
 		rm data/moneytracker.sqlite* || true
 		sqlite3 data/moneytracker.sqlite < store/sqlite/schema.sql
+populate:
+		go run ./cmd/populate
 

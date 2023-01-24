@@ -5,8 +5,10 @@
     import { useMutation, useQuery } from "@sveltestack/svelte-query";
     import { addAccount, getTypes } from "../../api";
     import { pop } from "svelte-spa-router";
-    import { entityID } from "../../store";
-    import { capitalize } from "../../util/utils";
+    import { capitalize, JSONPretty } from "../../util/utils";
+    import Switch from "@smui/switch";
+    import EntitySelect from "../EntitySelect.svelte";
+    import { userEntitiesID } from "../../store";
 
     const typesQuery = useQuery(["types"], () => getTypes());
 
@@ -14,7 +16,7 @@
         name: "",
         display_name: "",
         type_id: 0,
-        owner_id: $entityID,
+        is_default: false,
     };
 
     let mutation = useMutation((a) => addAccount(a), {
@@ -46,9 +48,15 @@
             {/each}
         </Select>
     {/if}
+    <EntitySelect entities={$userEntitiesID} bind:value={account.owner_id} />
+    Default: <Switch bind:checked={account.is_default} />
 
     <div>
         <Button type="reset">Cancel</Button>
         <Button type="submit" on:click={handler}>Create</Button>
     </div>
+
+    <pre>
+        {JSONPretty(account)}
+    </pre>
 </form>

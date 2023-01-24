@@ -3,12 +3,11 @@
     import type { Operation } from "../../model";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";
-    import { entityID } from "../../store";
     import { deleteOperation } from "../../api";
     import { useMutation, useQueryClient } from "@sveltestack/svelte-query";
     import { messageStore } from "../../store";
     import { pop, push } from "svelte-spa-router";
-    import AccountOrEntityTag from "../AccountOrEntityTag.svelte";
+    import AccountTag from "../AccountTag.svelte";
     import IconButton from "@smui/icon-button";
 
     export let op: Operation;
@@ -54,7 +53,7 @@
         </span>
     {:else if op.balances && op.balances.length == 1}
         {@const bal = op.balances[0]}
-        <AccountOrEntityTag account={bal.account} eID={$entityID} />
+        <AccountTag account={bal.account} />
         <Amount
             value={Math.abs(bal.value)}
             negative={bal.value < 0}

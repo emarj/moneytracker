@@ -1,7 +1,7 @@
 <script lang="ts">
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getOperations } from "../api";
-    import { user, entityID } from "../store";
+    import { user } from "../store";
     import CircularProgress from "@smui/circular-progress";
     import OperationPreview from "../lib/Operation/OperationPreview.svelte";
 

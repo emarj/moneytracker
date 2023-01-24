@@ -5,7 +5,6 @@
     import FormField from "@smui/form-field";
     import AccountSelect from "../AccountSelect.svelte";
     import EntitySelect from "../EntitySelect.svelte";
-    import { entityID } from "../../store";
     import { Share } from "../../model";
     import DecimalInput from "../DecimalInput.svelte";
     import Button from "@smui/button/src/Button.svelte";
@@ -27,7 +26,8 @@
 {#if !external}
     <EntitySelect
         disabled={entity_id == null}
-        not={entity_id}
+        entities={[entity_id]}
+        invert
         bind:value={share.with_id}
     />
 {/if}
@@ -58,7 +58,7 @@
 {#key share.is_credit}
     <AccountSelect
         entity_ids={[entity_id]}
-        type_id={share.is_credit ? 2 : 0}
+        type_id={share.is_credit ? 1 : 0}
         bind:account_id={share.cred_account_id}
         disabled={share.with_id == null}
         label="Credited Account"
@@ -66,7 +66,7 @@
     {#key share.with_id}
         <AccountSelect
             entity_ids={[share.with_id]}
-            type_id={share.is_credit ? 2 : 0}
+            type_id={share.is_credit ? 1 : 0}
             bind:account_id={share.deb_account_id}
             disabled={share.with_id == null}
             label="Debited Account"
@@ -76,6 +76,7 @@
 
 <style>
     .level {
+        --level: 0%;
         --color: rgb(73, 36, 223);
         margin: 1rem;
         width: 90%;

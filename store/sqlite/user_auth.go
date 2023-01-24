@@ -15,24 +15,11 @@ type userWithHashedPassword struct {
 	Password []byte
 }
 
-func (s *SQLiteStore) Login(user string, password string) (mt.User, error) {
+func (s *SQLiteStore) LoginUser(user string, password string) (mt.User, error) {
 	var err error
 	var u mt.User
 
-	stmt := jt.User.LEFT_JOIN(
-		jt.EntityShare,
-		jt.EntityShare.UserID.EQ(jt.User.ID)).
-		LEFT_JOIN(
-			jt.Entity,
-			jt.Entity.ID.EQ(jt.EntityShare.EntityID)).
-		SELECT(
-			jt.User.AllColumns.Except(jt.User.Password),
-			jt.User.Password.AS("password"),
-			jt.EntityShare.AllColumns,
-			jt.Entity.AllColumns,
-		).WHERE(
-		jt.User.Name.EQ(jet.String(user)),
-	)
+	stmt := selectUserStmtWhere(jt.User.Name.EQ(jet.String(user)), true)
 
 	result := userWithHashedPassword{}
 	err = stmt.Query(s.db, &result)
@@ -55,7 +42,7 @@ func (s *SQLiteStore) Login(user string, password string) (mt.User, error) {
 	return u, nil
 }
 
-func (s *SQLiteStore) RegisterUser(user *mt.User, password string) error {
+func (s *SQLiteStore) AddUser(user *mt.User, password string) error {
 	var err error
 	u := *user
 

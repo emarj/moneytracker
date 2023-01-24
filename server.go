@@ -166,7 +166,7 @@ func (s *Server) Login(c echo.Context) error {
 		return err
 	}
 
-	user, err := s.store.Login(login.User, login.Password)
+	user, err := s.store.LoginUser(login.User, login.Password)
 	if err != nil {
 		//FIXME look for error type
 		return err

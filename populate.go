@@ -20,7 +20,7 @@ func Populate(s Store) error {
 		DisplayName: "Arianna",
 		IsAdmin:     false,
 	}
-	err = s.RegisterUser(&user1, "prova")
+	err = s.AddUser(&user1, "prova")
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func Populate(s Store) error {
 		DisplayName: "Marco",
 		IsAdmin:     false,
 	}
-	err = s.RegisterUser(&user2, "pippo")
+	err = s.AddUser(&user2, "pippo")
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func Populate(s Store) error {
 
 	err = s.AddSharesForEntity(EntityShare{
 		UserID:   user1.ID.Int64,
-		EntityID: entUser1.ID.Int64,
+		EntityID: entUser1.ID,
 		Quota:    100,
 		Priority: null.IntFrom(0),
 	})
@@ -72,7 +72,7 @@ func Populate(s Store) error {
 	}
 	err = s.AddSharesForEntity(EntityShare{
 		UserID:   user2.ID.Int64,
-		EntityID: entUser2.ID.Int64,
+		EntityID: entUser2.ID,
 		Quota:    100,
 		Priority: null.IntFrom(0),
 	})
@@ -94,11 +94,11 @@ func Populate(s Store) error {
 	}
 	err = s.AddSharesForEntity(EntityShare{
 		UserID:   user1.ID.Int64,
-		EntityID: entUser3.ID.Int64,
+		EntityID: entUser3.ID,
 		Quota:    50,
 	}, EntityShare{
 		UserID:   user2.ID.Int64,
-		EntityID: entUser3.ID.Int64,
+		EntityID: entUser3.ID,
 		Quota:    50,
 	})
 	if err != nil {
@@ -210,12 +210,17 @@ func Populate(s Store) error {
 	// Add Categories
 	categories := []string{
 		"Spesa",
+		"Pasti",
+		"Merende",
 		"Utenze",
 		"Utenze/Energia",
 		"Utenze/Internet",
 		"Utenze/Telefonia",
 		"Salute",
-		"Ristoranti - Bar",
+		"Salute/Visite",
+		"Salute/Farmacia",
+		"Uscite",
+		"Uscite/Mangiare",
 		"Sport",
 		"Sport/Tennis",
 		"Trasporti",

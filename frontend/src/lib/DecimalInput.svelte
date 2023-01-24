@@ -5,7 +5,7 @@
     export let decimalDigits = undefined;
     export let disabled = false;
     export let validationPattern = `\\d+(\\.\\d${
-        decimalDigits == null ? `{0,${decimalDigits}}` : "+"
+        decimalDigits != null ? `{0,${decimalDigits}}` : "+"
     })?`;
 
     let valueText = "";

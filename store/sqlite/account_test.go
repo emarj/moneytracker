@@ -43,13 +43,13 @@ func TestAccountCRUD(t *testing.T) {
 	//We need to do this since AddAccount does not return the entity
 	assert.Equal(t, e, *b.Owner)
 	b.Owner = nil
-	assert.Equal(t, &a, b)
+	assert.Equal(t, a, b)
 
 	b.Name = "newname"
 	b.DisplayName = "NewName"
 	b.IsSystem = true
 
-	err = store.UpdateAccount(b)
+	err = store.UpdateAccount(&b)
 	require.NoError(t, err)
 
 	c, err := store.GetAccount(a.ID.Int64)

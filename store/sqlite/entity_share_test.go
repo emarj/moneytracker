@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"fmt"
 	"testing"
 
 	mt "github.com/emarj/moneytracker"
@@ -27,12 +28,12 @@ func TestEntityShare(t *testing.T) {
 		Name:        "user",
 		DisplayName: "User",
 	}
-	err = store.RegisterUser(&u, "sdsd")
+	err = store.AddUser(&u, "sdsd")
 	require.NoError(t, err)
 
 	err = store.AddSharesForEntity(mt.EntityShare{
 		UserID:   u.ID.Int64,
-		EntityID: e1.ID.Int64,
+		EntityID: e1.ID,
 		Quota:    100,
 		Priority: null.IntFrom(23),
 	})
@@ -56,14 +57,10 @@ func TestEntityShare(t *testing.T) {
 
 	err = store.AddSharesForEntity(mt.EntityShare{
 		UserID:   u.ID.Int64,
-		EntityID: e2.ID.Int64,
+		EntityID: e2.ID,
 		Quota:    100,
 	})
 	require.NoError(t, err)
-
-	uws2, err := store.GetUserWithShares(u.ID.Int64)
-	require.NoError(t, err)
-	require.Equal(t, 2, len(uws2.Shares))
 
 }
 
@@ -85,29 +82,30 @@ func TestEntityShare2(t *testing.T) {
 		Name:        "user1",
 		DisplayName: "User1",
 	}
-	err = store.RegisterUser(&u1, "sdsd")
+	err = store.AddUser(&u1, "sdsd")
 	require.NoError(t, err)
 	u2 := mt.User{
 		Name:        "user2",
 		DisplayName: "User2",
 	}
-	err = store.RegisterUser(&u2, "sdsd")
+	err = store.AddUser(&u2, "sdsd")
 	require.NoError(t, err)
 
 	err = store.AddSharesForEntity(
 		[]mt.EntityShare{{
 			UserID:   u1.ID.Int64,
-			EntityID: e.ID.Int64,
+			EntityID: e.ID,
 			Quota:    70,
 		}, {
 			UserID:   u2.ID.Int64,
-			EntityID: e.ID.Int64,
+			EntityID: e.ID,
 			Quota:    30,
 		}}...)
 	require.NoError(t, err)
 
 	e2, err := store.GetEntity(e.ID.Int64)
 	require.NoError(t, err)
+	fmt.Println(e2.Shares)
 	require.Equal(t, 2, len(e2.Shares))
 
 }

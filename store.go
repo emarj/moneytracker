@@ -7,14 +7,14 @@ import (
 type Store interface {
 	GetEntities() ([]Entity, error)
 	GetEntitiesOfUser(int64) ([]Entity, error)
-	GetEntity(eID int64) (*Entity, error)
+	GetEntity(eID int64) (Entity, error)
 	AddEntity(e *Entity) error
 	AddSharesForEntity(...EntityShare) error
 
 	GetAccounts() ([]Account, error)
 	GetAccountsByEntity(eID int64) ([]Account, error)
 	GetUserAccounts(uID int64) ([]Account, error)
-	GetAccount(aID int64) (*Account, error)
+	GetAccount(aID int64) (Account, error)
 	AddAccount(a *Account) error
 	DeleteAccount(aID int64) error
 
@@ -39,6 +39,8 @@ type Store interface {
 	GetOperationTypes() []OperationType
 	GetAccountTypes() []AccountType
 
-	Login(user string, password string) (User, error)
-	RegisterUser(user *User, password string) error
+	GetUserByID(id int64) (User, error)
+	GetUserByName(user string) (User, error)
+	LoginUser(user string, password string) (User, error)
+	AddUser(user *User, password string) error
 }

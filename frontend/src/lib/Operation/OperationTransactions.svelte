@@ -1,9 +1,8 @@
 <script>
     import { isExpense, isIncome, isInternal } from "../../transactions";
     import { TimestampFMT } from "../../util/utils";
-    import AccountOrEntityTag from "../AccountOrEntityTag.svelte";
+    import AccountTag from "../AccountTag.svelte";
     import Amount from "../Amount.svelte";
-    import { entityID } from "../../store";
 
     export let transactions = [];
 </script>
@@ -17,15 +16,12 @@
                         >{TimestampFMT(t.timestamp).slice(0, 10)}</span
                     >
                     <span class="fromto">
-                        <AccountOrEntityTag account={t.from} eID={$entityID} /> →
-                        <AccountOrEntityTag
-                            account={t.to}
-                            eID={$entityID}
-                        /></span
+                        <AccountTag account={t.from} /> →
+                        <AccountTag account={t.to} /></span
                     >
                     <Amount
                         value={t.amount}
-                        negative={isExpense(t, $entityID)}
+                        negative={isExpense(t)}
                         hide_plus={isInternal(t)}
                     />
                 </li>
