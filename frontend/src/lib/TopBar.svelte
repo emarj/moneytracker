@@ -4,12 +4,15 @@
     import { showBalances } from "../store";
     import Switch from "@smui/switch";
     import IconButton from "@smui/icon-button";
+    import OnlineStatus from "./OnlineStatus.svelte";
     const queryClient = useQueryClient();
 
     export let menuOpen = false;
+    let online;
 </script>
 
-<nav>
+<OnlineStatus bind:online />
+<nav class:offline={!online}>
     <button
         class="back"
         on:click={() => {
@@ -61,7 +64,12 @@
 
         button.back {
             font-size: 1.1rem;
+            color: black;
             background-color: transparent;
+        }
+
+        &.offline {
+            border-bottom: 3px red solid;
         }
     }
 </style>

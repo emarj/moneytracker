@@ -4,21 +4,52 @@
   import { useQuery } from "@sveltestack/svelte-query";
   import AccountCard from "./AccountCard.svelte";
   import { push } from "svelte-spa-router";
-  import IconButton from "@smui/icon-button/src/IconButton.svelte";
+  import IconButton from "@smui/icon-button";
+  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import Button, { Label } from "@smui/button";
+  import AccountForm from "./AccountForm.svelte";
 
   export let entity;
 
   const queryResult = useQuery(["accounts", "entity", entity.id], () =>
     getAccountsByEntity(entity.id)
   );
+
+  let openDialog = false;
+  let resetAccountForm;
 </script>
 
 <section class="container">
   <IconButton
     class="add-account material-icons"
-    on:click={() => push("/newaccount")}>add_circle_outline</IconButton
+    on:click={() => (openDialog = true)}>add_circle_outline</IconButton
   >
 
+  <Dialog
+    bind:open={openDialog}
+    on:SMUIDialog:closing={resetAccountForm}
+    sheet
+    aria-labelledby="event-title"
+    aria-describedby="event-content"
+  >
+    <Title id="event-title">New Account</Title>
+    <Content id="event-content">
+      <IconButton action="close" class="material-icons">close</IconButton>
+      <AccountForm
+        on:submit={() => (openDialog = false)}
+        bind:reset={resetAccountForm}
+        defaultEntityID={entity.id}
+      />
+    </Content>
+    <!--  <Actions>
+      <Button>
+        <Label>None of Them</Label>
+      </Button>
+      <Button default>
+        <Label>All of Them</Label>
+      </Button>
+    </Actions> -->
+  </Dialog>
   {#if $queryResult.isLoading}
     <span
       ><CircularProgress

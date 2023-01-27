@@ -20,7 +20,10 @@
 <nav>
     <BottomAppBar variant="static" color="secondary">
         <Section>
-            <IconButton class="material-icons">menu</IconButton>
+            <IconButton
+                on:click={() => location.reload()}
+                class="material-icons">refresh</IconButton
+            >
         </Section>
         <Section>
             <Fab

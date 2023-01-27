@@ -26,7 +26,7 @@ func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
 			),
 		).ORDER_BY(jet.Raw("\"category.full_name\" ASC"))
 
-	//fmt.Println(stmt.DebugSql())
+	fmt.Println(stmt.DebugSql())
 
 	categories := []mt.Category{}
 	err := stmt.Query(s.db, &categories)

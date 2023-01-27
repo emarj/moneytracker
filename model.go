@@ -178,7 +178,7 @@ func OperationTypes() []OperationType {
 type Category struct {
 	ID       null.Int        `json:"id" sql:"primary_key"`
 	Name     string          `json:"name"`
-	FullName string          `json:"full_name,omitempty"`
+	FullName string          `json:"full_name"`
 	ParentID null.Int        `json:"parent_id"`
 	Parent   *ParentCategory `json:"parent" alias:"parent"`
 }

@@ -96,7 +96,9 @@ CREATE TABLE IF NOT EXISTS operation (
 CREATE TABLE IF NOT EXISTS category (
 	id INTEGER PRIMARY KEY,
 	parent_id INTEGER,
-	name TEXT NOT NULL
+	name TEXT NOT NULL CHECK (name != ""),
+	parent_id_not_null GENERATED ALWAYS AS (IFNULL(parent_id,-1)) VIRTUAL,
+	UNIQUE(name COLLATE NOCASE,parent_id_not_null) 
 ); --STRICT;
 ---
 

@@ -5,11 +5,16 @@ import { JSONString } from "./util/utils"
 const baseURL = '/api'
 
 const fetcher = async (url: string, init?) => {
-    const response = await fetch(url, init)
-    if (!response.ok) {
-        throw new Error(`error: ${response.statusText}`)
+    try {
+        const response = await fetch(url, init)
+        if (!response.ok) {
+            console.log(response);
+            throw new Error(`error: ${response.statusText}`)
+        }
+        return response.json()
+    } catch (e) {
+        console.log(e)
     }
-    return response.json()
 }
 
 export const login = (l) =>
@@ -32,6 +37,8 @@ export const getAllEntities = () =>
 
 export const getCategories = () =>
     fetcher(`${baseURL}/categories`)
+export const addCategory = (cat) =>
+    fetcher(`${baseURL}/category`, { method: "POST", body: JSONString(cat) })
 
 export const getAccounts = () =>
     fetcher(`${baseURL}/accounts`)

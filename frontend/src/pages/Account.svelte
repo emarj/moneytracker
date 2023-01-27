@@ -21,5 +21,5 @@
 {:else if $accountQuery.error}
     <span>An error has occurred: {$accountQuery.error.message}</span>
 {:else if $accountQuery.data}
-    <li><AccountDetail account={$accountQuery.data} /></li>
+    <AccountDetail account={$accountQuery.data} />
 {/if}

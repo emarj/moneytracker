@@ -4,6 +4,13 @@ import { writable as lsWritable } from 'svelte-local-storage-store'
 
 // Persistent stores
 export const authStore = lsWritable("auth", null)
+
+export const localLogout = () => {
+    console.log("local log out")
+    authStore.set(null);
+    window.location.href = "/"
+};
+
 export const showBalances = lsWritable("showBalances", true);
 
 export const user = derived(

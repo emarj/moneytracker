@@ -31,7 +31,12 @@
     <TopBar bind:menuOpen />
 
     <main>
-      <Router {routes} />
+      <Router
+        {routes}
+        on:routeLoaded={() => {
+          window.scrollTo(0, 0);
+        }}
+      />
     </main>
 
     <BottomBar />

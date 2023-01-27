@@ -30,7 +30,7 @@ type jwtCustomClaims struct {
 }
 
 // FIXME: change this
-var secret_key = []byte("super_secret_key")
+var secret_key = []byte("this_is_a_really_super_secret_key")
 
 type Server struct {
 	store  Store

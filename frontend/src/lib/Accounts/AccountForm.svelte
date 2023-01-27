@@ -2,38 +2,88 @@
     import Select, { Option } from "@smui/select";
     import Button from "@smui/button";
     import Textfield from "@smui/textfield";
-    import { useMutation, useQuery } from "@sveltestack/svelte-query";
+    import {
+        useMutation,
+        useQuery,
+        useQueryClient,
+    } from "@sveltestack/svelte-query";
     import { addAccount, getTypes } from "../../api";
     import { pop } from "svelte-spa-router";
     import { capitalize, JSONPretty } from "../../util/utils";
     import Switch from "@smui/switch";
     import EntitySelect from "../EntitySelect.svelte";
     import { userEntitiesID } from "../../store";
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher();
 
     const typesQuery = useQuery(["types"], () => getTypes());
 
-    let account = {
+    const queryClient = useQueryClient();
+
+    export let defaultEntityID = null;
+
+    let emptyAccount = {
         name: "",
         display_name: "",
         type_id: 0,
         is_default: false,
+        owner_id: defaultEntityID,
     };
+
+    let account;
+
+    export let reset = () => {
+        account = structuredClone(emptyAccount);
+    };
+
+    reset();
 
     let mutation = useMutation((a) => addAccount(a), {
         onSuccess: () => {
-            pop();
+            queryClient.invalidateQueries({
+                queryKey: ["accounts", "entity", account.owner_id],
+            });
+            dispatch("submit");
+            reset();
+            //TODO: Add toast
         },
     });
 
-    const handler = (e) => {
+    const submitHandler = (e) => {
         e.preventDefault();
         $mutation.mutate(account);
     };
+
+    const resetHandler = (e) => {
+        e.preventDefault();
+        reset();
+    };
+
+    let linked = true;
+
+    $: {
+        if (linked) {
+            account.name = account.display_name
+                .toLowerCase()
+                .replace(/ /g, "-")
+                .replace(/[^\w-]+/g, "");
+        }
+    }
 </script>
 
 <form>
-    <Textfield label="Name" bind:value={account.name} />
-    <Textfield label="Display Name" bind:value={account.display_name} />
+    <div>
+        <Textfield label="Display Name" bind:value={account.display_name} />
+        <div
+            contenteditable
+            bind:innerHTML={account.name}
+            on:input={() => (linked = false)}
+        />
+        Linked <Switch bind:checked={linked} />
+    </div>
+    <br />
+    <br />
 
     {#if $typesQuery.isLoading}
         ...
@@ -52,11 +102,11 @@
     Default: <Switch bind:checked={account.is_default} />
 
     <div>
-        <Button type="reset">Cancel</Button>
-        <Button type="submit" on:click={handler}>Create</Button>
+        <Button type="reset" on:click={resetHandler}>Reset</Button>
+        <Button type="submit" on:click={submitHandler}>Create</Button>
     </div>
 
-    <pre>
+    <!-- <pre>
         {JSONPretty(account)}
-    </pre>
+    </pre> -->
 </form>

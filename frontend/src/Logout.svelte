@@ -2,15 +2,14 @@
     import Button from "@smui/button/src/Button.svelte";
     import { QueryClient, useMutation } from "@sveltestack/svelte-query";
     import { logout } from "./api";
-    import { authStore } from "./store";
+    import { localLogout } from "./store";
 
     const queryClient = new QueryClient();
 
     const mutation = useMutation(() => logout(), {
         onSuccess: (data) => {
             console.log("logged out successfully");
-            authStore.set(null);
-            window.location.replace("/");
+            localLogout();
         },
     });
 </script>
