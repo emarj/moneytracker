@@ -12,7 +12,9 @@
 </script>
 
 <div class="container">
-  {#each $userEntities as e}
-    <AccountsForEntity entity={e} />
-  {/each}
+  {#if $userEntities}
+    {#each $userEntities as e}
+      <AccountsForEntity entity={e} />
+    {/each}
+  {/if}
 </div>

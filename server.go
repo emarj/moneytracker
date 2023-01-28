@@ -11,7 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/shopspring/decimal"
@@ -26,7 +27,7 @@ var content embed.FS
 // See https://github.com/golang-jwt/jwt for more examples
 type jwtCustomClaims struct {
 	User
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 // FIXME: change this
@@ -83,19 +84,21 @@ func NewServer(store Store) *Server {
 		Format: "${time_unix_micro}: method=${method}, uri=${uri}, status=${status}\t error=${error} \n",
 	}))
 
-	config := middleware.JWTConfig{
+	config := echojwt.Config{
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/api/login" || c.Path() == "/api/logout"
 		},
-		ErrorHandler: func(err error) error {
+		/* ErrorHandler: func(err error) error {
 			return err
+		}, */
+		SigningKey: secret_key,
+		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+			return new(jwtCustomClaims)
 		},
-		SigningKey:  secret_key,
-		Claims:      &jwtCustomClaims{},
 		TokenLookup: "cookie:token",
 		ContextKey:  "token",
 	}
-	apiGroup.Use(middleware.JWTWithConfig(config))
+	apiGroup.Use(echojwt.WithConfig(config))
 
 	// API Routes
 	apiGroup.GET("/greet", s.Greet)
@@ -179,8 +182,8 @@ func (s *Server) Login(c echo.Context) error {
 	// Set custom claims
 	claims := &jwtCustomClaims{
 		user,
-		jwt.StandardClaims{
-			ExpiresAt: expiration.Unix(),
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiration),
 		},
 	}
 

@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { DateFMT } from "../../util/utils";
     import type { Operation } from "../../model";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";

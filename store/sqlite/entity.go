@@ -88,8 +88,8 @@ func (s *SQLiteStore) AddEntity(e *mt.Entity) error {
 		// newEntity shares has been overwritten when inserting
 		newEntity.Shares = e.Shares
 
-		for _, s := range newEntity.Shares {
-			s.EntityID = newEntity.ID
+		for k := range newEntity.Shares {
+			newEntity.Shares[k].EntityID = newEntity.ID
 		}
 
 		err = insertEntityShares(tx, newEntity.Shares...)

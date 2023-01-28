@@ -29,7 +29,7 @@ dev-no-proxy:
 push:
 		docker push -a emarj/moneytracker
 docker-run:
-		docker run --rm -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:latest
+		docker run --rm -p 3245:3245 -v $(shell pwd)/data:/data emarj/moneytracker:user-entity-share-9204626-dirty
 docker-prod: 
 		docker run -d -p 3245:3245 -v /home/marco/data:/data emarj/moneytracker:latest
 gen:

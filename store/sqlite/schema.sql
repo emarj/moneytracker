@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS user (
 ); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS entity_share (
-	user_id INTEGER REFERENCES user(id),
-	entity_id INTEGER REFERENCES entity(id),
+	user_id INTEGER NOT NULL REFERENCES user(id),
+	entity_id INTEGER NOT NULL REFERENCES entity(id),
 	quota INTEGER NOT NULL DEFAULT 100 CHECK (quota BETWEEN 0 AND 100),
 	priority INTEGER,
 	PRIMARY KEY(user_id, entity_id),
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS account (
 ---
 CREATE TABLE IF NOT EXISTS balance (
 	timestamp TEXT NOT NULL,
-	account_id INTEGER REFERENCES account(id),
+	account_id INTEGER NOT NULL REFERENCES account(id),
 	value TEXT NOT NULL,
 	delta TEXT,
 	comment TEXT,
@@ -87,10 +87,10 @@ CREATE TABLE IF NOT EXISTS operation (
 	created_by_id INTEGER NOT NULL,
 	---
 	description TEXT NOT NULL,
-	type_id INTEGER DEFAULT 0 REFERENCES operation_type(id),
+	type_id INTEGER NOT NULL REFERENCES operation_type(id),
 	---
 	details TEXT,
-	category_id INTEGER DEFAULT 0 REFERENCES category(id)
+	category_id INTEGER NOT NULL REFERENCES category(id)
 ); --STRICT;
 ---
 CREATE TABLE IF NOT EXISTS category (

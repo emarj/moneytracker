@@ -6,7 +6,6 @@ import { writable as lsWritable } from 'svelte-local-storage-store'
 export const authStore = lsWritable("auth", null)
 
 export const localLogout = () => {
-    console.log("local log out")
     authStore.set(null);
     window.location.href = "/"
 };

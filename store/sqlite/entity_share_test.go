@@ -61,10 +61,57 @@ func TestEntityShare(t *testing.T) {
 		Quota:    100,
 	})
 	require.NoError(t, err)
-
 }
 
 func TestEntityShare2(t *testing.T) {
+	store := NewTemp()
+	err := store.Open()
+	require.NoError(t, err)
+	defer func() {
+		store.Close()
+	}()
+
+	u := mt.User{
+		Name:        "user",
+		DisplayName: "User",
+	}
+	err = store.AddUser(&u, "sdsd")
+	require.NoError(t, err)
+
+	e1 := mt.Entity{
+		Name: "ent1",
+		Shares: []mt.EntityShare{{
+			UserID:   u.ID.Int64,
+			Quota:    100,
+			Priority: null.IntFrom(23),
+		}},
+	}
+	err = store.AddEntity(&e1)
+	require.NoError(t, err)
+
+	e1b, err := store.GetEntity(e1.ID.Int64)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(e1b.Shares))
+	assert.EqualValues(t, 100, e1b.Shares[0].Quota)
+	assert.EqualValues(t, 23, e1b.Shares[0].Priority.Int64)
+
+	uws, err := store.GetUserWithShares(u.ID.Int64)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(uws.Shares))
+
+	e2 := mt.Entity{
+		Name: "ent2",
+		Shares: []mt.EntityShare{{
+			UserID: u.ID.Int64,
+			Quota:  100,
+		}},
+	}
+	err = store.AddEntity(&e2)
+	require.NoError(t, err)
+
+}
+
+func TestEntityShare2Users(t *testing.T) {
 	store := NewTemp()
 	err := store.Open()
 	require.NoError(t, err)

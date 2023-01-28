@@ -2,7 +2,7 @@
     import { userEntitiesID } from "../store";
     export let account;
 
-    const isExternal = !$userEntitiesID.includes(account.owner_id);
+    const isExternal = !$userEntitiesID?.includes(account.owner_id);
     const isWorld = account.owner_id === 0;
 </script>
 

@@ -1,20 +1,20 @@
 import type { Operation } from "./model"
+import { localLogout } from "./store"
 import { JSONString } from "./util/utils"
 
 
 const baseURL = '/api'
 
 const fetcher = async (url: string, init?) => {
-    try {
-        const response = await fetch(url, init)
-        if (!response.ok) {
-            console.log(response);
-            throw new Error(`error: ${response.statusText}`)
+    const response = await fetch(url, init)
+    if (!response.ok) {
+        if (response.status === 401) {
+            await logout()
+            localLogout()
         }
-        return response.json()
-    } catch (e) {
-        console.log(e)
+        throw new Error(`error: ${response.statusText}`)
     }
+    return response.json()
 }
 
 export const login = (l) =>

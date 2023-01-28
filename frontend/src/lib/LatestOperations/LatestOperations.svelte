@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { isExpense, isIncome, isInternal } from "../../transactions";
     import { useQuery, useQueryClient } from "@sveltestack/svelte-query";
     import { getOperations } from "../../api";
     import { user } from "../../store";
