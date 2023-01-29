@@ -48,7 +48,8 @@ func (s *SQLiteStore) Open() error {
 	}
 	s.db = db
 
-	_, err = s.db.Exec(`PRAGMA journal_mode = WAL;
+	// PRAGMA journal_mode = WAL; is persistent so it set in schema
+	_, err = s.db.Exec(`PRAGMA busy_timeout = 5000;
 						PRAGMA foreign_keys = ON;`)
 	if err != nil {
 		return err

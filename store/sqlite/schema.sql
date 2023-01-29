@@ -1,5 +1,8 @@
 PRAGMA user_version = 1;
 
+-- WAL is persistent, so we set it here
+PRAGMA journal_mode = WAL;
+
 /*
 CREATE TABLE IF NOT EXISTS record (
 	id INTEGER PRIMARY KEY,
