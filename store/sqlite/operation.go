@@ -295,7 +295,8 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 			return err
 		}
 
-		newOp.Balances[i].Operation = &newOp
+		// Comment this to avoid cycles in JSON marshaling
+		//newOp.Balances[i].Operation = &newOp
 	}
 
 	if len(newOp.Transactions) > 0 {
@@ -306,8 +307,8 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 			if err != nil {
 				return err
 			}
-
-			newOp.Transactions[i].Operation = &newOp
+			// Comment this to avoid cycles in JSON marshaling
+			//newOp.Transactions[i].Operation = &newOp
 		}
 	}
 

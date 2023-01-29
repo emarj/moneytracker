@@ -33,11 +33,10 @@ docker-run:
 docker-prod: 
 		docker run -d -p 3245:3245 -v /home/marco/data:/data emarj/moneytracker:latest
 gen:
-		jet -source=sqlite -dsn="./data/moneytracker.sqlite" -path="./.gen"
+		rm .gen/temp.sqlite* || true
+		sqlite3 .gen/temp.sqlite < store/sqlite/schema.sql
+		jet -source=sqlite -dsn="./.gen/temp.sqlite" -path="./.gen"
 		rm -rf .gen/model
-schema:
-		rm data/moneytracker.sqlite* || true
-		sqlite3 data/moneytracker.sqlite < store/sqlite/schema.sql
 populate:
 		go run ./cmd/populate
 

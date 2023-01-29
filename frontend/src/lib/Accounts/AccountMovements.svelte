@@ -40,7 +40,7 @@
                     <td>
                         <Amount
                             value={t.amount}
-                            negative={t.from.id == id}
+                            invert={t.from.id === id}
                             hide_plus={false}
                         />
                     </td>

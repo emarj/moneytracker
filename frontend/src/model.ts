@@ -28,7 +28,7 @@ export type Transaction = {
 
 export type Operation = {
     id?: number;
-    date_modified?: Date;
+    modified_on?: Date;
     description: string;
     category_id?: number;
     transactions?: Transaction[];

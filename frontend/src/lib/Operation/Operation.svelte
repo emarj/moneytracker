@@ -45,20 +45,12 @@
 
     {#if op.transactions && total !== 0}
         : <span>
-            <Amount
-                value={Math.abs(total)}
-                negative={total < 0}
-                hide_plus={false}
-            />
+            <Amount value={total} hide_plus={false} />
         </span>
     {:else if op.balances && op.balances.length == 1}
         {@const bal = op.balances[0]}
         <AccountTag account={bal.account} />
-        <Amount
-            value={Math.abs(bal.value)}
-            negative={bal.value < 0}
-            hide_plus={true}
-        />
+        <Amount value={bal.value} hide_plus={true} />
     {/if}
     <div class="transactions">
         <OperationTransactions transactions={op.transactions} />

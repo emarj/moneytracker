@@ -21,7 +21,7 @@
                     >
                     <Amount
                         value={t.amount}
-                        negative={isExpense(t)}
+                        invert={isExpense(t)}
                         hide_plus={isInternal(t)}
                     />
                 </li>
