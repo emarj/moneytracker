@@ -8,7 +8,7 @@ import (
 //go:generate easytags $GOFILE json
 type ExpenseShare struct {
 	Amount        decimal.Decimal `json:"amount"`
-	Quota         int64           `json:"quota"`
+	Quota         float64         `json:"quota"`
 	Total         decimal.Decimal `json:"total"`
 	WithID        int64           `json:"with_id"`
 	CredAccountID int64           `json:"cred_account_id"`
