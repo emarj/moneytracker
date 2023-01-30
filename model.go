@@ -146,6 +146,7 @@ type Operation struct {
 	Balances     []Balance      `json:"balances,omitempty"`
 	//////////////////////////////////////////////
 	CategoryID int64           `json:"category_id"`
+	Category   *Category       `json:"category"`
 	Details    json.RawMessage `json:"details,omitempty"`
 	ParentID   null.Int        `json:"parent_id"`
 	//Parent       *Operation    `json:"parent,omitempty"`

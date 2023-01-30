@@ -24,6 +24,9 @@
 <div class:expense={total < 0} class:income={total > 0}>
     <!-- <span class="date">{DateFMT(op.modified_on)}</span> -->
     <span class="desc">
+        {#if op.description === "" || op.description.startsWith("@")}
+            <strong>{op.category.full_name}</strong>
+        {/if}
         {op.description}
     </span>
 

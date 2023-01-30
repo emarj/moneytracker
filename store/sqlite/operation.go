@@ -73,7 +73,9 @@ func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operatio
 		LIMIT(limit).
 		AsTable("operation")
 
-	stmt := jet.SELECT(
+	catCols := categoryColumns()
+
+	cols := []jet.Projection{
 		jt.Operation.AllColumns,
 		jt.Transaction.AllColumns,
 		(jet.CASE().
@@ -92,9 +94,12 @@ func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operatio
 		jt.Balance.AllColumns,
 		Balance.AllColumns,
 		OwnerBalance.AllColumns,
-		/* UserFrom.UserID,
-		UserTo.UserID,
-		UserBalance.UserID, */
+	}
+
+	cols = append(cols, catCols...)
+
+	stmt := jet.SELECT(
+		cols[0], cols[1:]...,
 	).FROM(operationTable.LEFT_JOIN(
 		jt.Transaction,
 		jt.Transaction.OperationID.EQ(jt.Operation.ID),
@@ -128,12 +133,15 @@ func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operatio
 	).LEFT_JOIN(
 		UserBalance,
 		UserBalance.EntityID.EQ(Balance.OwnerID),
-	),
-	).ORDER_BY(
-		jt.Operation.ModifiedOn.DESC(),
-		jt.Transaction.Timestamp.DESC(),
-		jt.Balance.Timestamp.DESC(),
-	)
+	).INNER_JOIN(
+		jt.Category,
+		jt.Category.ID.EQ(jt.Operation.CategoryID),
+	).LEFT_JOIN(joinCategoryParent())).
+		ORDER_BY(
+			jt.Operation.ModifiedOn.DESC(),
+			jt.Transaction.Timestamp.DESC(),
+			jt.Balance.Timestamp.DESC(),
+		)
 
 	//fmt.Println(stmt.DebugSql())
 

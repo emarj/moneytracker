@@ -19,6 +19,7 @@
                         <AccountTag account={t.from} /> →
                         <AccountTag account={t.to} /></span
                     >
+                    {@html "&emsp;"}
                     <Amount
                         value={t.amount}
                         invert={isExpense(t)}

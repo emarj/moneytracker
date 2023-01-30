@@ -11,22 +11,36 @@ import (
 	jet "github.com/go-jet/jet/v2/sqlite"
 )
 
-func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
-
+func categoryColumns() []jet.Projection {
 	Parent := jt.Category.AS("parent")
 
-	stmt := jet.SELECT(
-		jt.Category.AllColumns,
+	return []jet.Projection{jt.Category.AllColumns,
 		Parent.AllColumns,
 		jet.COALESCE(Parent.Name.CONCAT(jet.String("/")).CONCAT(jt.Category.Name), jt.Category.Name).AS("category.full_name"),
+	}
+}
+
+func joinCategoryParent() (jet.ReadableTable, jet.BoolExpression) {
+	Parent := jt.Category.AS("parent")
+	return Parent, Parent.ID.EQ(jt.Category.ParentID)
+}
+
+func selectCategoryStmt() jet.SelectStatement {
+	cols := categoryColumns()
+
+	stmt := jet.SELECT(
+		cols[0], cols[1:]...,
 	).
 		FROM(
-			jt.Category.LEFT_JOIN(
-				Parent, Parent.ID.EQ(jt.Category.ParentID),
-			),
-		).ORDER_BY(jet.Raw("\"category.full_name\" ASC"))
+			jt.Category.LEFT_JOIN(joinCategoryParent()),
+		)
 
-	fmt.Println(stmt.DebugSql())
+	return stmt
+}
+
+func (s *SQLiteStore) GetCategories() ([]mt.Category, error) {
+
+	stmt := selectCategoryStmt().ORDER_BY(jet.Raw("\"category.full_name\" ASC"))
 
 	categories := []mt.Category{}
 	err := stmt.Query(s.db, &categories)
