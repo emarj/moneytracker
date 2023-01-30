@@ -84,6 +84,9 @@ export const getOperation = (oID: number) =>
 export const addOperation = (op) =>
     fetcher(`${baseURL}/operation`, { method: "POST", body: JSONString(op) })
 
+export const updateOperation = (op: Operation) =>
+    fetcher(`${baseURL}/operation`, { method: "PUT", body: JSONString(op) })
+
 export const deleteOperation = (opID: number) =>
     fetcher(`${baseURL}/operation/${opID}`, { method: "DELETE" })
 

@@ -3,12 +3,13 @@
     import type { Operation } from "../../model";
     import Amount from "../Amount.svelte";
     import OperationTransactions from "./OperationTransactions.svelte";
-    import { deleteOperation } from "../../api";
+    import { updateOperation, deleteOperation } from "../../api";
     import { useMutation, useQueryClient } from "@sveltestack/svelte-query";
     import { messageStore } from "../../store";
     import { pop, push } from "svelte-spa-router";
     import AccountTag from "../AccountTag.svelte";
     import IconButton from "@smui/icon-button";
+    import Button from "@smui/button/src/Button.svelte";
 
     export let op: Operation;
 
@@ -26,22 +27,41 @@
 
     const queryClient = useQueryClient();
 
-    const mutation = useMutation((opID: number) => deleteOperation(opID), {
-        onMutate: () => {
-            pop();
-        },
-        onSuccess: (data: number) => {
-            $messageStore = { text: `Operation delete successfully!` };
+    const deleteMutation = useMutation(
+        (opID: number) => deleteOperation(opID),
+        {
+            onMutate: () => {
+                pop();
+            },
+            onSuccess: () => {
+                $messageStore = { text: `Operation delete successfully!` };
+                queryClient.invalidateQueries();
+            },
+        }
+    );
+
+    const updateMutation = useMutation((op: Operation) => updateOperation(op), {
+        onSuccess: () => {
+            $messageStore = { text: `Operation edited successfully!` };
             queryClient.invalidateQueries();
+            edit = false;
         },
     });
+
+    let edit = false;
 </script>
 
 <div class:expense={total < 0} class:income={total > 0}>
     <span class="date">{DateFMT(op.modified_on)}</span>
-    <span class="desc">
-        {op.description}
-    </span>
+    {#if edit}
+        <input type="text" bind:value={op.description} />
+        <Button on:click={() => $updateMutation.mutate(op)}>Save</Button>
+    {:else}
+        <span class="desc">
+            {op.description}
+        </span>
+        <Button on:click={() => (edit = true)}>Edit</Button>
+    {/if}
 
     {#if op.transactions && total !== 0}
         : <span>
@@ -66,9 +86,9 @@
         class="material-icons"
         on:click={(event) => {
             event.preventDefault();
-            $mutation.mutate(op.id);
+            $deleteMutation.mutate(op.id);
         }}
-        disabled={$mutation.isLoading}>delete</IconButton
+        disabled={$deleteMutation.isLoading}>delete</IconButton
     >
 </div>
 <pre>

@@ -369,6 +369,27 @@ func (s *SQLiteStore) AddOperation(op *mt.Operation) error {
 
 }
 
+func updateOperation(txdb TXDB, op *mt.Operation) error {
+	now := timestamp.Now()
+
+	op.ModifiedOn = now
+
+	stmt := jt.Operation.UPDATE(jt.Operation.AllColumns).
+		WHERE(jt.Operation.ID.EQ(jet.Int(op.ID.Int64))).
+		MODEL(op)
+
+	_, err := stmt.Exec(txdb)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SQLiteStore) UpdateOperation(op *mt.Operation) error {
+	return updateOperation(s.db, op)
+}
+
 func (s *SQLiteStore) DeleteOperation(opID int64) error {
 
 	tx, err := s.db.Begin()

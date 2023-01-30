@@ -362,6 +362,22 @@ func (s *Server) addOperation(c echo.Context) error {
 	return c.JSON(http.StatusOK, op)
 }
 
+func (s *Server) updateOperation(c echo.Context) error {
+	op := Operation{}
+
+	err := json.NewDecoder(c.Request().Body).Decode(&op)
+	if err != nil {
+		return err
+	}
+
+	err = s.store.UpdateOperation(&op)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, op)
+}
+
 func (s *Server) deleteOperation(c echo.Context) error {
 
 	opID, err := Atoi64(c.Param("opid"))

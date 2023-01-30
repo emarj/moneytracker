@@ -128,6 +128,7 @@ func NewServer(store Store) *Server {
 	apiGroup.GET("/operations/entity/:eid", s.getOperationsByEntity)
 	apiGroup.GET("/operation/:opid", s.getOperation)
 	apiGroup.POST("/operation", s.addOperation)
+	apiGroup.PUT("/operation", s.updateOperation)
 	apiGroup.DELETE("/operation/:opid", s.deleteOperation)
 
 	apiGroup.POST("/expense", s.addExpense)

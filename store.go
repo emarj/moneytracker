@@ -31,6 +31,7 @@ type Store interface {
 	GetOperationsOfUser(uID int64, limit int64) ([]Operation, error)
 	GetOperationsByEntity(eID int64, limit int64) ([]Operation, error)
 	AddOperation(op *Operation) error
+	UpdateOperation(op *Operation) error
 	DeleteOperation(opID int64) error
 
 	GetCategories() ([]Category, error)
