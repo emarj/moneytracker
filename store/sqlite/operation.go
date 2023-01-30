@@ -15,11 +15,6 @@ func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operatio
 
 	//userEntities := jt.EntityShare.SELECT(jt.EntityShare.EntityID).WHERE(jt.EntityShare.UserID.EQ(jet.Int(uID)))
 
-	operationTable := jt.Operation.SELECT(jet.STAR).
-		ORDER_BY(jt.Operation.ModifiedOn.DESC()).
-		LIMIT(limit).
-		AsTable("operation")
-
 	From := jt.Account.AS("from")
 	To := jt.Account.AS("to")
 	Balance := jt.Account.AS("account")
@@ -31,6 +26,52 @@ func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operatio
 	UserFrom := jt.EntityShare.AS("from.user")
 	UserTo := jt.EntityShare.AS("to.user")
 	UserBalance := jt.EntityShare.AS("account.user")
+
+	operationTable := jt.Operation.SELECT(jet.STAR).
+		WHERE(jet.EXISTS(
+			jet.SELECT(jet.STAR).
+				FROM(jt.Transaction.LEFT_JOIN(
+					From,
+					From.ID.EQ(jt.Transaction.FromID),
+				).LEFT_JOIN(
+					To,
+					To.ID.EQ(jt.Transaction.ToID),
+				).LEFT_JOIN(
+					OwnerFrom,
+					OwnerFrom.ID.EQ(From.OwnerID),
+				).LEFT_JOIN(
+					OwnerTo,
+					OwnerTo.ID.EQ(To.OwnerID),
+				).LEFT_JOIN(
+					jt.Balance,
+					jt.Balance.OperationID.EQ(jt.Operation.ID),
+				).LEFT_JOIN(
+					Balance,
+					Balance.ID.EQ(jt.Balance.AccountID),
+				).LEFT_JOIN(
+					OwnerBalance,
+					OwnerBalance.ID.EQ(Balance.OwnerID),
+				).LEFT_JOIN(
+					UserFrom,
+					UserFrom.EntityID.EQ(From.OwnerID),
+				).LEFT_JOIN(
+					UserTo,
+					UserTo.EntityID.EQ(To.OwnerID),
+				).LEFT_JOIN(
+					UserBalance,
+					UserBalance.EntityID.EQ(Balance.OwnerID),
+				),
+				).WHERE(
+				jt.Transaction.OperationID.EQ(jt.Operation.ID).
+					AND(
+						(UserFrom.UserID.EQ(jet.Int(uID)).
+							OR(UserTo.UserID.EQ(jet.Int(uID)))).
+							OR(UserBalance.UserID.EQ(jet.Int(uID))),
+					))),
+		).
+		ORDER_BY(jt.Operation.ModifiedOn.DESC()).
+		LIMIT(limit).
+		AsTable("operation")
 
 	stmt := jet.SELECT(
 		jt.Operation.AllColumns,
@@ -88,17 +129,13 @@ func (s *SQLiteStore) GetOperationsOfUser(uID int64, limit int64) ([]mt.Operatio
 		UserBalance,
 		UserBalance.EntityID.EQ(Balance.OwnerID),
 	),
-	).WHERE(
-		(UserFrom.UserID.EQ(jet.Int(uID)).
-			OR(UserTo.UserID.EQ(jet.Int(uID)))).
-			OR(UserBalance.UserID.EQ(jet.Int(uID))),
 	).ORDER_BY(
 		jt.Operation.ModifiedOn.DESC(),
 		jt.Transaction.Timestamp.DESC(),
 		jt.Balance.Timestamp.DESC(),
 	)
 
-	fmt.Println(stmt.DebugSql())
+	//fmt.Println(stmt.DebugSql())
 
 	operations := []mt.Operation{}
 

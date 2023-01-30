@@ -7,7 +7,11 @@
 </script>
 
 <span class:account={!isExternal} class:entity={isExternal && !isWorld}>
-    {account.owner?.name}:{account.name.toLowerCase()}
+    {#if isWorld}
+        🌐
+    {:else}
+        {account.owner?.name}:{account.name.toLowerCase()}
+    {/if}
 </span>
 
 <style lang="scss">
