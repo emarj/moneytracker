@@ -52,13 +52,13 @@
 </div>
 
 <FormField>
-    <Switch bind:checked={share.is_credit} color="secondary" icons={false} />
+    <Switch bind:checked={share.is_crebit} color="secondary" icons={false} />
     <span slot="label">Credit</span>
 </FormField>
-{#key share.is_credit}
+{#key share.is_crebit}
     <AccountSelect
         entity_ids={[entity_id]}
-        type_id={share.is_credit ? 1 : 0}
+        type_id={share.is_crebit ? 1 : 0}
         bind:account_id={share.cred_account_id}
         disabled={share.with_id == null}
         label="Credited Account"
@@ -66,7 +66,7 @@
     {#key share.with_id}
         <AccountSelect
             entity_ids={[share.with_id]}
-            type_id={share.is_credit ? 1 : 0}
+            type_id={share.is_crebit ? 1 : 0}
             bind:account_id={share.deb_account_id}
             disabled={share.with_id == null}
             label="Debited Account"

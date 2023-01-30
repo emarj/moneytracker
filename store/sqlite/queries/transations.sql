@@ -67,7 +67,7 @@ FROM 'transaction' AS t
 WHERE from_owner_id = 1
     OR to_owner_id = 1;
     --
-    INSERT INTO account (name,display_name,owner_id,is_system,is_credit,is_world) VALUES("prova","ssd",9,TRUE,FALSE,FALSE)
+    INSERT INTO account (name,display_name,owner_id,is_system,is_crebit,is_world) VALUES("prova","ssd",9,TRUE,FALSE,FALSE)
      RETURNING *;
      ----
      SELECT  count()

@@ -135,24 +135,24 @@ func Populate(s Store) error {
 		OwnerID:     entUser2.ID.Int64,
 		IsDefault:   true,
 	})
-	accounts.Store("user1:credits", Account{
-		Name:        "credits",
-		DisplayName: "Crediti",
+	accounts.Store("user1:crebits", Account{
+		Name:        "crebits",
+		DisplayName: "Crebiti",
 		OwnerID:     entUser1.ID.Int64,
-		TypeID:      AccTypeCredit,
+		TypeID:      AccTypeCrebit,
 		IsDefault:   true,
 	})
-	accounts.Store("user1:credits2", Account{
-		Name:        "credits2",
-		DisplayName: "Crediti2",
+	accounts.Store("user1:crebits2", Account{
+		Name:        "crebits2",
+		DisplayName: "Crebiti2",
 		OwnerID:     entUser1.ID.Int64,
-		TypeID:      AccTypeCredit,
+		TypeID:      AccTypeCrebit,
 	})
-	accounts.Store("user2:credits", Account{
-		Name:        "credits",
-		DisplayName: "Crediti",
+	accounts.Store("user2:crebits", Account{
+		Name:        "crebits",
+		DisplayName: "Crebiti",
 		OwnerID:     entUser2.ID.Int64,
-		TypeID:      AccTypeCredit,
+		TypeID:      AccTypeCrebit,
 		IsDefault:   true,
 	})
 	accounts.Store("user1:investments", Account{
@@ -173,11 +173,11 @@ func Populate(s Store) error {
 		OwnerID:     entUser3.ID.Int64,
 		IsDefault:   true,
 	})
-	accounts.Store("user3:credits", Account{
-		Name:        "credits",
-		DisplayName: "Crediti",
+	accounts.Store("user3:crebits", Account{
+		Name:        "crebits",
+		DisplayName: "Crebiti",
 		OwnerID:     entUser3.ID.Int64,
-		TypeID:      AccTypeCredit,
+		TypeID:      AccTypeCrebit,
 		IsDefault:   true,
 	})
 
@@ -249,8 +249,8 @@ func Populate(s Store) error {
 				},
 				{
 					Timestamp: tt.Before,
-					FromID:    accounts.Value("user2:credits").ID.Int64,
-					ToID:      accounts.Value("user1:credits").ID.Int64,
+					FromID:    accounts.Value("user2:crebits").ID.Int64,
+					ToID:      accounts.Value("user1:crebits").ID.Int64,
 					Amount:    decimal.New(40, 0),
 				},
 			},
@@ -280,8 +280,8 @@ func Populate(s Store) error {
 				},
 				{
 					Timestamp: tt.Before,
-					FromID:    accounts.Value("user2:credits").ID.Int64,
-					ToID:      accounts.Value("user1:credits").ID.Int64,
+					FromID:    accounts.Value("user2:crebits").ID.Int64,
+					ToID:      accounts.Value("user1:crebits").ID.Int64,
 					Amount:    decimal.New(100, 0),
 				},
 			},

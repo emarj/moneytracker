@@ -18,7 +18,7 @@
                 t = "money";
                 break;
             case 2:
-                t = "credit";
+                t = "crebit";
                 break;
             case 3:
                 t = "investment";
@@ -86,7 +86,7 @@
         border-radius: 15px;
         transition: all 0.5s ease-in;
 
-        &.type-credit {
+        &.type-crebit {
             background: rgb(231, 138, 9);
         }
 

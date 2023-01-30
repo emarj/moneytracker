@@ -93,14 +93,14 @@ type AccountType struct {
 
 const (
 	AccTypeMoney int64 = iota // This is first since must be the default
-	AccTypeCredit
+	AccTypeCrebit
 	AccTypeInvestment
 )
 
 func AccountTypes() []AccountType {
 	return []AccountType{
 		{ID: AccTypeMoney, Name: "money"},
-		{ID: AccTypeCredit, Name: "credit"},
+		{ID: AccTypeCrebit, Name: "crebit"},
 		{ID: AccTypeInvestment, Name: "investment"},
 	}
 }

@@ -10,7 +10,7 @@ export type Entity = {
 export type Account = {
     id: number;
     owner?: Entity;
-    is_credit?: boolean;
+    is_crebit?: boolean;
 }
 
 export type Transaction = {
@@ -82,7 +82,7 @@ export class Share {
     with_id: number = null;
     cred_account_id: number;
     deb_account_id: number;
-    is_credit: boolean = true;
+    is_crebit: boolean = true;
 
     constructor(total?: number) {
         if (total) {

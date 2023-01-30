@@ -13,7 +13,7 @@ type ExpenseShare struct {
 	WithID        int64           `json:"with_id"`
 	CredAccountID int64           `json:"cred_account_id"`
 	DebAccountID  int64           `json:"deb_account_id"`
-	IsCredit      bool            `json:"is_credit"`
+	IsCrebit      bool            `json:"is_crebit"`
 }
 
 type Expense struct {
