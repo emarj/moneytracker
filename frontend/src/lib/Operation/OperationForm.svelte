@@ -85,9 +85,5 @@
         padding: 0.5rem;
         border: 1px solid #333;
         border-radius: 0.6rem;
-
-        & > div {
-            display: flex;
-        }
     }
 </style>

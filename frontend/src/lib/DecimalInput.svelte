@@ -1,6 +1,7 @@
 <script lang="ts">
     import Textfield from "@smui/textfield";
 
+    export let label = "Amount";
     export let value: number | null = null;
     export let decimalDigits = undefined;
     export let disabled = false;
@@ -151,9 +152,9 @@
     bind:value={valueText}
     on:beforeinput={(e) => filter(e)}
     on:input={(e) => validate(e)}
-    label="Amount"
+    {label}
     suffix="€"
     input$pattern={validationPattern}
-    input$inputmode="numeric"
+    input$inputmode="decimal"
     {disabled}
 />

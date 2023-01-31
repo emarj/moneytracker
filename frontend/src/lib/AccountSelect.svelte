@@ -43,24 +43,22 @@
     };
 </script>
 
-<div>
-    {#if $accountsQuery.isLoading}
-        <span
-            ><CircularProgress
-                style="height: 32px; width: 32px;"
-                indeterminate
-            /></span
-        >
-    {:else if $accountsQuery.error}
-        <span>An error has occurred: {$accountsQuery.error.message}</span>
-    {:else}
-        <Select variant="outlined" bind:value {label} {disabled}>
-            <!--     {#if !firstSelected}
+{#if $accountsQuery.isLoading}
+    <span
+        ><CircularProgress
+            style="height: 32px; width: 32px;"
+            indeterminate
+        /></span
+    >
+{:else if $accountsQuery.error}
+    <span>An error has occurred: {$accountsQuery.error.message}</span>
+{:else}
+    <Select variant="outlined" bind:value {label} {disabled}>
+        <!--     {#if !firstSelected}
                 <Option value={null} />
             {/if} -->
-            {#each filter($accountsQuery.data) as account (account.id)}
-                <Option value={account}><AccountName {account} /></Option>
-            {/each}
-        </Select>
-    {/if}
-</div>
+        {#each filter($accountsQuery.data) as account (account.id)}
+            <Option value={account}><AccountName {account} /></Option>
+        {/each}
+    </Select>
+{/if}

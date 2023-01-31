@@ -9,8 +9,9 @@
     import { useMutation } from "@sveltestack/svelte-query";
     import { adjustBalance } from "../../api";
     import { JSONPretty } from "../../util/utils";
+    import DecimalInput from "../DecimalInput.svelte";
 
-    const mutation = useMutation((b) => adjustBalance(b), {
+    const mutation = useMutation((b: any) => adjustBalance(b), {
         onSuccess: (data: number) => {
             push("/");
         },
@@ -26,25 +27,28 @@
 
 <div>
     <DatePicker bind:timestamp={balance.timestamp} />
-    <Textfield
-        variant="outlined"
-        bind:value={balance.comment}
-        label="Description"
-        style="width: 100%;"
+
+    <div>
+        <AccountSelect bind:account_id={balance.account_id} />
+        {#key balance.account_id}
+            {#if balance.account_id}
+                <AccountBalance
+                    label="Current Balance"
+                    id={balance.account_id}
+                />
+            {/if}
+        {/key}
+    </div>
+    <DecimalInput
+        bind:value={balance.value}
+        decimalDigits={2}
+        label="New balance"
     />
-    <AccountSelect bind:account_id={balance.account_id} />
-    {#key balance.account_id}
-        {#if balance.account_id}
-            <AccountBalance id={balance.account_id} />
-        {/if}
-    {/key}
 
     <Textfield
         variant="outlined"
-        bind:value={balance.value}
-        placeholder="New balance"
-        suffix="€"
-        input$pattern={"\\d+(\\.\\d{2})?"}
+        bind:value={balance.comment}
+        label="Comment"
     />
 
     <Button
@@ -60,11 +64,6 @@
 <style>
     div > :global(*) {
         /*  display: block; */
-        margin: 1rem 0.3rem;
-    }
-
-    .buttons > :global(*) {
-        margin: 0;
-        width: 48%;
+        margin: 0.5rem 0.3rem;
     }
 </style>

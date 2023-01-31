@@ -374,7 +374,12 @@ func updateOperation(txdb TXDB, op *mt.Operation) error {
 
 	op.ModifiedOn = now
 
-	stmt := jt.Operation.UPDATE(jt.Operation.AllColumns).
+	stmt := jt.Operation.
+		UPDATE(jt.Operation.AllColumns.
+			Except(
+				jt.Operation.ID,
+				jt.Operation.CreatedOn,
+			)).
 		WHERE(jt.Operation.ID.EQ(jet.Int(op.ID.Int64))).
 		MODEL(op)
 

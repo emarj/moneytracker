@@ -4,6 +4,7 @@
     import Amount from "../Amount.svelte";
 
     export let id;
+    export let label = "Balance";
 
     const queryClient = useQueryClient();
 
@@ -14,18 +15,18 @@
     };
 </script>
 
-<p>
-    Balance: {#if $balanceQuery.isLoading}
+<span>
+    {label}: {#if $balanceQuery.isLoading}
         ...
     {:else if $balanceQuery.error}
         error
     {:else}
         <span> <Amount value={$balanceQuery.data.value} /></span>
     {/if}
-</p>
+</span>
 
 <style lang="scss">
-    p {
+    span {
         font-size: 1.2rem;
         span {
             font-weight: bold;
