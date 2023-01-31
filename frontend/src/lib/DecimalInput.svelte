@@ -57,11 +57,13 @@
 
         if (isDigit) {
             return;
-        } else if (char === ".") {
-            const firstDot = valueText.indexOf(".");
-            if (firstDot < 0) {
-                // There are no dots
-                return;
+        } else if (char === "." || char === ",") {
+            if (valueText !== "") {
+                const firstDot = valueText.indexOf(".");
+                if (firstDot < 0) {
+                    // There are no dots
+                    return;
+                }
             }
         }
         // In all other cases
@@ -69,9 +71,12 @@
     };
 
     const validate = (e: InputEvent) => {
+        valueText = valueText.replaceAll(",", ".");
+
         if (e.data === null) {
             // This is not insert, see e.inputType for details
             // we don't care, we just validate the value
+
             const n = parseDecimal(valueText, decimalDigits);
             if (!Number.isNaN(n) || n === null) {
                 value = n;
